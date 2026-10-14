@@ -1,0 +1,3005 @@
+[
+  {
+    "name": "activar-shift",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "activar-shift",
+      "description": "Inicia un turno",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b001_shifts.js",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b010_shifts.js"
+    ]
+  },
+  {
+    "name": "apagar-shift",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "apagar-shift",
+      "description": "Finaliza tu turno",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b001_shifts.js",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b010_shifts.js"
+    ]
+  },
+  {
+    "name": "pausar-shift",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "pausar-shift",
+      "description": "Pausa tu turno",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": []
+  },
+  {
+    "name": "ranking",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "ranking",
+      "description": "Ranking de actividad real de staff",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b001_shifts.js",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b010_shifts.js"
+    ]
+  },
+  {
+    "name": "reanudar-shift",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "reanudar-shift",
+      "description": "Reanuda tu turno",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": []
+  },
+  {
+    "name": "aperturas",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "name": "aperturas",
+      "description": "Gestiona aperturas, encuestas y votantes",
+      "options": [
+        {
+          "type": 1,
+          "name": "server",
+          "description": "server",
+          "options": [
+            {
+              "type": 3,
+              "name": "estado",
+              "description": "estado",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Abierto",
+                  "value": "ON"
+                },
+                {
+                  "name": "Cerrado",
+                  "value": "OFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "encuesta",
+          "description": "encuesta",
+          "options": [
+            {
+              "type": 4,
+              "name": "minimo_civiles",
+              "description": "minimo_civiles",
+              "required": true,
+              "min_value": 1,
+              "max_value": 100000
+            },
+            {
+              "type": 3,
+              "name": "hora",
+              "description": "hora",
+              "required": true,
+              "max_length": 50
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "lista-votantes",
+          "description": "lista-votantes",
+          "options": []
+        }
+      ],
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/conversacion.txt",
+      "DeepSeek/codigo_generado/044_Updated_Whitelist_Script_with_Complete_Code/m002_b004_aperturas.js"
+    ]
+  },
+  {
+    "name": "encuesta-apertura",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "max_value": 100000,
+          "min_value": 1,
+          "type": 4,
+          "name": "min-votos",
+          "description": "min-votos",
+          "required": true
+        },
+        {
+          "max_value": 1000,
+          "min_value": 0,
+          "type": 4,
+          "name": "min-mods",
+          "description": "min-mods",
+          "required": true
+        },
+        {
+          "type": 3,
+          "name": "hora",
+          "description": "hora",
+          "required": false,
+          "max_length": 50
+        }
+      ],
+      "name": "encuesta-apertura",
+      "description": "Publica una encuesta persistente de apertura",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Analisis_de_archivo_completo/analisis-completo.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "codigo/Analisis_de_archivo_completo/aperturas_v001.js",
+      "codigo/Licencias_js_adaptado_CR/aperturas_v001.js",
+      "codigo/Requisitos_tecnicos_bot/aperturas_v001.js",
+      "DeepSeek/conversaciones/076_Discord_Bot_Voting_System_Code_Fix/conversacion.txt",
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/mensaje_005_original.txt",
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/077_Hacer_botones_persistentes_en_Discord.py/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/mensaje_001_original.txt",
+      "DeepSeek/codigo_generado/076_Discord_Bot_Voting_System_Code_Fix/m002_b001_aperturas.js",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m010_b001_aperturas.js",
+      "DeepSeek/codigo_generado/053_Guia_de_componentes_V2_de_Discord.js/m010_b003_encuesta-apertura.js",
+      "DeepSeek/codigo_generado/077_Hacer_botones_persistentes_en_Discord.py/m014_b001_aperturas.js"
+    ]
+  },
+  {
+    "name": "estado-server",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "choices": [
+            {
+              "name": "abierto",
+              "value": "abierto"
+            },
+            {
+              "name": "cerrado",
+              "value": "cerrado"
+            }
+          ],
+          "name": "estado",
+          "description": "estado",
+          "required": true,
+          "max_length": 1000
+        }
+      ],
+      "name": "estado-server",
+      "description": "Actualiza el estado de la apertura",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": []
+  },
+  {
+    "name": "estado-sv",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "choices": [
+            {
+              "name": "abierto",
+              "value": "abierto"
+            },
+            {
+              "name": "cerrado",
+              "value": "cerrado"
+            }
+          ],
+          "name": "estado",
+          "description": "estado",
+          "required": true,
+          "max_length": 1000
+        }
+      ],
+      "name": "estado-sv",
+      "description": "Actualiza el estado de la apertura",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Analisis_de_archivo_completo/analisis-completo.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "codigo/Analisis_de_archivo_completo/aperturas_v001.js",
+      "codigo/Licencias_js_adaptado_CR/aperturas_v001.js",
+      "codigo/Requisitos_tecnicos_bot/aperturas_v001.js",
+      "DeepSeek/conversaciones/076_Discord_Bot_Voting_System_Code_Fix/conversacion.txt",
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/mensaje_005_original.txt",
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/conversaciones/058_Sistema_anti-farming_y_ranking_de_moderadores/conversacion.txt",
+      "DeepSeek/conversaciones/077_Hacer_botones_persistentes_en_Discord.py/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/mensaje_001_original.txt",
+      "DeepSeek/codigo_generado/076_Discord_Bot_Voting_System_Code_Fix/m002_b001_aperturas.js",
+      "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m010_b001_aperturas.js",
+      "DeepSeek/codigo_generado/077_Hacer_botones_persistentes_en_Discord.py/m014_b001_aperturas.js"
+    ]
+  },
+  {
+    "name": "server",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "server",
+      "description": "Panel de control de aperturas de Maes RP",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/051_Error_de_comandos_Discord.js_V2_compatible/conversacion.txt",
+      "DeepSeek/conversaciones/051_Error_de_comandos_Discord.js_V2_compatible/conversacion.txt",
+      "DeepSeek/conversaciones/052_Fixing_Discord_Bot_Command_Errors/conversacion.txt",
+      "DeepSeek/conversaciones/052_Fixing_Discord_Bot_Command_Errors/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/codigo_generado/053_Guia_de_componentes_V2_de_Discord.js/m006_b002_server.js",
+      "DeepSeek/codigo_generado/053_Guia_de_componentes_V2_de_Discord.js/m010_b002_server.js",
+      "DeepSeek/codigo_generado/053_Guia_de_componentes_V2_de_Discord.js/m008_b002_server.js",
+      "DeepSeek/codigo_generado/051_Error_de_comandos_Discord.js_V2_compatible/m004_b003_server.js",
+      "DeepSeek/codigo_generado/051_Error_de_comandos_Discord.js_V2_compatible/m004_b001_bloque.js",
+      "DeepSeek/codigo_generado/051_Error_de_comandos_Discord.js_V2_compatible/m002_b006_Discord.js",
+      "DeepSeek/codigo_generado/052_Fixing_Discord_Bot_Command_Errors/m010_b009_server.js",
+      "DeepSeek/codigo_generado/052_Fixing_Discord_Bot_Command_Errors/m008_b003_server.js"
+    ]
+  },
+  {
+    "name": "arrestar",
+    "scope": "police",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "articulos",
+          "description": "articulos",
+          "required": true,
+          "max_length": 1500
+        },
+        {
+          "max_value": 1000000,
+          "min_value": 1,
+          "type": 4,
+          "name": "tiempo",
+          "description": "tiempo",
+          "required": true
+        }
+      ],
+      "name": "arrestar",
+      "description": "Registra un arresto y genera PDF",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/arrestar_v001.js",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m006_b002_arrestos.js"
+    ]
+  },
+  {
+    "name": "ver-arrestos",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "ver-arrestos",
+      "description": "Consulta arrestos de tu personaje",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m006_b002_arrestos.js"
+    ]
+  },
+  {
+    "name": "banear",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "usuario_roblox",
+          "description": "usuario_roblox",
+          "required": true,
+          "max_length": 40
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": true,
+          "max_length": 1000
+        },
+        {
+          "max_value": 3650,
+          "min_value": 0,
+          "type": 10,
+          "name": "dias",
+          "description": "dias",
+          "required": false
+        },
+        {
+          "type": 3,
+          "name": "tiempo",
+          "description": "tiempo",
+          "required": false,
+          "max_length": 60
+        }
+      ],
+      "name": "banear",
+      "description": "Solicita un ban de ER:LC y guarda su resultado",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_007_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m006_b008_baneos.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m016_b001_baneos.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m004_b003_banear.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m006_b001_bloque.txt",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m004_b002_bloque.txt",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m002_b001_baneos.js"
+    ]
+  },
+  {
+    "name": "desbanear",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "usuario_roblox",
+          "description": "usuario_roblox",
+          "required": true,
+          "max_length": 40
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": false,
+          "max_length": 1000
+        }
+      ],
+      "name": "desbanear",
+      "description": "Retira un ban de ER:LC confirmado",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_007_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m006_b008_baneos.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m016_b001_baneos.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m006_b001_bloque.txt",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m004_b004_desbanear.js",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m002_b001_baneos.js"
+    ]
+  },
+  {
+    "name": "ver-baneo",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "ver-baneo",
+      "description": "Consulta baneos registrados",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m006_b008_baneos.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m016_b001_baneos.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m004_b005_ver-baneo.js",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m006_b001_bloque.txt"
+    ]
+  },
+  {
+    "name": "cedula-prueba",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "cedula-prueba",
+      "description": "Genera una vista previa PDF de tu identidad registrada",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Revisar_y_corregir_codigo/cedula-prueba_v001.js"
+    ]
+  },
+  {
+    "name": "ck",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": true,
+          "max_length": 1000
+        }
+      ],
+      "name": "ck",
+      "description": "Elimina los registros del personaje, conservando su moderación",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m008_b001_bloque.txt"
+    ]
+  },
+  {
+    "name": "eliminar-cedula",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        }
+      ],
+      "name": "eliminar-cedula",
+      "description": "Revoca un registro de identidad",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/cedulas_v001.js",
+      "codigo/Revisar_y_corregir_codigo/cedulas_v001.js",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m024_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m026_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m014_b003_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m006_b001_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m010_b002_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m008_b001_cedulas.js"
+    ]
+  },
+  {
+    "name": "info-cedula",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "info-cedula",
+      "description": "Consulta una cédula registrada",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m024_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m026_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m014_b003_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m006_b001_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m010_b002_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m008_b001_cedulas.js"
+    ]
+  },
+  {
+    "name": "registrar-cedula",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "nombre",
+          "description": "nombre",
+          "required": true,
+          "max_length": 80
+        },
+        {
+          "type": 3,
+          "name": "apellidos",
+          "description": "apellidos",
+          "required": true,
+          "max_length": 100
+        },
+        {
+          "type": 3,
+          "name": "roblox",
+          "description": "roblox",
+          "required": false,
+          "max_length": 40
+        },
+        {
+          "type": 3,
+          "name": "estatura",
+          "description": "estatura",
+          "required": false,
+          "max_length": 20
+        },
+        {
+          "type": 3,
+          "name": "nacionalidad",
+          "description": "nacionalidad",
+          "required": false,
+          "max_length": 50
+        },
+        {
+          "type": 3,
+          "name": "provincia",
+          "description": "provincia",
+          "required": false,
+          "max_length": 50
+        },
+        {
+          "type": 3,
+          "name": "fecha",
+          "description": "fecha",
+          "required": false,
+          "max_length": 30
+        },
+        {
+          "type": 3,
+          "name": "sexo",
+          "description": "sexo",
+          "required": false,
+          "max_length": 20
+        }
+      ],
+      "name": "registrar-cedula",
+      "description": "Registra la identidad de tu personaje",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/cedulas_v001.js",
+      "codigo/Revisar_y_corregir_codigo/cedulas_v001.js",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m024_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m026_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m014_b003_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m006_b001_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m010_b002_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m008_b001_cedulas.js"
+    ]
+  },
+  {
+    "name": "ver-cedula",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "ver-cedula",
+      "description": "Consulta una cédula registrada",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/cedulas_v001.js",
+      "codigo/Revisar_y_corregir_codigo/cedulas_v001.js",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/060_Analisis_y_cambios_en_archivo_aperturas.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m024_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m026_b001_cedulas.js",
+      "DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m014_b003_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m006_b001_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m010_b002_cedulas.js",
+      "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m008_b001_cedulas.js"
+    ]
+  },
+  {
+    "name": "revisar-licencias",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "revisar-licencias",
+      "description": "Sincroniza licencias con roles configurados",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/095_Analisis_y_mejora_de_bot_Discord/conversacion.txt",
+      "DeepSeek/codigo_generado/095_Analisis_y_mejora_de_bot_Discord/m004_b002_licencias.js"
+    ]
+  },
+  {
+    "name": "solicitar-licencia",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "choices": [
+            {
+              "name": "A1",
+              "value": "A1"
+            },
+            {
+              "name": "A2",
+              "value": "A2"
+            },
+            {
+              "name": "A3",
+              "value": "A3"
+            },
+            {
+              "name": "B1",
+              "value": "B1"
+            },
+            {
+              "name": "B2",
+              "value": "B2"
+            },
+            {
+              "name": "B3",
+              "value": "B3"
+            },
+            {
+              "name": "C1",
+              "value": "C1"
+            },
+            {
+              "name": "C2",
+              "value": "C2"
+            },
+            {
+              "name": "C3",
+              "value": "C3"
+            },
+            {
+              "name": "D1",
+              "value": "D1"
+            },
+            {
+              "name": "D2",
+              "value": "D2"
+            },
+            {
+              "name": "D3",
+              "value": "D3"
+            }
+          ],
+          "name": "tipo",
+          "description": "tipo",
+          "required": true,
+          "max_length": 1000
+        }
+      ],
+      "name": "solicitar-licencia",
+      "description": "Realiza el examen de una licencia",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/licencias_v001.js",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/095_Analisis_y_mejora_de_bot_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/095_Analisis_y_mejora_de_bot_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/095_Analisis_y_mejora_de_bot_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_generado/029_Revision_de_sistema_bot_y_comandos_Discord/m006_b001_licencias.js",
+      "DeepSeek/codigo_generado/029_Revision_de_sistema_bot_y_comandos_Discord/m012_b001_licencias.js",
+      "DeepSeek/codigo_generado/029_Revision_de_sistema_bot_y_comandos_Discord/m008_b008_licencias.js",
+      "DeepSeek/codigo_generado/095_Analisis_y_mejora_de_bot_Discord/m004_b002_licencias.js"
+    ]
+  },
+  {
+    "name": "ver-licencias",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "ver-licencias",
+      "description": "Consulta licencias activas",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/codigo_generado/029_Revision_de_sistema_bot_y_comandos_Discord/m006_b001_licencias.js",
+      "DeepSeek/codigo_generado/029_Revision_de_sistema_bot_y_comandos_Discord/m012_b001_licencias.js",
+      "DeepSeek/codigo_generado/029_Revision_de_sistema_bot_y_comandos_Discord/m008_b008_licencias.js"
+    ]
+  },
+  {
+    "name": "configurar-texto",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "name": "configurar-texto",
+      "description": "Personaliza un título, cuerpo o pie del bot",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "clave",
+          "description": "pie, titulo:Título o cuerpo:Título",
+          "required": true,
+          "max_length": 160
+        },
+        {
+          "type": 3,
+          "name": "texto",
+          "description": "Nuevo texto; {contenido} conserva los datos dinámicos",
+          "required": true,
+          "max_length": 3500
+        }
+      ]
+    },
+    "sources": []
+  },
+  {
+    "name": "crear-mensaje",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "nombre",
+          "description": "nombre",
+          "required": false,
+          "max_length": 60
+        },
+        {
+          "type": 3,
+          "name": "contenido",
+          "description": "contenido",
+          "required": false,
+          "max_length": 4000
+        },
+        {
+          "type": 3,
+          "name": "color",
+          "description": "color",
+          "required": false,
+          "max_length": 6
+        }
+      ],
+      "name": "crear-mensaje",
+      "description": "Guarda un mensaje personalizado",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/020_Error_en_manejo_de_mensajes_de_Discord/m003_02_mensajes.js",
+      "DeepSeek/codigo_pegado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m001_02_mensajes.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_02_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b005_crear-mensaje.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m008_b001_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m016_b007_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m014_b012_mensajes.js",
+      "DeepSeek/codigo_generado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m002_b018_mensajes.js"
+    ]
+  },
+  {
+    "name": "editar-mensaje",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "nombre",
+          "description": "nombre",
+          "required": false,
+          "max_length": 60
+        },
+        {
+          "type": 3,
+          "name": "contenido",
+          "description": "contenido",
+          "required": false,
+          "max_length": 4000
+        },
+        {
+          "type": 3,
+          "name": "color",
+          "description": "color",
+          "required": false,
+          "max_length": 6
+        }
+      ],
+      "name": "editar-mensaje",
+      "description": "Actualiza un mensaje guardado",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/020_Error_en_manejo_de_mensajes_de_Discord/m003_02_mensajes.js",
+      "DeepSeek/codigo_pegado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m001_02_mensajes.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_02_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m008_b001_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m016_b007_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b009_editar-mensaje.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m014_b012_mensajes.js",
+      "DeepSeek/codigo_generado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m002_b018_mensajes.js"
+    ]
+  },
+  {
+    "name": "eliminar-mensaje",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "nombre",
+          "description": "nombre",
+          "required": true,
+          "max_length": 60
+        }
+      ],
+      "name": "eliminar-mensaje",
+      "description": "Elimina un mensaje guardado",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/020_Error_en_manejo_de_mensajes_de_Discord/m003_02_mensajes.js",
+      "DeepSeek/codigo_pegado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m001_02_mensajes.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_02_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m008_b001_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b008_eliminar-mensaje.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m016_b007_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m014_b012_mensajes.js",
+      "DeepSeek/codigo_generado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m002_b018_mensajes.js"
+    ]
+  },
+  {
+    "name": "enviar-mensaje",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "nombre",
+          "description": "nombre",
+          "required": true,
+          "max_length": 60,
+          "autocomplete": true
+        },
+        {
+          "name": "canal",
+          "description": "canal",
+          "required": true,
+          "type": 7
+        }
+      ],
+      "name": "enviar-mensaje",
+      "description": "Publica un mensaje guardado en un canal",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/020_Error_en_manejo_de_mensajes_de_Discord/m003_02_mensajes.js",
+      "DeepSeek/codigo_pegado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m001_02_mensajes.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_02_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m008_b001_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m016_b007_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b006_enviar-mensaje.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m014_b012_mensajes.js",
+      "DeepSeek/codigo_generado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m002_b018_mensajes.js"
+    ]
+  },
+  {
+    "name": "listar-mensajes",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "listar-mensajes",
+      "description": "Lista los mensajes guardados",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/020_Error_en_manejo_de_mensajes_de_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/conversacion.txt",
+      "DeepSeek/conversaciones/018_Fixing_Discord_Media_Gallery_Array_Length_Error/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/020_Error_en_manejo_de_mensajes_de_Discord/m003_02_mensajes.js",
+      "DeepSeek/codigo_pegado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m001_02_mensajes.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_02_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m008_b001_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m016_b007_mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b007_listar-mensajes.js",
+      "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m014_b012_mensajes.js",
+      "DeepSeek/codigo_generado/018_Fixing_Discord_Media_Gallery_Array_Length_Error/m002_b018_mensajes.js"
+    ]
+  },
+  {
+    "name": "restablecer-texto",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "name": "restablecer-texto",
+      "description": "Restaura un texto predeterminado del bot",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "clave",
+          "description": "Clave configurada",
+          "required": true,
+          "max_length": 160
+        }
+      ]
+    },
+    "sources": []
+  },
+  {
+    "name": "multar",
+    "scope": "police",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "articulos",
+          "description": "articulos",
+          "required": true,
+          "max_length": 1500
+        },
+        {
+          "max_value": 100000000,
+          "min_value": 0.01,
+          "type": 10,
+          "name": "monto",
+          "description": "monto",
+          "required": false
+        },
+        {
+          "type": 3,
+          "name": "placa",
+          "description": "placa",
+          "required": false,
+          "max_length": 20
+        }
+      ],
+      "name": "multar",
+      "description": "Registra una multa y genera PDF",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones-exacto_mensajes_originales.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/multas_v002.js",
+      "codigo/Licencias_js_adaptado_CR/multas_v003.js",
+      "codigo/Licencias_js_adaptado_CR/multas_v001.js",
+      "codigo/Revisar_y_corregir_codigo/multas_v001.js",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/codigo_pegado/030_Error_en_pago_de_multas_corregido/m001_02_multas.js",
+      "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m004_b001_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b011_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b008_bloque.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m010_b006_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b002_bloque.js",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m004_b001_multas.js",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m002_b008_multas.js"
+    ]
+  },
+  {
+    "name": "multas",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "name": "multas",
+      "description": "Gestión de multas de Maes RP",
+      "options": [
+        {
+          "type": 1,
+          "name": "crear",
+          "description": "crear",
+          "options": [
+            {
+              "type": 6,
+              "name": "usuario",
+              "description": "usuario",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "monto",
+              "description": "monto",
+              "required": true,
+              "min_value": 1,
+              "max_value": 100000000
+            },
+            {
+              "type": 3,
+              "name": "articulos",
+              "description": "articulos",
+              "required": true,
+              "max_length": 1000
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "pagar",
+          "description": "pagar",
+          "options": [
+            {
+              "type": 3,
+              "name": "id_multa",
+              "description": "id_multa",
+              "required": false,
+              "max_length": 80
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "ver",
+          "description": "ver",
+          "options": []
+        }
+      ],
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/conversacion.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/conversacion.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/conversacion.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/conversacion.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/conversacion.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/034_Integracion_de_API_de_PRC_en_bot_Discord/conversacion.txt",
+      "DeepSeek/codigo_pegado/037_Correccion_de_errores_en_multas.js/m001_01_multas.js",
+      "DeepSeek/codigo_generado/037_Correccion_de_errores_en_multas.js/m006_b012_multas.js",
+      "DeepSeek/codigo_generado/037_Correccion_de_errores_en_multas.js/m004_b001_multas.js",
+      "DeepSeek/codigo_generado/037_Correccion_de_errores_en_multas.js/m002_b007_multas.js",
+      "DeepSeek/codigo_generado/037_Correccion_de_errores_en_multas.js/m006_b009_bloque.txt",
+      "DeepSeek/codigo_generado/037_Correccion_de_errores_en_multas.js/m008_b001_multas.js",
+      "DeepSeek/codigo_generado/034_Integracion_de_API_de_PRC_en_bot_Discord/m002_b004_prc.js"
+    ]
+  },
+  {
+    "name": "pagar-multa",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "id_multa",
+          "description": "id_multa",
+          "required": true,
+          "max_length": 80
+        }
+      ],
+      "name": "pagar-multa",
+      "description": "Solicita el pago de una multa",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones-exacto_mensajes_originales.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/multas_v002.js",
+      "codigo/Licencias_js_adaptado_CR/multas_v003.js",
+      "codigo/Licencias_js_adaptado_CR/multas_v001.js",
+      "codigo/Revisar_y_corregir_codigo/multas_v001.js",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/codigo_pegado/030_Error_en_pago_de_multas_corregido/m001_02_multas.js",
+      "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m004_b001_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b011_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b008_bloque.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m010_b006_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b002_bloque.js",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m004_b001_multas.js"
+    ]
+  },
+  {
+    "name": "revisar-multas",
+    "scope": "police",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "revisar-multas",
+      "description": "Consulta multas pendientes y vencimientos",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m004_b001_multas.js"
+    ]
+  },
+  {
+    "name": "ver-multas",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "ver-multas",
+      "description": "Consulta multas de tu personaje",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/conversacion.txt",
+      "DeepSeek/conversaciones/030_Error_en_pago_de_multas_corregido/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/codigo_pegado/030_Error_en_pago_de_multas_corregido/m001_02_multas.js",
+      "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m004_b001_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b011_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b008_bloque.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m010_b006_multas.js",
+      "DeepSeek/codigo_generado/036_Analisis_de_sistema_de_Discord.js_para_V2/m006_b002_bloque.js",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m004_b001_multas.js",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m002_b008_multas.js",
+      "DeepSeek/codigo_generado/031_este_es_mi_index.js/m002_b005_bloque.txt"
+    ]
+  },
+  {
+    "name": "advertir",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": true,
+          "max_length": 1000
+        },
+        {
+          "type": 3,
+          "name": "descripcion",
+          "description": "descripcion",
+          "required": false,
+          "max_length": 1000
+        }
+      ],
+      "name": "advertir",
+      "description": "Registra una sanción o advertencia de rol",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "apelar-sancion",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": true,
+          "max_length": 1000
+        },
+        {
+          "type": 3,
+          "name": "id_sancion",
+          "description": "id_sancion",
+          "required": false,
+          "max_length": 80
+        },
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "apelar-sancion",
+      "description": "Presenta una apelación de tu sanción",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Analisis_de_archivo_completo/analisis-completo.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Analisis_archivo_sanciones/sanciones-analisis.txt",
+      "conversaciones/Analisis_archivo_sanciones/sanciones-analisis.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "codigo/Licencias_js_adaptado_CR/sanciones_v001.js",
+      "codigo/Analisis_archivo_sanciones/sanciones_v002.js",
+      "codigo/Analisis_archivo_sanciones/sanciones_v001.js",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_007_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/077_Hacer_botones_persistentes_en_Discord.py/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_pegado/019_Analisis_de_sistema_de_componentes_V2/m001_02_sanciones.js",
+      "DeepSeek/codigo_generado/077_Hacer_botones_persistentes_en_Discord.py/m010_b002_sanciones.js",
+      "DeepSeek/codigo_generado/019_Analisis_de_sistema_de_componentes_V2/m004_b003_sanciones.js",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "aprobar-castigo",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "id_sancion",
+          "description": "id_sancion",
+          "required": true,
+          "max_length": 80
+        }
+      ],
+      "name": "aprobar-castigo",
+      "description": "Aplica un castigo pendiente al juego con aprobación",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": []
+  },
+  {
+    "name": "estadisticas-sanciones",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "estadisticas-sanciones",
+      "description": "Resumen de sanciones registradas",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "historial-sanciones",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        }
+      ],
+      "name": "historial-sanciones",
+      "description": "Consulta el historial de moderación",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Analisis_de_archivo_completo/analisis-completo.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Analisis_archivo_sanciones/sanciones-analisis.txt",
+      "conversaciones/Analisis_archivo_sanciones/sanciones-analisis.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "codigo/Licencias_js_adaptado_CR/sanciones_v001.js",
+      "codigo/Analisis_archivo_sanciones/sanciones_v002.js",
+      "codigo/Analisis_archivo_sanciones/sanciones_v001.js",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_007_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/077_Hacer_botones_persistentes_en_Discord.py/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_pegado/019_Analisis_de_sistema_de_componentes_V2/m001_02_sanciones.js",
+      "DeepSeek/codigo_generado/077_Hacer_botones_persistentes_en_Discord.py/m010_b002_sanciones.js",
+      "DeepSeek/codigo_generado/019_Analisis_de_sistema_de_componentes_V2/m004_b003_sanciones.js",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "mis-sanciones",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "mis-sanciones",
+      "description": "Consulta tus sanciones",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "modlogs",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        }
+      ],
+      "name": "modlogs",
+      "description": "Consulta el historial de moderación",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "sancionar",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": true,
+          "max_length": 1000
+        },
+        {
+          "type": 3,
+          "name": "descripcion",
+          "description": "descripcion",
+          "required": false,
+          "max_length": 1000
+        }
+      ],
+      "name": "sancionar",
+      "description": "Registra una sanción o advertencia de rol",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Analisis_de_archivo_completo/analisis-completo.txt",
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Analisis_archivo_sanciones/sanciones-analisis.txt",
+      "conversaciones/Analisis_archivo_sanciones/sanciones-analisis.txt",
+      "conversaciones/Codigo_sanciones_actualizado/sanciones-actualizado.txt",
+      "conversaciones/Requisitos_tecnicos_bot/requisitos-final.txt",
+      "codigo/Licencias_js_adaptado_CR/sanciones_v001.js",
+      "codigo/Analisis_archivo_sanciones/sanciones_v002.js",
+      "codigo/Analisis_archivo_sanciones/sanciones_v001.js",
+      "codigo/Codigo_sanciones_actualizado/sancionar_v001.js",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_007_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/077_Hacer_botones_persistentes_en_Discord.py/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/075_Creating_Ban_Commands_for_Discord_Bot/conversacion.txt",
+      "DeepSeek/codigo_pegado/019_Analisis_de_sistema_de_componentes_V2/m001_02_sanciones.js",
+      "DeepSeek/codigo_generado/077_Hacer_botones_persistentes_en_Discord.py/m010_b002_sanciones.js",
+      "DeepSeek/codigo_generado/019_Analisis_de_sistema_de_componentes_V2/m004_b001_bloque.txt",
+      "DeepSeek/codigo_generado/019_Analisis_de_sistema_de_componentes_V2/m004_b003_sanciones.js",
+      "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js"
+    ]
+  },
+  {
+    "name": "sanciones",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "name": "sanciones",
+      "description": "Gestión de sanciones de Maes RP",
+      "options": [
+        {
+          "type": 1,
+          "name": "sancionar",
+          "description": "sancionar",
+          "options": [
+            {
+              "type": 6,
+              "name": "usuario",
+              "description": "usuario",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "motivo",
+              "description": "motivo",
+              "required": true,
+              "max_length": 1000
+            },
+            {
+              "type": 3,
+              "name": "descripcion",
+              "description": "descripcion",
+              "required": false,
+              "max_length": 1000
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "ver",
+          "description": "ver",
+          "options": [
+            {
+              "type": 6,
+              "name": "usuario",
+              "description": "usuario",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "apelar",
+          "description": "apelar",
+          "options": [
+            {
+              "type": 6,
+              "name": "usuario",
+              "description": "usuario",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "motivo_apelacion",
+              "description": "motivo_apelacion",
+              "required": true,
+              "max_length": 1000
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "vaciar",
+          "description": "vaciar",
+          "options": [
+            {
+              "type": 6,
+              "name": "usuario",
+              "description": "usuario",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "confirmacion",
+              "description": "confirmacion",
+              "required": true,
+              "max_length": 40
+            }
+          ]
+        }
+      ],
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/conversacion.txt",
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/conversacion.txt",
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/conversacion.txt",
+      "DeepSeek/codigo_generado/044_Updated_Whitelist_Script_with_Complete_Code/m004_b016_sanciones.js",
+      "DeepSeek/codigo_generado/044_Updated_Whitelist_Script_with_Complete_Code/m006_b002_bloque.js",
+      "DeepSeek/codigo_generado/044_Updated_Whitelist_Script_with_Complete_Code/m006_b004_sanciones.js",
+      "DeepSeek/codigo_generado/044_Updated_Whitelist_Script_with_Complete_Code/m002_b002_sanciones.js"
+    ]
+  },
+  {
+    "name": "vaciar-historial",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "confirmacion",
+          "description": "confirmacion",
+          "required": true,
+          "max_length": 30
+        }
+      ],
+      "name": "vaciar-historial",
+      "description": "Revoca sanciones de un usuario con confirmación",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_007_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/019_Analisis_de_sistema_de_componentes_V2/m001_02_sanciones.js",
+      "DeepSeek/codigo_generado/019_Analisis_de_sistema_de_componentes_V2/m004_b003_sanciones.js"
+    ]
+  },
+  {
+    "name": "asignar-roles",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "name": "rol",
+          "description": "rol",
+          "required": true,
+          "type": 8
+        }
+      ],
+      "name": "asignar-roles",
+      "description": "Asigna un rol autorizado a un miembro",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m012_b001_asignar-roles.js"
+    ]
+  },
+  {
+    "name": "ayuda",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "ayuda",
+      "description": "Lista de comandos de Maes RP",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": []
+  },
+  {
+    "name": "container-test",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "container-test",
+      "description": "Diagnóstico de Components V2 y versión de Discord",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/codigo_generado/050_archivo/m018_b001_discord.js"
+    ]
+  },
+  {
+    "name": "debug-v2",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "debug-v2",
+      "description": "Diagnóstico de Components V2 y versión de Discord",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/codigo_generado/050_archivo/m016_b003_bloque.js"
+    ]
+  },
+  {
+    "name": "demo-completo",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "demo-completo",
+      "description": "Diagnóstico de Components V2 y versión de Discord",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/conversacion.txt",
+      "DeepSeek/codigo_generado/053_Guia_de_componentes_V2_de_Discord.js/m004_b016_bloque.js"
+    ]
+  },
+  {
+    "name": "demo-v2",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "demo-v2",
+      "description": "Diagnóstico de Components V2 y versión de Discord",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/conversacion.txt",
+      "DeepSeek/conversaciones/028_Desarrollo_de_sistema_de_mensajes_avanzado/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/mensaje_005_original.txt",
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/conversacion.txt",
+      "DeepSeek/conversaciones/012_Analisis_de_sistema_de_autenticacion_judicial/conversacion.txt",
+      "DeepSeek/conversaciones/012_Analisis_de_sistema_de_autenticacion_judicial/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/010_Analisis_y_mejora_de_sistema_autenticacion/conversacion.txt",
+      "DeepSeek/conversaciones/010_Analisis_y_mejora_de_sistema_autenticacion/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/042_Analisis_de_codigo_y_problemas_en_sistema_bot/mensaje_009_original.txt",
+      "DeepSeek/conversaciones/042_Analisis_de_codigo_y_problemas_en_sistema_bot/conversacion.txt",
+      "DeepSeek/conversaciones/042_Analisis_de_codigo_y_problemas_en_sistema_bot/conversacion.txt",
+      "DeepSeek/conversaciones/042_Analisis_de_codigo_y_problemas_en_sistema_bot/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/001_Analisis_de_sistema_policial_MaesRP/conversacion.txt",
+      "DeepSeek/conversaciones/001_Analisis_de_sistema_policial_MaesRP/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/mensaje_011_original.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/029_Revision_de_sistema_bot_y_comandos_Discord/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/conversacion.txt",
+      "DeepSeek/conversaciones/036_Analisis_de_sistema_de_Discord.js_para_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/mensaje_005_original.txt",
+      "DeepSeek/conversaciones/094_Sistema_Judicial_Integrado_para_Discord_RP/conversacion.txt",
+      "DeepSeek/conversaciones/011_este_es_web_server.js_const_e/conversacion.txt",
+      "DeepSeek/conversaciones/011_este_es_web_server.js_const_e/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/048_Guia_Completa_de_Components_V2_en_Discord.js/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/049_Guia_Completa_de_Components_V2_en_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/049_Guia_Completa_de_Components_V2_en_Discord.js/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/027_Desarrollo_de_comandos_de_verificacion_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/027_Desarrollo_de_comandos_de_verificacion_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/conversacion.txt",
+      "DeepSeek/conversaciones/037_Correccion_de_errores_en_multas.js/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/conversacion.txt",
+      "DeepSeek/conversaciones/031_este_es_mi_index.js/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/conversacion.txt",
+      "DeepSeek/conversaciones/019_Analisis_de_sistema_de_componentes_V2/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/027_Desarrollo_de_comandos_de_verificacion_en_Discord/m001_bloque_025.js",
+      "DeepSeek/codigo_pegado/031_este_es_mi_index.js/m001_02_multas.js",
+      "DeepSeek/codigo_pegado/031_este_es_mi_index.js/m003_02_multas.js",
+      "DeepSeek/codigo_pegado/031_este_es_mi_index.js/m003_02_multas.js",
+      "DeepSeek/codigo_pegado/031_este_es_mi_index.js/m003_bloque_025.js",
+      "DeepSeek/codigo_pegado/019_Analisis_de_sistema_de_componentes_V2/m001_02_sanciones.js",
+      "DeepSeek/codigo_generado/053_Guia_de_componentes_V2_de_Discord.js/m004_b002_bloque.js"
+    ]
+  },
+  {
+    "name": "developer",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "name": "developer",
+      "description": "Vista previa y eliminación explícita de canales",
+      "options": [
+        {
+          "type": 1,
+          "name": "eliminar-canales",
+          "description": "eliminar-canales",
+          "options": [
+            {
+              "type": 3,
+              "name": "confirmacion",
+              "description": "confirmacion",
+              "required": false,
+              "max_length": 80
+            }
+          ]
+        }
+      ],
+      "dm_permission": false,
+      "type": 1,
+      "default_member_permissions": "8"
+    },
+    "sources": [
+      "DeepSeek/conversaciones/007_Crear_comando_developer_para_eliminar_canales/conversacion.txt",
+      "DeepSeek/codigo_generado/007_Crear_comando_developer_para_eliminar_canales/m002_b003_developer.js",
+      "DeepSeek/codigo_generado/007_Crear_comando_developer_para_eliminar_canales/m002_b001_bloque.txt",
+      "DeepSeek/codigo_generado/007_Crear_comando_developer_para_eliminar_canales/m002_b002_bloque.txt"
+    ]
+  },
+  {
+    "name": "entorno",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "mensaje",
+          "description": "mensaje",
+          "required": true,
+          "max_length": 500
+        }
+      ],
+      "name": "entorno",
+      "description": "Envía un aviso de entorno al juego",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/entorno_v001.js"
+    ]
+  },
+  {
+    "name": "erlc",
+    "scope": "moderator",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 1,
+          "name": "estado",
+          "description": "Consultar estado de ER:LC",
+          "options": []
+        },
+        {
+          "type": 1,
+          "name": "jugadores",
+          "description": "Consultar jugadores de ER:LC",
+          "options": []
+        },
+        {
+          "type": 1,
+          "name": "vehiculos",
+          "description": "Consultar vehiculos de ER:LC",
+          "options": []
+        },
+        {
+          "type": 1,
+          "name": "cola",
+          "description": "Consultar cola de ER:LC",
+          "options": []
+        },
+        {
+          "type": 1,
+          "name": "baneos",
+          "description": "Consultar baneos de ER:LC",
+          "options": []
+        },
+        {
+          "type": 1,
+          "name": "diagnostico",
+          "description": "Consultar diagnostico de ER:LC",
+          "options": []
+        },
+        {
+          "type": 1,
+          "name": "command",
+          "description": "Ejecuta un comando ER:LC autorizado",
+          "options": [
+            {
+              "type": 3,
+              "choices": [
+                {
+                  "name": "pm",
+                  "value": "pm"
+                },
+                {
+                  "name": "h",
+                  "value": "h"
+                },
+                {
+                  "name": "m",
+                  "value": "m"
+                },
+                {
+                  "name": "kick",
+                  "value": "kick"
+                },
+                {
+                  "name": "ban",
+                  "value": "ban"
+                },
+                {
+                  "name": "unban",
+                  "value": "unban"
+                },
+                {
+                  "name": "refresh",
+                  "value": "refresh"
+                },
+                {
+                  "name": "kill",
+                  "value": "kill"
+                }
+              ],
+              "name": "selector",
+              "description": "Comando",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "usuario1",
+              "description": "Usuario Roblox",
+              "required": false,
+              "max_length": 40
+            },
+            {
+              "type": 3,
+              "name": "complemento1",
+              "description": "Mensaje o motivo",
+              "required": false,
+              "max_length": 500
+            },
+            {
+              "type": 3,
+              "name": "usuario2",
+              "description": "Segundo usuario Roblox opcional",
+              "required": false,
+              "max_length": 40
+            },
+            {
+              "type": 3,
+              "name": "complemento2",
+              "description": "Razón del castigo",
+              "required": false,
+              "max_length": 500
+            }
+          ]
+        }
+      ],
+      "name": "erlc",
+      "description": "Controla tu servidor ER:LC",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/conversacion.txt",
+      "DeepSeek/conversaciones/032_Analisis_de_migracion_a_Components_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/034_Integracion_de_API_de_PRC_en_bot_Discord/conversacion.txt",
+      "DeepSeek/codigo_pegado/032_Analisis_de_migracion_a_Components_V2/m001_02_prcClient.js",
+      "DeepSeek/codigo_generado/034_Integracion_de_API_de_PRC_en_bot_Discord/m004_b005_erlc.js",
+      "DeepSeek/codigo_generado/034_Integracion_de_API_de_PRC_en_bot_Discord/m004_b001_bloque.txt"
+    ]
+  },
+  {
+    "name": "estado",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "estado",
+      "description": "Estado del bot, API y notificaciones",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": []
+  },
+  {
+    "name": "joiner",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "modo",
+          "description": "Código del servidor o bienvenida por voz",
+          "required": false,
+          "choices": [
+            {
+              "name": "Código",
+              "value": "codigo"
+            },
+            {
+              "name": "Voz",
+              "value": "voz"
+            }
+          ]
+        }
+      ],
+      "name": "joiner",
+      "description": "Publica el código de acceso al servidor",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/003_Discord_bot_joiner_command_with_TTS/conversacion.txt",
+      "DeepSeek/conversaciones/003_Discord_bot_joiner_command_with_TTS/conversacion.txt",
+      "DeepSeek/conversaciones/003_Discord_bot_joiner_command_with_TTS/conversacion.txt",
+      "DeepSeek/codigo_generado/003_Discord_bot_joiner_command_with_TTS/m002_b005_joiner.js",
+      "DeepSeek/codigo_generado/003_Discord_bot_joiner_command_with_TTS/m006_b001_joiner.js",
+      "DeepSeek/codigo_generado/003_Discord_bot_joiner_command_with_TTS/m008_b001_joiner.js"
+    ]
+  },
+  {
+    "name": "panel",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "panel",
+      "description": "Enlace al panel local Maes RP",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/047_Discord_Bot_and_Dashboard_Development_Plan/conversacion.txt",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m012_b008_panel.js",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m008_b018_bloque.js"
+    ]
+  },
+  {
+    "name": "prueba",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "prueba",
+      "description": "Comprueba la respuesta del bot",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/codigo_generado/050_archivo/m008_b001_prueba.js",
+      "DeepSeek/codigo_generado/050_archivo/m010_b002_prueba.js",
+      "DeepSeek/codigo_generado/050_archivo/m014_b004_prueba.js",
+      "DeepSeek/codigo_generado/050_archivo/m006_b004_bloque.js",
+      "DeepSeek/codigo_generado/050_archivo/m018_b002_bloque.js",
+      "DeepSeek/codigo_generado/050_archivo/m012_b002_bloque.js",
+      "DeepSeek/codigo_generado/050_archivo/m012_b004_prueba.js",
+      "DeepSeek/codigo_generado/050_archivo/m010_b001_bloque.js",
+      "DeepSeek/codigo_generado/050_archivo/m006_b009_prueba.js",
+      "DeepSeek/codigo_generado/050_archivo/m016_b001_bloque.js"
+    ]
+  },
+  {
+    "name": "reset-nicknames",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "reset-nicknames",
+      "description": "Restablece un apodo o procesa todos con progreso",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m006_b001_bloque.txt",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m008_b001_resetnicks.js"
+    ]
+  },
+  {
+    "name": "reset-nicks",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "reset-nicks",
+      "description": "Restablece apodos de todos los miembros gestionables",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m010_b002_bloque.txt",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m010_b001_bloque.txt"
+    ]
+  },
+  {
+    "name": "v2-components",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "v2-components",
+      "description": "Diagnóstico de Components V2 y versión de Discord",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/053_Guia_de_componentes_V2_de_Discord.js/conversacion.txt",
+      "DeepSeek/conversaciones/050_archivo/mensaje_011_original.txt",
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/codigo_pegado/053_Guia_de_componentes_V2_de_Discord.js/m003_01_index.js"
+    ]
+  },
+  {
+    "name": "version",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "version",
+      "description": "Diagnóstico de Components V2 y versión de Discord",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/050_archivo/conversacion.txt",
+      "DeepSeek/codigo_generado/050_archivo/m014_b005_discord.js"
+    ]
+  },
+  {
+    "name": "actualizar-info",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "actualizar-info",
+      "description": "Sincroniza nombres del registro de staff",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/063_Analisis_y_mejoras_de_sistema_judicial_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/062_const_SlashCommandBuilder_Per/conversacion.txt",
+      "DeepSeek/conversaciones/062_const_SlashCommandBuilder_Per/mensaje_001_original.txt",
+      "DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m010_b001_registrarplacas.js"
+    ]
+  },
+  {
+    "name": "actualizar-jerarquia",
+    "scope": "admin",
+    "guildScope": "admin",
+    "schema": {
+      "options": [],
+      "name": "actualizar-jerarquia",
+      "description": "Publica la jerarquía configurada",
+      "default_member_permissions": "8",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Comando_jerarquia_staff/jerarquia.txt",
+      "codigo/Comando_jerarquia_staff/actualizar-jerarquia_v001.js",
+      "DeepSeek/conversaciones/061_Actualizacion_de_jerarquia_administrativa_en_Discord/conversacion.txt",
+      "DeepSeek/codigo_generado/061_Actualizacion_de_jerarquia_administrativa_en_Discord/m004_b001_hierarchyAdmin.js",
+      "DeepSeek/codigo_generado/061_Actualizacion_de_jerarquia_administrativa_en_Discord/m004_b002_hierarchyAdmin.js"
+    ]
+  },
+  {
+    "name": "calificar-staff",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "max_value": 10,
+          "min_value": 1,
+          "type": 10,
+          "name": "puntuacion",
+          "description": "puntuacion",
+          "required": false
+        },
+        {
+          "type": 3,
+          "name": "comentario",
+          "description": "comentario",
+          "required": false,
+          "max_length": 1000
+        },
+        {
+          "max_value": 10,
+          "min_value": 1,
+          "type": 10,
+          "name": "estrellas",
+          "description": "estrellas",
+          "required": false
+        },
+        {
+          "type": 3,
+          "name": "comentarios",
+          "description": "comentarios",
+          "required": false,
+          "max_length": 1000
+        }
+      ],
+      "name": "calificar-staff",
+      "description": "Evalúa un miembro del staff",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/calificaciones_v001.js",
+      "codigo/Revisar_y_corregir_codigo/calificaciones_v001.js",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/062_const_SlashCommandBuilder_Per/conversacion.txt",
+      "DeepSeek/codigo_pegado/043_Analisis_de_codigo_y_migracion_a_V2/m001_01_calificaciones.js",
+      "DeepSeek/codigo_generado/043_Analisis_de_codigo_y_migracion_a_V2/m004_b004_calificaciones.js",
+      "DeepSeek/codigo_generado/043_Analisis_de_codigo_y_migracion_a_V2/m004_b005_calificaciones.js",
+      "DeepSeek/codigo_generado/043_Analisis_de_codigo_y_migracion_a_V2/m006_b001_calificaciones.js",
+      "DeepSeek/codigo_generado/062_const_SlashCommandBuilder_Per/m006_b005_res.js"
+    ]
+  },
+  {
+    "name": "ver-calificaciones",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "ver-calificaciones",
+      "description": "Consulta evaluaciones del staff",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "conversaciones/Revisar_y_corregir_codigo/correcciones.txt",
+      "codigo/Licencias_js_adaptado_CR/calificaciones_v001.js",
+      "codigo/Revisar_y_corregir_codigo/calificaciones_v001.js",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/conversacion.txt",
+      "DeepSeek/conversaciones/043_Analisis_de_codigo_y_migracion_a_V2/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/043_Analisis_de_codigo_y_migracion_a_V2/m001_01_calificaciones.js",
+      "DeepSeek/codigo_generado/043_Analisis_de_codigo_y_migracion_a_V2/m004_b004_calificaciones.js",
+      "DeepSeek/codigo_generado/043_Analisis_de_codigo_y_migracion_a_V2/m004_b005_calificaciones.js",
+      "DeepSeek/codigo_generado/043_Analisis_de_codigo_y_migracion_a_V2/m006_b001_calificaciones.js"
+    ]
+  },
+  {
+    "name": "ver-placas",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [],
+      "name": "ver-placas",
+      "description": "Consulta identificadores del staff",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/063_Analisis_y_mejoras_de_sistema_judicial_Discord/conversacion.txt",
+      "DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m010_b002_ver-placas.js"
+    ]
+  },
+  {
+    "name": "ticket-sys",
+    "scope": "admin",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 1,
+          "name": "enviar-panel",
+          "description": "Publica el panel",
+          "options": [
+            {
+              "name": "canal",
+              "description": "Canal de soporte",
+              "required": true,
+              "type": 7
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "inactividad",
+          "description": "Configura horas de inactividad",
+          "options": [
+            {
+              "max_value": 10000,
+              "min_value": 1,
+              "type": 10,
+              "name": "horas",
+              "description": "Horas",
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "alto-volumen",
+          "description": "Modo de alto volumen",
+          "options": [
+            {
+              "name": "activo",
+              "description": "Activar",
+              "required": true,
+              "type": 5
+            }
+          ]
+        }
+      ],
+      "name": "ticket-sys",
+      "description": "Sistema persistente de soporte",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/024_este_es_tickets.js/mensaje_003_original.txt",
+      "DeepSeek/conversaciones/024_este_es_tickets.js/conversacion.txt",
+      "DeepSeek/conversaciones/024_este_es_tickets.js/conversacion.txt",
+      "DeepSeek/conversaciones/045_este_es_tickets.js_const/conversacion.txt",
+      "DeepSeek/conversaciones/045_este_es_tickets.js_const/conversacion.txt",
+      "DeepSeek/conversaciones/045_este_es_tickets.js_const/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/046_Error_en_procesamiento_de_multas_y_arrestos/mensaje_027_original.txt",
+      "DeepSeek/conversaciones/046_Error_en_procesamiento_de_multas_y_arrestos/conversacion.txt",
+      "DeepSeek/conversaciones/046_Error_en_procesamiento_de_multas_y_arrestos/conversacion.txt",
+      "DeepSeek/conversaciones/023_Actualizacion_de_codigo_tickets.js_completo/conversacion.txt",
+      "DeepSeek/conversaciones/023_Actualizacion_de_codigo_tickets.js_completo/conversacion.txt",
+      "DeepSeek/conversaciones/023_Actualizacion_de_codigo_tickets.js_completo/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/045_este_es_tickets.js_const/m001_01_tickets.js",
+      "DeepSeek/codigo_pegado/023_Actualizacion_de_codigo_tickets.js_completo/m001_01_tickets.js",
+      "DeepSeek/codigo_generado/024_este_es_tickets.js/m004_b001_tickets.js",
+      "DeepSeek/codigo_generado/045_este_es_tickets.js_const/m002_b005_tickets.js",
+      "DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m028_b001_tickets.js",
+      "DeepSeek/codigo_generado/023_Actualizacion_de_codigo_tickets.js_completo/m002_b001_tickets.js"
+    ]
+  },
+  {
+    "name": "ticket",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "asunto",
+          "description": "asunto",
+          "required": true,
+          "max_length": 150
+        }
+      ],
+      "name": "ticket",
+      "description": "Abre un ticket de soporte",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/047_Discord_Bot_and_Dashboard_Development_Plan/conversacion.txt",
+      "DeepSeek/conversaciones/047_Discord_Bot_and_Dashboard_Development_Plan/conversacion.txt",
+      "DeepSeek/conversaciones/047_Discord_Bot_and_Dashboard_Development_Plan/conversacion.txt",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m008_b016_bloque.js",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m008_b060_ticket.js",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m010_b026_ticket.js",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m012_b010_ticket.js",
+      "DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m010_b013_bloque.js"
+    ]
+  },
+  {
+    "name": "eliminar-vehiculo",
+    "scope": "police",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "placa",
+          "description": "placa",
+          "required": true,
+          "max_length": 50
+        }
+      ],
+      "name": "eliminar-vehiculo",
+      "description": "Elimina un vehículo del registro",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/vehicular_v001.js"
+    ]
+  },
+  {
+    "name": "registrar-vehiculo",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "placa",
+          "description": "placa",
+          "required": true,
+          "max_length": 20
+        },
+        {
+          "type": 3,
+          "name": "modelo",
+          "description": "modelo",
+          "required": true,
+          "max_length": 80
+        },
+        {
+          "type": 3,
+          "name": "marca",
+          "description": "marca",
+          "required": false,
+          "max_length": 60
+        },
+        {
+          "max_value": 2100,
+          "min_value": 1900,
+          "type": 4,
+          "name": "año",
+          "description": "año",
+          "required": false
+        },
+        {
+          "type": 3,
+          "name": "color",
+          "description": "color",
+          "required": false,
+          "max_length": 40
+        }
+      ],
+      "name": "registrar-vehiculo",
+      "description": "Inscribe un vehículo de tu personaje",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/vehicular_v001.js"
+    ]
+  },
+  {
+    "name": "vehiculos",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": false,
+          "type": 6
+        }
+      ],
+      "name": "vehiculos",
+      "description": "Consulta vehículos registrados",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/vehicular_v001.js"
+    ]
+  },
+  {
+    "name": "aceptar-wl",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "roblox",
+          "description": "roblox",
+          "required": true,
+          "max_length": 40
+        }
+      ],
+      "name": "aceptar-wl",
+      "description": "Acepta whitelist y aplica roles configurados",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/mensaje_029_original.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m010_b007_whitelist.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m006_b008_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m004_b001_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m004_b003_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m008_b001_whitelist.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m010_b006_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m004_b002_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m006_b006_whitelist.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m012_b001_whitelist.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m002_b001_Discord.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m006_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m014_b001_aceptar-wl.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m008_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m028_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m030_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m004_b001_discord.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m012_b001_aceptar-wl.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m026_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m016_b001_bloque.js"
+    ]
+  },
+  {
+    "name": "rechazar-wl",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "motivo",
+          "required": false,
+          "max_length": 1000
+        },
+        {
+          "type": 3,
+          "name": "cooldown",
+          "description": "Tiempo de espera: 2h, 2d, 1M, 1a",
+          "required": false,
+          "max_length": 60
+        },
+        {
+          "type": 3,
+          "name": "motivo",
+          "description": "Motivo de la denegación",
+          "required": false,
+          "max_length": 1000
+        }
+      ],
+      "name": "rechazar-wl",
+      "description": "Rechaza una solicitud de whitelist",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/059_necesito_hacer_comandos_para_mi/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/mensaje_029_original.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/conversaciones/074_holaaa_que_tal_mira_necesito_ha/conversacion.txt",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m010_b007_whitelist.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m006_b008_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m004_b001_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m004_b003_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m008_b001_whitelist.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m010_b006_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m006_b005_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m002_b002_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m004_b002_bloque.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m006_b007_rechazar-wl.js",
+      "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m012_b001_whitelist.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m006_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m008_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m030_b001_bloque.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m004_b001_discord.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m014_b002_rechazar-wl.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m012_b002_rechazar-wl.js",
+      "DeepSeek/codigo_generado/074_holaaa_que_tal_mira_necesito_ha/m026_b001_bloque.js"
+    ]
+  },
+  {
+    "name": "revisar-2fase",
+    "scope": "staff",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "name": "usuario",
+          "description": "usuario",
+          "required": true,
+          "type": 6
+        },
+        {
+          "type": 3,
+          "choices": [
+            {
+              "name": "aceptar",
+              "value": "aceptar"
+            },
+            {
+              "name": "rechazar",
+              "value": "rechazar"
+            }
+          ],
+          "name": "estado",
+          "description": "estado",
+          "required": true,
+          "max_length": 1000
+        },
+        {
+          "type": 3,
+          "name": "roblox",
+          "description": "roblox",
+          "required": false,
+          "max_length": 40
+        }
+      ],
+      "name": "revisar-2fase",
+      "description": "Decide una solicitud de whitelist",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/026_Error_en_codigo_de_bot_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/026_Error_en_codigo_de_bot_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/026_Error_en_codigo_de_bot_Discord/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/015_Definicion_de_rol_para_comando_verificarme/conversacion.txt",
+      "DeepSeek/conversaciones/015_Definicion_de_rol_para_comando_verificarme/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/027_Desarrollo_de_comandos_de_verificacion_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/026_Error_en_codigo_de_bot_Discord/m001_02_whitelist.js",
+      "DeepSeek/codigo_pegado/025_Discord_bot_whitelist_command_code/m001_01_whitelist.js",
+      "DeepSeek/codigo_pegado/015_Definicion_de_rol_para_comando_verificarme/m001_01_whitelist.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_01_whitelist.js",
+      "DeepSeek/codigo_generado/026_Error_en_codigo_de_bot_Discord/m002_b018_whitelist.js",
+      "DeepSeek/codigo_generado/026_Error_en_codigo_de_bot_Discord/m002_b015_bloque.txt",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m002_b010_whitelist.js",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m002_b001_bloque.txt",
+      "DeepSeek/codigo_generado/027_Desarrollo_de_comandos_de_verificacion_en_Discord/m002_b003_whitelist.js",
+      "DeepSeek/codigo_generado/027_Desarrollo_de_comandos_de_verificacion_en_Discord/m002_b002_bloque.txt"
+    ]
+  },
+  {
+    "name": "verificacion",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "usuario_roblox",
+          "description": "usuario_roblox",
+          "required": false,
+          "max_length": 40
+        }
+      ],
+      "name": "verificacion",
+      "description": "Realiza el examen de whitelist Maes RP",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "conversaciones/Licencias_js_adaptado_CR/licencias.txt",
+      "codigo/Licencias_js_adaptado_CR/verificacion_v001.js"
+    ]
+  },
+  {
+    "name": "verificarme",
+    "scope": "public",
+    "guildScope": "configured",
+    "schema": {
+      "options": [
+        {
+          "type": 3,
+          "name": "usuario_roblox",
+          "description": "usuario_roblox",
+          "required": false,
+          "max_length": 40
+        }
+      ],
+      "name": "verificarme",
+      "description": "Realiza el examen de whitelist Maes RP",
+      "dm_permission": false,
+      "type": 1
+    },
+    "sources": [
+      "DeepSeek/conversaciones/044_Updated_Whitelist_Script_with_Complete_Code/conversacion.txt",
+      "DeepSeek/conversaciones/026_Error_en_codigo_de_bot_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/026_Error_en_codigo_de_bot_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/026_Error_en_codigo_de_bot_Discord/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/conversacion.txt",
+      "DeepSeek/conversaciones/025_Discord_bot_whitelist_command_code/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/015_Definicion_de_rol_para_comando_verificarme/conversacion.txt",
+      "DeepSeek/conversaciones/015_Definicion_de_rol_para_comando_verificarme/mensaje_001_original.txt",
+      "DeepSeek/conversaciones/027_Desarrollo_de_comandos_de_verificacion_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/conversacion.txt",
+      "DeepSeek/conversaciones/021_Solucion_completa_para_cargar_comandos_en_Discord/mensaje_001_original.txt",
+      "DeepSeek/codigo_pegado/026_Error_en_codigo_de_bot_Discord/m001_02_whitelist.js",
+      "DeepSeek/codigo_pegado/025_Discord_bot_whitelist_command_code/m001_01_whitelist.js",
+      "DeepSeek/codigo_pegado/015_Definicion_de_rol_para_comando_verificarme/m001_01_whitelist.js",
+      "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_01_whitelist.js",
+      "DeepSeek/codigo_generado/044_Updated_Whitelist_Script_with_Complete_Code/m002_b001_whitelist.js",
+      "DeepSeek/codigo_generado/026_Error_en_codigo_de_bot_Discord/m002_b018_whitelist.js",
+      "DeepSeek/codigo_generado/026_Error_en_codigo_de_bot_Discord/m002_b015_bloque.txt",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m002_b010_whitelist.js",
+      "DeepSeek/codigo_generado/025_Discord_bot_whitelist_command_code/m002_b001_bloque.txt",
+      "DeepSeek/codigo_generado/027_Desarrollo_de_comandos_de_verificacion_en_Discord/m002_b003_whitelist.js",
+      "DeepSeek/codigo_generado/027_Desarrollo_de_comandos_de_verificacion_en_Discord/m002_b002_bloque.txt"
+    ]
+  }
+]

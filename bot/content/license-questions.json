@@ -1,0 +1,1226 @@
+{
+  "A1": [
+    {
+      "question": "¿Cuál es la edad mínima para obtener la licencia A1 en Costa Rica?",
+      "options": [
+        "15 años",
+        "16 años",
+        "18 años",
+        "21 años"
+      ],
+      "correct": "18 años"
+    },
+    {
+      "question": "En zonas escolares y hospitales, la velocidad máxima permitida es:",
+      "options": [
+        "25 km/h",
+        "40 km/h",
+        "50 km/h",
+        "60 km/h"
+      ],
+      "correct": "25 km/h"
+    },
+    {
+      "question": "Circular entre dos filas de vehículos detenidos en un semáforo:",
+      "options": [
+        "Está permitido siempre que haya espacio.",
+        "Es peligroso y constituye una infracción.",
+        "Se puede hacer si se toca la bocina.",
+        "Es obligatorio para todas las motos."
+      ],
+      "correct": "Es peligroso y constituye una infracción."
+    },
+    {
+      "question": "El uso del casco en Costa Rica es:",
+      "options": [
+        "Obligatorio solo en carretera.",
+        "Obligatorio únicamente para el conductor.",
+        "Obligatorio para conductor y acompañante en todo momento.",
+        "Opcional en trayectos cortos."
+      ],
+      "correct": "Obligatorio para conductor y acompañante en todo momento."
+    },
+    {
+      "question": "La vestimenta más segura para conducir motocicleta incluye:",
+      "options": [
+        "Pantalón corto y camiseta.",
+        "Casco, guantes, botas y ropa de protección.",
+        "Gorra y lentes oscuros.",
+        "Chaleco reflectante únicamente."
+      ],
+      "correct": "Casco, guantes, botas y ropa de protección."
+    },
+    {
+      "question": "En una moto A1, al frenar correctamente se debe:",
+      "options": [
+        "Usar solo el freno trasero.",
+        "Usar solo el freno delantero.",
+        "Usar ambos frenos de manera progresiva.",
+        "Soltar el manubrio y dejar que la moto se detenga sola."
+      ],
+      "correct": "Usar ambos frenos de manera progresiva."
+    },
+    {
+      "question": "Una señal circular con borde rojo y una motocicleta negra en el centro significa:",
+      "options": [
+        "Prohibido el paso a motocicletas.",
+        "Solo motocicletas pueden circular.",
+        "Zona exclusiva de parqueo para motos.",
+        "Fin de vía rápida."
+      ],
+      "correct": "Prohibido el paso a motocicletas."
+    },
+    {
+      "question": "Una señal triangular con un símbolo de vaca indica:",
+      "options": [
+        "Entrada a finca privada.",
+        "Presencia de animales en la vía – conduzca con precaución.",
+        "Zona rural autorizada para ganado.",
+        "Cruce de peatones."
+      ],
+      "correct": "Presencia de animales en la vía – conduzca con precaución."
+    },
+    {
+      "question": "Una línea amarilla discontinua en el centro de la vía significa:",
+      "options": [
+        "Prohibido adelantar.",
+        "Puede adelantar si las condiciones son seguras.",
+        "Carril exclusivo para motocicletas.",
+        "Prohibido estacionar."
+      ],
+      "correct": "Puede adelantar si las condiciones son seguras."
+    },
+    {
+      "question": "Si un motociclista se ve involucrado en un accidente sin heridos:",
+      "options": [
+        "Puede retirarse de inmediato para no entorpecer el tránsito.",
+        "Debe tomar fotografías, mover la moto y reportar el accidente.",
+        "Está obligado a esperar al oficial de tránsito sin mover la moto.",
+        "Solo debe informar a su aseguradora."
+      ],
+      "correct": "Debe tomar fotografías, mover la moto y reportar el accidente."
+    }
+  ],
+  "A2": [
+    {
+      "question": "Al circular en carretera primaria con motocicleta A2, la velocidad máxima permitida es:",
+      "options": [
+        "60 km/h",
+        "80 km/h",
+        "90 km/h",
+        "100 km/h"
+      ],
+      "correct": "90 km/h"
+    },
+    {
+      "question": "¿Cuál es la norma sobre adelantamiento en curvas o puentes?",
+      "options": [
+        "Está permitido con precaución.",
+        "Está totalmente prohibido.",
+        "Solo se permite en motocicletas menores de 250 cc.",
+        "Depende del ancho de la vía."
+      ],
+      "correct": "Está totalmente prohibido."
+    },
+    {
+      "question": "Para portar acompañante en una moto A2 se requiere:",
+      "options": [
+        "Que el pasajero use casco homologado.",
+        "Que el vehículo cuente con posa pies y asiento adecuado.",
+        "Que se respete la capacidad máxima del fabricante.",
+        "Todas las anteriores."
+      ],
+      "correct": "Todas las anteriores."
+    },
+    {
+      "question": "El espacio lateral recomendado al adelantar un automóvil en carretera con una motocicleta es:",
+      "options": [
+        "0,5 metros",
+        "1 metro",
+        "1,5 metros o más",
+        "No es necesario guardar distancia lateral."
+      ],
+      "correct": "1,5 metros o más"
+    },
+    {
+      "question": "El efecto del viento lateral sobre una moto de mediana cilindrada (A2) puede causar:",
+      "options": [
+        "Mayor estabilidad.",
+        "Desplazamiento y pérdida de control si no se corrige.",
+        "Aumento de velocidad.",
+        "No afecta a las motos."
+      ],
+      "correct": "Desplazamiento y pérdida de control si no se corrige."
+    },
+    {
+      "question": "La forma más segura de frenar en emergencia en una moto A2 con frenos de disco es:",
+      "options": [
+        "Usar solo el freno trasero.",
+        "Usar ambos frenos de forma firme y progresiva.",
+        "Frenar bruscamente solo con el delantero.",
+        "Apagar el motor."
+      ],
+      "correct": "Usar ambos frenos de forma firme y progresiva."
+    },
+    {
+      "question": "Una señal circular con borde rojo y un número \"90\" en el centro indica:",
+      "options": [
+        "Velocidad mínima 90 km/h.",
+        "Velocidad máxima 90 km/h.",
+        "Prohibido circular a menos de 90 km/h.",
+        "Solo motos pueden circular a esa velocidad."
+      ],
+      "correct": "Velocidad máxima 90 km/h."
+    },
+    {
+      "question": "Una señal triangular con símbolo de motociclista cayendo significa:",
+      "options": [
+        "Resbalón o peligro de derrape.",
+        "Zona exclusiva de motociclistas.",
+        "Fin de autopista.",
+        "Entrada de finca privada."
+      ],
+      "correct": "Resbalón o peligro de derrape."
+    },
+    {
+      "question": "Una línea blanca continua en el centro de la vía indica:",
+      "options": [
+        "Carril exclusivo para motos.",
+        "Prohibido cambiar de carril o adelantar.",
+        "Permitido adelantar con precaución.",
+        "Zona de estacionamiento."
+      ],
+      "correct": "Prohibido cambiar de carril o adelantar."
+    },
+    {
+      "question": "Si un motociclista A2 conduce con exceso de velocidad en carretera:",
+      "options": [
+        "Solo recibe advertencia verbal.",
+        "Se sanciona con multa y pérdida de puntos.",
+        "No aplica sanción si no hay tránsito vehicular.",
+        "Es responsabilidad del pasajero."
+      ],
+      "correct": "Se sanciona con multa y pérdida de puntos."
+    }
+  ],
+  "A3": [
+    {
+      "question": "La velocidad máxima en autopistas para motocicletas A3 es:",
+      "options": [
+        "80 km/h",
+        "90 km/h",
+        "100 km/h",
+        "120 km/h"
+      ],
+      "correct": "100 km/h"
+    },
+    {
+      "question": "En carreteras de montaña con curvas cerradas, el conductor de A3 debe:",
+      "options": [
+        "Acelerar en la curva para mayor estabilidad.",
+        "Reducir velocidad antes de la curva y trazarla suavemente.",
+        "Usar solo el freno delantero en curva.",
+        "Pasar pegado al carril contrario."
+      ],
+      "correct": "Reducir velocidad antes de la curva y trazarla suavemente."
+    },
+    {
+      "question": "La edad mínima para portar acompañante en una moto A3 es:",
+      "options": [
+        "15 años",
+        "16 años",
+        "18 años",
+        "21 años"
+      ],
+      "correct": "16 años"
+    },
+    {
+      "question": "Una de las principales causas de muerte en motociclistas de alta cilindrada es:",
+      "options": [
+        "No portar licencia.",
+        "Exceso de velocidad y pérdida de control.",
+        "Falta de gasolina.",
+        "Conducir de día."
+      ],
+      "correct": "Exceso de velocidad y pérdida de control."
+    },
+    {
+      "question": "En conducción defensiva con A3, el motociclista debe:",
+      "options": [
+        "Asumir siempre que los demás lo han visto.",
+        "Mantener luces encendidas y posición visible en la vía.",
+        "Circular entre vehículos para avanzar más rápido.",
+        "Usar bocina en todo momento."
+      ],
+      "correct": "Mantener luces encendidas y posición visible en la vía."
+    },
+    {
+      "question": "El frenado correcto en moto de alta cilindrada incluye:",
+      "options": [
+        "Solo freno trasero.",
+        "Uso del freno delantero en un 70% y trasero en un 30%.",
+        "Soltar ambos frenos en emergencia.",
+        "Apagar el motor."
+      ],
+      "correct": "Uso del freno delantero en un 70% y trasero en un 30%."
+    },
+    {
+      "question": "Una señal de fondo azul con una motocicleta blanca significa:",
+      "options": [
+        "Prohibido el paso a motos.",
+        "Ruta exclusiva o permitida para motocicletas.",
+        "Carril compartido obligatorio.",
+        "Zona escolar."
+      ],
+      "correct": "Ruta exclusiva o permitida para motocicletas."
+    },
+    {
+      "question": "Una señal triangular con una curva y un signo de exclamación significa:",
+      "options": [
+        "Precaución: curva peligrosa.",
+        "Únicos vehículos autorizados: motos.",
+        "Fin de autopista.",
+        "Paso peatonal."
+      ],
+      "correct": "Precaución: curva peligrosa."
+    },
+    {
+      "question": "Una línea amarilla doble continua en el centro de la vía indica:",
+      "options": [
+        "Se puede adelantar con precaución.",
+        "Prohibido adelantar en ambos sentidos.",
+        "Vía exclusiva para motocicletas.",
+        "Reducción de velocidad a 25 km/h."
+      ],
+      "correct": "Prohibido adelantar en ambos sentidos."
+    },
+    {
+      "question": "Si un motociclista A3 conduce a 140 km/h en autopista:",
+      "options": [
+        "No hay sanción si la vía está despejada.",
+        "Se sanciona con multa, pérdida de puntos y posible decomiso de la licencia.",
+        "Es permitido para motos de alta cilindrada.",
+        "Solo recibe amonestación verbal."
+      ],
+      "correct": "Se sanciona con multa, pérdida de puntos y posible decomiso de la licencia."
+    }
+  ],
+  "B1": [
+    {
+      "question": "¿Cuál es el límite máximo de velocidad en zonas urbanas, salvo señalización distinta?",
+      "options": [
+        "40 km/h",
+        "50 km/h",
+        "60 km/h",
+        "80 km/h"
+      ],
+      "correct": "50 km/h"
+    },
+    {
+      "question": "Cuando el semáforo está en luz amarilla significa:",
+      "options": [
+        "Puede continuar sin detenerse.",
+        "Debe detenerse si es seguro hacerlo.",
+        "Avanzar rápido antes de que cambie a rojo.",
+        "No aplica en intersecciones."
+      ],
+      "correct": "Debe detenerse si es seguro hacerlo."
+    },
+    {
+      "question": "¿Qué documento debe portar obligatoriamente todo conductor junto con la licencia?",
+      "options": [
+        "Pasaporte",
+        "Marchamo y Revisión Técnica (RTV)",
+        "Tarjeta de crédito",
+        "Ninguno"
+      ],
+      "correct": "Marchamo y Revisión Técnica (RTV)"
+    },
+    {
+      "question": "Si un conductor maneja bajo efectos del alcohol:",
+      "options": [
+        "Es permitido siempre que no cause accidentes.",
+        "Se expone a una multa y pérdida de puntos.",
+        "No es sancionable en carreteras rurales.",
+        "Puede manejar solo motocicletas."
+      ],
+      "correct": "Se expone a una multa y pérdida de puntos."
+    },
+    {
+      "question": "El uso del cinturón de seguridad en Costa Rica es:",
+      "options": [
+        "Opcional en asientos traseros.",
+        "Obligatorio solo para el conductor.",
+        "Obligatorio para todos los ocupantes del vehículo.",
+        "Obligatorio solo en carreteras nacionales."
+      ],
+      "correct": "Obligatorio para todos los ocupantes del vehículo."
+    },
+    {
+      "question": "¿Qué debe hacer si empieza a llover fuerte mientras conduce?",
+      "options": [
+        "Encender las luces y reducir la velocidad.",
+        "Aumentar la velocidad para llegar más rápido.",
+        "Detenerse en el carril derecho con luces apagadas.",
+        "Seguir igual que en condiciones normales."
+      ],
+      "correct": "Encender las luces y reducir la velocidad."
+    },
+    {
+      "question": "Una señal triangular con borde rojo y fondo blanco indica:",
+      "options": [
+        "Prohibición.",
+        "Prevención o advertencia de peligro.",
+        "Información.",
+        "Regulación de velocidad."
+      ],
+      "correct": "Prevención o advertencia de peligro."
+    },
+    {
+      "question": "La señal azul con la letra \"E\" blanca significa:",
+      "options": [
+        "Entrada prohibida.",
+        "Estacionamiento permitido.",
+        "Escuela cercana.",
+        "Emergencia."
+      ],
+      "correct": "Estacionamiento permitido."
+    },
+    {
+      "question": "Una línea amarilla continua en el centro de la vía significa:",
+      "options": [
+        "Puede adelantar con precaución.",
+        "Prohibido adelantar en ambos sentidos.",
+        "Carril exclusivo para buses.",
+        "Fin de autopista."
+      ],
+      "correct": "Prohibido adelantar en ambos sentidos."
+    },
+    {
+      "question": "En caso de accidente de tránsito sin heridos, el conductor debe:",
+      "options": [
+        "Abandonar el lugar para no entorpecer el tráfico.",
+        "Esperar al oficial de tránsito sin mover el vehículo.",
+        "Tomar fotos, mover el vehículo y reportar el accidente.",
+        "Llamar siempre a la ambulancia."
+      ],
+      "correct": "Tomar fotos, mover el vehículo y reportar el accidente."
+    }
+  ],
+  "B2": [
+    {
+      "question": "¿Cuál es el límite máximo de velocidad en carreteras rurales, salvo señalización distinta?",
+      "options": [
+        "40 km/h",
+        "60 km/h",
+        "80 km/h",
+        "100 km/h"
+      ],
+      "correct": "80 km/h"
+    },
+    {
+      "question": "En carretera, ¿cuándo está permitido adelantar?",
+      "options": [
+        "Siempre que no venga un vehículo de frente.",
+        "Solo cuando la línea central es discontinua y hay espacio suficiente.",
+        "En curvas y puentes si hay prisa.",
+        "Cuando el vehículo adelante circula a menos de 40 km/h."
+      ],
+      "correct": "Solo cuando la línea central es discontinua y hay espacio suficiente."
+    },
+    {
+      "question": "En vehículos B2 (microbuses hasta 20 pasajeros), ¿qué documento adicional se exige al transportar personas?",
+      "options": [
+        "Tarjeta de circulación especial.",
+        "Seguro obligatorio contra accidentes (SOA).",
+        "Extintor, botiquín y triángulos de seguridad.",
+        "Ninguno."
+      ],
+      "correct": "Extintor, botiquín y triángulos de seguridad."
+    },
+    {
+      "question": "La distancia mínima de seguridad entre vehículos pesados en carretera debe ser:",
+      "options": [
+        "1 segundo.",
+        "2 segundos.",
+        "3 segundos o más.",
+        "Solo en lluvia debe mantenerse distancia."
+      ],
+      "correct": "3 segundos o más."
+    },
+    {
+      "question": "Al manejar un camión de 7 toneladas cuesta abajo, la técnica correcta es:",
+      "options": [
+        "Apagar el motor para ahorrar combustible.",
+        "Usar el freno de motor y marchas bajas.",
+        "Mantener siempre el pedal de freno presionado.",
+        "Colocar el vehículo en neutro."
+      ],
+      "correct": "Usar el freno de motor y marchas bajas."
+    },
+    {
+      "question": "En caso de que el vehículo se quede sin frenos:",
+      "options": [
+        "Apagar el motor inmediatamente.",
+        "Usar el freno de mano de golpe.",
+        "Reducir marchas, usar freno de motor y buscar una salida de escape.",
+        "Acelerar para salir de la vía rápido."
+      ],
+      "correct": "Reducir marchas, usar freno de motor y buscar una salida de escape."
+    },
+    {
+      "question": "La señal circular con borde rojo y un camión negro en el centro indica:",
+      "options": [
+        "Prohibido el paso a todo vehículo.",
+        "Prohibido el paso a vehículos de carga.",
+        "Vía exclusiva para camiones.",
+        "Peso máximo permitido."
+      ],
+      "correct": "Prohibido el paso a vehículos de carga."
+    },
+    {
+      "question": "Una señal rectangular con fondo amarillo y un niño cruzando significa:",
+      "options": [
+        "Escuela cercana – reduzca velocidad a 25 km/h.",
+        "Cruce peatonal exclusivo.",
+        "Juego de niños en la vía.",
+        "Parque recreativo."
+      ],
+      "correct": "Escuela cercana – reduzca velocidad a 25 km/h."
+    },
+    {
+      "question": "Una señal de tránsito que indica \"10 t\" sobre un puente significa:",
+      "options": [
+        "Peso máximo por eje.",
+        "Peso máximo del vehículo en circulación.",
+        "Velocidad máxima de 10 km/h.",
+        "Altura máxima de 10 metros."
+      ],
+      "correct": "Peso máximo del vehículo en circulación."
+    },
+    {
+      "question": "Si un conductor de B2 transporta carga mal asegurada y provoca un accidente:",
+      "options": [
+        "No tiene responsabilidad, la culpa es del dueño de la carga.",
+        "Se sanciona con multa y puntos, pues es obligación del conductor verificar la carga.",
+        "Solo recibe una amonestación verbal.",
+        "La responsabilidad es compartida con los pasajeros."
+      ],
+      "correct": "Se sanciona con multa y puntos, pues es obligación del conductor verificar la carga."
+    }
+  ],
+  "B3": [
+    {
+      "question": "¿Cuál es el límite máximo de velocidad para autobuses y camiones pesados en carretera primaria (salvo señalización distinta)?",
+      "options": [
+        "60 km/h",
+        "80 km/h",
+        "90 km/h",
+        "100 km/h"
+      ],
+      "correct": "80 km/h"
+    },
+    {
+      "question": "Un tráiler que circula en zona urbana debe:",
+      "options": [
+        "Usar solo carriles izquierdos.",
+        "Mantenerse en el carril derecho, salvo para girar o adelantar.",
+        "Circular únicamente en horario nocturno.",
+        "Detenerse en cada intersección."
+      ],
+      "correct": "Mantenerse en el carril derecho, salvo para girar o adelantar."
+    },
+    {
+      "question": "Para tomar una curva cerrada en un vehículo articulado (tráiler):",
+      "options": [
+        "Se debe abrir más hacia la izquierda para evitar que la parte trasera invada la acera.",
+        "Se debe girar de inmediato y a velocidad alta.",
+        "No hay diferencia con un vehículo liviano.",
+        "Se debe usar solo freno de mano."
+      ],
+      "correct": "Se debe abrir más hacia la izquierda para evitar que la parte trasera invada la acera."
+    },
+    {
+      "question": "La técnica correcta para descender una pendiente pronunciada con un camión de más de 12 toneladas es:",
+      "options": [
+        "Colocar el vehículo en neutro para ahorrar combustible.",
+        "Usar freno de motor y marchas bajas.",
+        "Mantener pisado el freno de servicio constantemente.",
+        "Usar el freno de estacionamiento."
+      ],
+      "correct": "Usar freno de motor y marchas bajas."
+    },
+    {
+      "question": "La distancia mínima de seguridad entre camiones pesados en carretera es de:",
+      "options": [
+        "1 segundo.",
+        "2 segundos.",
+        "3 a 4 segundos o más, según condiciones.",
+        "No aplica para vehículos pesados."
+      ],
+      "correct": "3 a 4 segundos o más, según condiciones."
+    },
+    {
+      "question": "Al transportar materiales peligrosos, el conductor debe:",
+      "options": [
+        "Portar rótulos de identificación y equipo de seguridad especial.",
+        "Asegurarse solo de que la carga no se caiga.",
+        "No tiene ninguna obligación adicional.",
+        "Circular únicamente en horario nocturno."
+      ],
+      "correct": "Portar rótulos de identificación y equipo de seguridad especial."
+    },
+    {
+      "question": "Una señal circular con borde rojo y el número \"12 t\" indica:",
+      "options": [
+        "Peso mínimo permitido.",
+        "Peso máximo permitido del vehículo en circulación.",
+        "Peso máximo por eje del vehículo.",
+        "Altura máxima de 12 metros."
+      ],
+      "correct": "Peso máximo permitido del vehículo en circulación."
+    },
+    {
+      "question": "La señal triangular con un camión descendiendo representa:",
+      "options": [
+        "Zona escolar.",
+        "Inicio de autopista.",
+        "Pendiente pronunciada.",
+        "Estacionamiento para carga."
+      ],
+      "correct": "Pendiente pronunciada."
+    },
+    {
+      "question": "Un letrero rectangular azul con un símbolo de bus indica:",
+      "options": [
+        "Parada oficial de autobús.",
+        "Exclusivo para camiones.",
+        "Ruta alterna para vehículos pesados.",
+        "Fin de carretera."
+      ],
+      "correct": "Parada oficial de autobús."
+    },
+    {
+      "question": "Si un conductor de tráiler provoca daños por circular con exceso de peso sobre un puente:",
+      "options": [
+        "Solo el dueño de la carga es responsable.",
+        "Se sanciona con multa, puntos y responsabilidad solidaria.",
+        "No hay sanción si no hay heridos.",
+        "Solo responde la aseguradora."
+      ],
+      "correct": "Se sanciona con multa, puntos y responsabilidad solidaria."
+    }
+  ],
+  "C1": [
+    {
+      "question": "La velocidad máxima en carretera secundaria para vehículos C1 es:",
+      "options": [
+        "60 km/h",
+        "80 km/h",
+        "90 km/h",
+        "100 km/h"
+      ],
+      "correct": "80 km/h"
+    },
+    {
+      "question": "La carga transportada en un camión C1 debe ir:",
+      "options": [
+        "Suelta si es liviana.",
+        "Asegurada para evitar caídas y accidentes.",
+        "Solo cubierta con una manta.",
+        "No requiere medidas especiales."
+      ],
+      "correct": "Asegurada para evitar caídas y accidentes."
+    },
+    {
+      "question": "El peso máximo que puede manejar un vehículo con licencia C1 es:",
+      "options": [
+        "5.000 kg",
+        "8.000 kg",
+        "12.000 kg",
+        "20.000 kg"
+      ],
+      "correct": "8.000 kg"
+    },
+    {
+      "question": "¿Qué debe revisar el conductor antes de iniciar un viaje en un vehículo de carga?",
+      "options": [
+        "Solo el nivel de gasolina.",
+        "Llantas, frenos, luces, carga y documentos.",
+        "Que la radio funcione.",
+        "El color de la carrocería."
+      ],
+      "correct": "Llantas, frenos, luces, carga y documentos."
+    },
+    {
+      "question": "La distancia de seguimiento recomendada con un vehículo C1 es:",
+      "options": [
+        "1 segundo.",
+        "2 segundos.",
+        "3 segundos o más.",
+        "No aplica."
+      ],
+      "correct": "3 segundos o más."
+    },
+    {
+      "question": "¿Qué debe hacer el conductor al descender una pendiente pronunciada?",
+      "options": [
+        "Usar freno de motor y no solo los frenos de servicio.",
+        "Poner neutro para ahorrar combustible.",
+        "Apagar el motor.",
+        "Acelerar fuerte para mantener estabilidad."
+      ],
+      "correct": "Usar freno de motor y no solo los frenos de servicio."
+    },
+    {
+      "question": "Una señal triangular con un camión en bajada significa:",
+      "options": [
+        "Prohibido vehículos pesados.",
+        "Precaución: pendiente pronunciada.",
+        "Fin de autopista.",
+        "Zona de carga y descarga."
+      ],
+      "correct": "Precaución: pendiente pronunciada."
+    },
+    {
+      "question": "Una señal circular roja con un camión tachado indica:",
+      "options": [
+        "Prohibido el paso a vehículos de carga.",
+        "Solo para camiones pesados.",
+        "Estacionamiento exclusivo para camiones.",
+        "Precaución: curva peligrosa."
+      ],
+      "correct": "Prohibido el paso a vehículos de carga."
+    },
+    {
+      "question": "Una línea amarilla discontinua en carretera indica:",
+      "options": [
+        "Está prohibido adelantar.",
+        "Se permite adelantar si hay buena visibilidad.",
+        "Carril exclusivo para buses.",
+        "Reducción de velocidad a 40 km/h."
+      ],
+      "correct": "Se permite adelantar si hay buena visibilidad."
+    },
+    {
+      "question": "Si el conductor de un vehículo C1 maneja con exceso de carga:",
+      "options": [
+        "No hay sanción si es solo un poco más.",
+        "Se sanciona con multa y posible inmovilización del vehículo.",
+        "Solo se advierte verbalmente.",
+        "Está permitido en carreteras secundarias."
+      ],
+      "correct": "Se sanciona con multa y posible inmovilización del vehículo."
+    }
+  ],
+  "C2": [
+    {
+      "question": "La velocidad máxima en autopistas para vehículos C2 es:",
+      "options": [
+        "80 km/h",
+        "90 km/h",
+        "100 km/h",
+        "120 km/h"
+      ],
+      "correct": "90 km/h"
+    },
+    {
+      "question": "El peso máximo que puede manejar un vehículo con licencia C2 es:",
+      "options": [
+        "8.000 kg",
+        "12.000 kg",
+        "20.000 kg",
+        "25.000 kg"
+      ],
+      "correct": "20.000 kg"
+    },
+    {
+      "question": "Si un conductor C2 transporta carga peligrosa, debe:",
+      "options": [
+        "Colocar rótulos y portar permiso especial.",
+        "Conducir solo de noche.",
+        "No exceder los 60 km/h en cualquier vía.",
+        "No necesita requisitos adicionales."
+      ],
+      "correct": "Colocar rótulos y portar permiso especial."
+    },
+    {
+      "question": "¿Qué debe hacer al frenar un vehículo C2 en bajada pronunciada?",
+      "options": [
+        "Usar únicamente freno de pedal.",
+        "Usar freno de motor y frenos de aire de forma intercalada.",
+        "Poner neutro y dejarlo rodar.",
+        "Acelerar para ganar estabilidad."
+      ],
+      "correct": "Usar freno de motor y frenos de aire de forma intercalada."
+    },
+    {
+      "question": "La revisión de llantas en un vehículo C2 debe incluir:",
+      "options": [
+        "Presión, desgaste y estado general.",
+        "Solo la marca del fabricante.",
+        "El color de la llanta.",
+        "Si tiene tapones decorativos."
+      ],
+      "correct": "Presión, desgaste y estado general."
+    },
+    {
+      "question": "Si la carga sobresale por la parte trasera del vehículo:",
+      "options": [
+        "Se permite sin restricciones.",
+        "Debe señalizarse con una bandera roja o dispositivos reflectivos.",
+        "Basta con avisar verbalmente a otros conductores.",
+        "No se puede circular de día."
+      ],
+      "correct": "Debe señalizarse con una bandera roja o dispositivos reflectivos."
+    },
+    {
+      "question": "Una señal amarilla con un camión y curvas indica:",
+      "options": [
+        "Carril exclusivo para camiones.",
+        "Precaución: curvas peligrosas para vehículos pesados.",
+        "Fin de carretera.",
+        "Ruta exclusiva para carga."
+      ],
+      "correct": "Precaución: curvas peligrosas para vehículos pesados."
+    },
+    {
+      "question": "Una señal circular roja con límite de 10 toneladas significa:",
+      "options": [
+        "Prohibido el paso a vehículos de más de 10 toneladas.",
+        "Permitido solo a camiones pequeños.",
+        "Estacionamiento exclusivo de camiones.",
+        "Velocidad máxima de 10 km/h."
+      ],
+      "correct": "Prohibido el paso a vehículos de más de 10 toneladas."
+    },
+    {
+      "question": "Una línea amarilla continua y otra discontinua juntas indican:",
+      "options": [
+        "Se permite adelantar en ambos sentidos.",
+        "Solo puede adelantar el lado de la línea discontinua.",
+        "Está prohibido adelantar en ambos lados.",
+        "Adelantar solo a menos de 40 km/h."
+      ],
+      "correct": "Solo puede adelantar el lado de la línea discontinua."
+    },
+    {
+      "question": "Si un conductor C2 excede el límite de peso permitido:",
+      "options": [
+        "Solo recibe advertencia verbal.",
+        "Se sanciona con multa y posible retención del vehículo.",
+        "Puede continuar si la carga es urgente.",
+        "Se permite únicamente en autopistas."
+      ],
+      "correct": "Se sanciona con multa y posible retención del vehículo."
+    }
+  ],
+  "C3": [
+    {
+      "question": "La velocidad máxima en carreteras primarias para vehículos C3 es:",
+      "options": [
+        "60 km/h",
+        "70 km/h",
+        "80 km/h",
+        "90 km/h"
+      ],
+      "correct": "90 km/h"
+    },
+    {
+      "question": "El peso bruto vehicular que puede manejar un C3 es:",
+      "options": [
+        "Hasta 8.000 kg",
+        "Hasta 20.000 kg",
+        "Más de 20.000 kg",
+        "Exactamente 18.000 kg"
+      ],
+      "correct": "Más de 20.000 kg"
+    },
+    {
+      "question": "Para conducir un tráiler con material peligroso, el conductor C3 debe:",
+      "options": [
+        "Portar rótulos, permiso especial y cumplir normativa de seguridad.",
+        "Avisar a los demás conductores.",
+        "Circular solo de día.",
+        "Usar únicamente vías secundarias."
+      ],
+      "correct": "Portar rótulos, permiso especial y cumplir normativa de seguridad."
+    },
+    {
+      "question": "¿Qué debe hacer un conductor C3 al tomar una curva cerrada?",
+      "options": [
+        "Ingresar rápido para no perder potencia.",
+        "Reducir velocidad y tomarla en carril adecuado.",
+        "Usar freno de pedal únicamente.",
+        "Invadir el carril contrario para abrir el giro."
+      ],
+      "correct": "Reducir velocidad y tomarla en carril adecuado."
+    },
+    {
+      "question": "En pendientes largas y pronunciadas, el conductor debe:",
+      "options": [
+        "Poner neutro para ahorrar combustible.",
+        "Usar freno de motor y no abusar de los frenos de servicio.",
+        "Mantener el acelerador presionado.",
+        "Apagar el motor para evitar recalentamiento."
+      ],
+      "correct": "Usar freno de motor y no abusar de los frenos de servicio."
+    },
+    {
+      "question": "Si el tráiler presenta un fallo en el sistema de frenos en bajada:",
+      "options": [
+        "Continuar hasta llegar abajo.",
+        "Usar rampas de escape o zonas de frenado de emergencia.",
+        "Saltar del vehículo en movimiento.",
+        "Detenerse en curva."
+      ],
+      "correct": "Usar rampas de escape o zonas de frenado de emergencia."
+    },
+    {
+      "question": "Una señal roja con un camión y un número \"20 T\" significa:",
+      "options": [
+        "Velocidad máxima 20 km/h.",
+        "Permitido hasta 20 toneladas.",
+        "Prohibido el paso a vehículos de más de 20 toneladas.",
+        "Carril exclusivo para carga pesada."
+      ],
+      "correct": "Prohibido el paso a vehículos de más de 20 toneladas."
+    },
+    {
+      "question": "Una señal amarilla con un tráiler inclinándose indica:",
+      "options": [
+        "Zona de estacionamiento de camiones.",
+        "Peligro: riesgo de vuelco para vehículos pesados.",
+        "Fin de vía rápida.",
+        "Curva segura."
+      ],
+      "correct": "Peligro: riesgo de vuelco para vehículos pesados."
+    },
+    {
+      "question": "Una línea amarilla doble continua indica:",
+      "options": [
+        "Está prohibido adelantar en ambos sentidos.",
+        "Puede adelantar con precaución.",
+        "Carril exclusivo para pesados.",
+        "Reducción de velocidad obligatoria a 40 km/h."
+      ],
+      "correct": "Está prohibido adelantar en ambos sentidos."
+    },
+    {
+      "question": "Si un conductor C3 circula a 120 km/h en autopista:",
+      "options": [
+        "Está permitido para tráileres.",
+        "Se sanciona con multa, pérdida de puntos y posible suspensión de licencia.",
+        "Solo recibe advertencia verbal.",
+        "No hay sanción si la vía está despejada."
+      ],
+      "correct": "Se sanciona con multa, pérdida de puntos y posible suspensión de licencia."
+    }
+  ],
+  "D1": [
+    {
+      "question": "La velocidad máxima de un autobús D1 en zona urbana es:",
+      "options": [
+        "40 km/h",
+        "50 km/h",
+        "60 km/h",
+        "80 km/h"
+      ],
+      "correct": "50 km/h"
+    },
+    {
+      "question": "La capacidad máxima de pasajeros en un bus D1 es:",
+      "options": [
+        "20",
+        "25",
+        "30",
+        "35"
+      ],
+      "correct": "30"
+    },
+    {
+      "question": "Si un conductor D1 transporta pasajeros de pie:",
+      "options": [
+        "Está permitido en cualquier ruta.",
+        "Solo si la unidad está diseñada para ello.",
+        "Nunca está permitido.",
+        "Solo en zonas rurales."
+      ],
+      "correct": "Solo si la unidad está diseñada para ello."
+    },
+    {
+      "question": "El conductor de un bus D1 debe revisar antes de iniciar viaje:",
+      "options": [
+        "Solo el nivel de combustible.",
+        "Frenos, llantas, luces, puertas y cinturones de seguridad.",
+        "La radio y ventilación.",
+        "El color del uniforme."
+      ],
+      "correct": "Frenos, llantas, luces, puertas y cinturones de seguridad."
+    },
+    {
+      "question": "En caso de emergencia dentro del bus (incendio, accidente):",
+      "options": [
+        "Evacuar a los pasajeros ordenadamente por las salidas de emergencia.",
+        "Esperar instrucciones de los pasajeros.",
+        "Mantener a todos dentro del bus.",
+        "Continuar la marcha hasta la siguiente parada."
+      ],
+      "correct": "Evacuar a los pasajeros ordenadamente por las salidas de emergencia."
+    },
+    {
+      "question": "¿Qué debe hacer el conductor al transportar niños escolares?",
+      "options": [
+        "Circular a velocidad normal.",
+        "Extremar precauciones, respetar paradas y supervisar abordaje.",
+        "No recoger estudiantes en carretera.",
+        "Permitir que viajen de pie."
+      ],
+      "correct": "Extremar precauciones, respetar paradas y supervisar abordaje."
+    },
+    {
+      "question": "Una señal con un bus en color azul significa:",
+      "options": [
+        "Prohibido el paso a buses.",
+        "Estación o parada autorizada de autobuses.",
+        "Velocidad mínima para buses.",
+        "Carril exclusivo para carga."
+      ],
+      "correct": "Estación o parada autorizada de autobuses."
+    },
+    {
+      "question": "Una señal triangular con niños cruzando significa:",
+      "options": [
+        "Precaución: zona escolar.",
+        "Estación de buses.",
+        "Cruce de animales.",
+        "Prohibido el paso a peatones."
+      ],
+      "correct": "Precaución: zona escolar."
+    },
+    {
+      "question": "Una línea amarilla continua en carretera significa:",
+      "options": [
+        "Se permite adelantar con precaución.",
+        "Prohibido adelantar en ese tramo.",
+        "Carril exclusivo para buses.",
+        "Estacionamiento autorizado."
+      ],
+      "correct": "Prohibido adelantar en ese tramo."
+    },
+    {
+      "question": "Si un conductor D1 conduce bajo los efectos del alcohol:",
+      "options": [
+        "Puede continuar si no excede 0,75 g/L.",
+        "Se sanciona con multa, pérdida de puntos y suspensión de licencia.",
+        "Solo recibe advertencia.",
+        "Está permitido en rutas cortas."
+      ],
+      "correct": "Se sanciona con multa, pérdida de puntos y suspensión de licencia."
+    }
+  ],
+  "D2": [
+    {
+      "question": "La velocidad máxima en carretera primaria para buses D2 es:",
+      "options": [
+        "60 km/h",
+        "70 km/h",
+        "80 km/h",
+        "90 km/h"
+      ],
+      "correct": "80 km/h"
+    },
+    {
+      "question": "¿Cuál es la capacidad mínima de pasajeros para un bus D2?",
+      "options": [
+        "20",
+        "25",
+        "30",
+        "Más de 30"
+      ],
+      "correct": "Más de 30"
+    },
+    {
+      "question": "Si un conductor D2 transporta pasajeros de pie:",
+      "options": [
+        "Está prohibido.",
+        "Está permitido en cualquier unidad.",
+        "Solo si el bus está diseñado y autorizado para ello.",
+        "Es permitido solo en rutas rurales."
+      ],
+      "correct": "Solo si el bus está diseñado y autorizado para ello."
+    },
+    {
+      "question": "Antes de iniciar viaje, el conductor D2 debe revisar:",
+      "options": [
+        "Solo el nivel de combustible.",
+        "Llantas, frenos, luces, cinturones, salidas de emergencia y puertas.",
+        "Que el aire acondicionado funcione.",
+        "Si el uniforme está limpio."
+      ],
+      "correct": "Llantas, frenos, luces, cinturones, salidas de emergencia y puertas."
+    },
+    {
+      "question": "En caso de accidente con pasajeros:",
+      "options": [
+        "Se evacua de forma segura y ordenada siguiendo el plan de emergencia.",
+        "Se continúa hasta la terminal más cercana.",
+        "Se espera dentro del bus sin evacuar.",
+        "Se permite a cada pasajero actuar por su cuenta."
+      ],
+      "correct": "Se evacua de forma segura y ordenada siguiendo el plan de emergencia."
+    },
+    {
+      "question": "¿Qué debe hacer el conductor al recoger pasajeros en una parada oficial?",
+      "options": [
+        "Detenerse completamente y garantizar la seguridad al ascender o descender.",
+        "Disminuir la velocidad pero no detenerse.",
+        "Abrir las puertas en movimiento.",
+        "Solo recoger si hay espacio vacío."
+      ],
+      "correct": "Detenerse completamente y garantizar la seguridad al ascender o descender."
+    },
+    {
+      "question": "Una señal azul con un bus blanco significa:",
+      "options": [
+        "Carril exclusivo o permitido para buses.",
+        "Prohibido el paso a buses.",
+        "Zona escolar.",
+        "Fin de vía rápida."
+      ],
+      "correct": "Carril exclusivo o permitido para buses."
+    },
+    {
+      "question": "Una señal triangular con un bus descendiendo significa:",
+      "options": [
+        "Prohibido estacionar buses.",
+        "Precaución: pendiente peligrosa para buses.",
+        "Estación de buses cercana.",
+        "Vía exclusiva para buses grandes."
+      ],
+      "correct": "Precaución: pendiente peligrosa para buses."
+    },
+    {
+      "question": "Una doble línea amarilla continua significa:",
+      "options": [
+        "Prohibido adelantar en ambos sentidos.",
+        "Permitido adelantar si no hay vehículos cerca.",
+        "Carril exclusivo para transporte público.",
+        "Reducción obligatoria a 25 km/h."
+      ],
+      "correct": "Prohibido adelantar en ambos sentidos."
+    },
+    {
+      "question": "Si un conductor D2 maneja bajo efectos del alcohol:",
+      "options": [
+        "Se sanciona con multa, pérdida de puntos y suspensión de licencia.",
+        "Puede continuar si está en zona rural.",
+        "Solo recibe advertencia.",
+        "Está permitido en rutas cortas."
+      ],
+      "correct": "Se sanciona con multa, pérdida de puntos y suspensión de licencia."
+    }
+  ],
+  "D3": [
+    {
+      "question": "La velocidad máxima en autopista para buses D3 es:",
+      "options": [
+        "70 km/h",
+        "80 km/h",
+        "90 km/h",
+        "100 km/h"
+      ],
+      "correct": "90 km/h"
+    },
+    {
+      "question": "La licencia D3 autoriza a conducir:",
+      "options": [
+        "Vehículos de carga pesada.",
+        "Autobuses articulados o de gran capacidad (interprovinciales).",
+        "Microbuses de 30 pasajeros.",
+        "Motocicletas de más de 500 cc."
+      ],
+      "correct": "Autobuses articulados o de gran capacidad (interprovinciales)."
+    },
+    {
+      "question": "¿Cuál es la capacidad de pasajeros típica de un bus D3?",
+      "options": [
+        "Hasta 30",
+        "Más de 30",
+        "Más de 45 o articulados de gran tamaño",
+        "Solo transporte escolar"
+      ],
+      "correct": "Más de 45 o articulados de gran tamaño"
+    },
+    {
+      "question": "Antes de iniciar un recorrido largo, el conductor D3 debe revisar:",
+      "options": [
+        "Solo combustible y aceite.",
+        "Llantas, frenos, suspensión, luces, puertas, cinturones y sistema articulado.",
+        "Que los pasajeros tengan pasaje.",
+        "Que el bus esté limpio."
+      ],
+      "correct": "Llantas, frenos, suspensión, luces, puertas, cinturones y sistema articulado."
+    },
+    {
+      "question": "En un accidente en carretera interprovincial, el conductor debe:",
+      "options": [
+        "Priorizar la seguridad de los pasajeros y usar salidas de emergencia.",
+        "Esperar dentro del bus hasta que llegue ayuda.",
+        "Continuar hasta la terminal más cercana.",
+        "Dejar que los pasajeros decidan qué hacer."
+      ],
+      "correct": "Priorizar la seguridad de los pasajeros y usar salidas de emergencia."
+    },
+    {
+      "question": "En pendientes largas y pronunciadas, el conductor D3 debe:",
+      "options": [
+        "Usar freno de motor y no abusar del freno de servicio.",
+        "Frenar constantemente.",
+        "Apagar el motor para ahorrar combustible.",
+        "Usar la reversa en casos extremos."
+      ],
+      "correct": "Usar freno de motor y no abusar del freno de servicio."
+    },
+    {
+      "question": "Una señal azul con un bus y una flecha indica:",
+      "options": [
+        "Ruta exclusiva para transporte pesado.",
+        "Carril exclusivo para autobuses.",
+        "Prohibición de buses.",
+        "Fin de autopista."
+      ],
+      "correct": "Carril exclusivo para autobuses."
+    },
+    {
+      "question": "Una señal triangular con dibujo de curvas continuas significa:",
+      "options": [
+        "Vía exclusiva para buses.",
+        "Precaución: curvas peligrosas.",
+        "Estación de buses cercana.",
+        "Zona escolar."
+      ],
+      "correct": "Precaución: curvas peligrosas."
+    },
+    {
+      "question": "Una línea amarilla continua junto a una discontinua significa:",
+      "options": [
+        "Ambos sentidos pueden adelantar.",
+        "Ningún sentido puede adelantar.",
+        "Solo el que circula por el lado de la línea discontinua puede adelantar.",
+        "Libre adelantamiento."
+      ],
+      "correct": "Solo el que circula por el lado de la línea discontinua puede adelantar."
+    },
+    {
+      "question": "Conducir un D3 bajo efectos del alcohol implica:",
+      "options": [
+        "Multa y suspensión de licencia.",
+        "Multa, pérdida de puntos y suspensión de licencia.",
+        "Solo una advertencia.",
+        "Ninguna sanción."
+      ],
+      "correct": "Multa, pérdida de puntos y suspensión de licencia."
+    }
+  ]
+}

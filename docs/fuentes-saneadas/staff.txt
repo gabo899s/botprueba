@@ -1,0 +1,2056 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b003_staff.html
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Staff - EscazuRP</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #0f172a;
+            --accent-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+
+        body { 
+            background-color: #0f172a; 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+        }
+
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Estilos de Notificaciones (Toasts) */
+        #toast-container { 
+            position: fixed; 
+            bottom: 24px; 
+            right: 24px; 
+            z-index: 9999; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
+        .toast { 
+            background: rgba(30, 41, 59, 0.95); 
+            backdrop-filter: blur(10px);
+            border-left: 5px solid #3b82f6; 
+            padding: 16px 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05); 
+            min-width: 320px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.success { border-left-color: #10b981; }
+        .toast.warning { border-left-color: #f59e0b; }
+        @keyframes slideIn { 
+            from { transform: translateX(100%); opacity: 0; } 
+            to { transform: translateX(0); opacity: 1; } 
+        }
+
+        /* Estilos para dropdown de búsqueda */
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(30, 41, 59, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 12px;
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .search-dropdown.active {
+            display: block;
+        }
+        .search-result {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .search-result:last-child {
+            border-bottom: none;
+        }
+        .search-result:hover {
+            background: rgba(51, 65, 85, 0.5);
+        }
+        .search-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #3b82f6;
+        }
+        .search-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .search-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .search-details {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .search-roblox-id {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Estilos de Glassmorphism */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+        }
+
+        /* Estilos para botones */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
+        }
+
+        /* Estilos para badges de estado */
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .badge-inactive {
+            background: rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .badge-resting {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .badge-loan {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        /* Animaciones */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Estilos para modales */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 9998;
+            display: none;
+        }
+        .modal-overlay.active {
+            display: block;
+        }
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            z-index: 9999;
+            display: none;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .modal.active {
+            display: block;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translate(-50%, -48%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        /* Estilos para los tres puntos del menú */
+        .three-dots-menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 180px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            display: none;
+        }
+        .three-dots-menu.active {
+            display: block;
+        }
+        .menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .menu-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        .menu-item.danger {
+            color: #ef4444;
+        }
+        .menu-item.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Estilos para los logs */
+        .log-item {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .log-item:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+        .log-sancion {
+            border-left: 4px solid #f59e0b;
+        }
+        .log-ban {
+            border-left: 4px solid #ef4444;
+        }
+        .log-appealed {
+            border-left: 4px solid #10b981;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+
+    <!-- CONTENEDOR DE TOASTS -->
+    <div id="toast-container"></div>
+
+    <!-- OVERLAY DE CARGA -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-50 flex flex-col items-center justify-center">
+        <div class="relative">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 blur-xl opacity-20 rounded-full w-48 h-48"></div>
+            <i data-lucide="shield" class="w-32 h-32 relative z-10 text-blue-500"></i>
+        </div>
+        <p class="text-xl font-bold mt-6 text-white">Cargando Panel de Staff...</p>
+        <p class="text-slate-400 mt-2">Verificando autenticación</p>
+    </div>
+
+    <!-- VISTA DE LOGIN -->
+    <div id="view-login" class="hidden min-h-screen flex items-center justify-center p-4 fade-in">
+        <div class="glass-card w-full max-w-md p-8">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl mb-6">
+                    <i data-lucide="shield" class="w-10 h-10 text-white"></i>
+                </div>
+                <h1 class="text-3xl font-black text-white mb-2">Panel de Staff</h1>
+                <p class="text-slate-400">Acceso restringido al personal autorizado</p>
+            </div>
+            
+            <div class="space-y-6">
+                <button onclick="loginWithDiscord()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 py-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-3">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515a.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0a12.64 12.64 0 00-.617-1.25a.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057a19.9 19.9 0 005.993 3.03a.078.078 0 00.084-.028a14.09 14.09 0 001.226-1.994a.076.076 0 00-.041-.106a13.107 13.107 0 01-1.872-.892a.077.077 0 01-.008-.128a10.2 10.2 0 00.372-.292a.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127a12.299 12.299 0 01-1.873.892a.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028a19.839 19.839 0 006.002-3.03a.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+                    </svg>
+                    Iniciar sesión con Discord
+                </button>
+
+                <div class="text-center pt-4 border-t border-slate-800">
+                    <p class="text-sm text-slate-500">Solo personal con el rol de staff puede acceder</p>
+                    <p class="text-xs text-slate-600 mt-1">Servidor ID: ID_POR_CONFIGURAR</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL PRINCIPAL DE STAFF -->
+    <div id="view-dashboard" class="hidden min-h-screen flex flex-col fade-in">
+        <!-- Barra de navegación superior -->
+        <nav class="glass-effect px-6 py-4 flex justify-between items-center border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <img src="/images/logo.png" alt="Logo" class="w-8 h-8 rounded-lg">
+                <span class="font-bold text-sm tracking-widest opacity-80 uppercase">Panel de Staff EscazuRP</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Estado de conexión -->
+                <div class="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                    <div class="w-2 h-2 bg-green-500 rounded-full pulse"></div>
+                    <span class="text-xs font-medium text-green-400">Conectado</span>
+                </div>
+                
+                <!-- Información del usuario -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <div class="text-sm font-bold text-white" id="user-name">Cargando...</div>
+                        <div class="text-xs text-white/60" id="user-status">Staff</div>
+                    </div>
+                    <img id="user-avatar" src="" class="w-10 h-10 rounded-full border-2 border-blue-500" alt="Avatar">
+                    <button onclick="logout()" class="text-white/60 hover:text-red-500 p-2 hover:bg-white/10 rounded-xl transition-colors">
+                        <i data-lucide="log-out" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido principal (3 columnas) -->
+        <main class="flex-1 flex p-6 gap-6 max-w-7xl mx-auto w-full">
+            
+            <!-- COLUMNA IZQUIERDA - Información del staff -->
+            <div class="w-80 space-y-6">
+                <!-- Tarjeta de perfil -->
+                <div class="glass-card p-6">
+                    <div class="flex items-center gap-4 mb-6">
+                        <img id="staff-avatar" src="" class="w-16 h-16 rounded-full border-4 border-blue-500/30">
+                        <div class="flex-1 min-w-0">
+                            <h2 id="staff-name" class="text-lg font-bold text-white truncate">Cargando...</h2>
+                            <p class="text-sm text-slate-400 truncate" id="staff-discord">@usuario</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span id="staff-status" class="badge-active text-xs px-2 py-1 rounded-full">Activo</span>
+                                <div class="relative" id="three-dots-container">
+                                    <button onclick="toggleMenu('staff-menu')" class="p-1 hover:bg-white/10 rounded">
+                                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                    </button>
+                                    <div id="staff-menu" class="three-dots-menu">
+                                        <div class="menu-item" onclick="viewShifts()">
+                                            <i data-lucide="clock" class="w-4 h-4"></i>
+                                            Ver Shifts
+                                        </div>
+                                        <div class="menu-item" onclick="viewActivity()">
+                                            <i data-lucide="activity" class="w-4 h-4"></i>
+                                            Ver Actividad
+                                        </div>
+                                        <div class="menu-item danger" onclick="logout()">
+                                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                                            Cerrar sesión
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contador de shift -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-slate-400">Tiempo en shift</span>
+                            <span id="shift-timer" class="text-lg font-bold text-white">00:00:00</span>
+                        </div>
+                        <div class="text-xs text-slate-500" id="shift-count">0 staff activos</div>
+                    </div>
+
+                    <!-- Botones de shift -->
+                    <div class="space-y-3" id="shift-buttons">
+                        <button onclick="startShift()" class="btn-success w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                            <i data-lucide="play" class="w-5 h-5"></i>
+                            Empezar Shift
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Toolbox -->
+                <div class="glass-card p-6">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="tool" class="w-5 h-5 text-blue-400"></i>
+                        Toolbox
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <button onclick="openLOAModal()" class="w-full p-4 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-purple-500/50 text-left transition-all group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-600/20 rounded-lg flex items-center justify-center group-hover:from-purple-500/30 group-hover:to-pink-600/30 transition-all">
+                                    <i data-lucide="umbrella" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white">Manejar LOA</h4>
+                                    <p class="text-slate-400 text-sm">Solicitar tiempo fuera</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="viewActivity()" class="w-full p-4 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-green-500/50 text-left transition-all group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-lg flex items-center justify-center group-hover:from-green-500/30 group-hover:to-emerald-600/30 transition-all">
+                                    <i data-lucide="activity" class="w-5 h-5 text-green-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white">Ver Actividad</h4>
+                                    <p class="text-slate-400 text-sm">Sanciones y baneos</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Historial de LOAs -->
+                <div class="glass-card p-6">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-amber-400"></i>
+                        Mis LOAs
+                    </h3>
+                    
+                    <div id="loa-history" class="space-y-3 max-h-60 overflow-y-auto">
+                        <!-- LOAs se cargarán aquí -->
+                        <div class="text-center py-8 text-slate-500">
+                            <i data-lucide="calendar" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                            <p class="text-sm">No hay LOAs registrados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA CENTRAL - Búsqueda y creación de logs -->
+            <div class="flex-1 space-y-6">
+                <!-- Buscador de usuarios Roblox -->
+                <div class="glass-card p-6">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5 text-blue-400"></i>
+                        Buscar Usuario Roblox
+                    </h3>
+                    
+                    <div class="relative mb-6">
+                        <input type="text" 
+                               id="roblox-search" 
+                               placeholder="Buscar por nombre de usuario Roblox..." 
+                               class="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white placeholder-white/40 focus:border-blue-500 outline-none"
+                               autocomplete="off">
+                        <div class="absolute right-4 top-4 text-white/40">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </div>
+                        
+                        <!-- Dropdown de resultados -->
+                        <div id="roblox-results" class="search-dropdown"></div>
+                    </div>
+
+                    <!-- Información del usuario seleccionado -->
+                    <div id="user-info" class="hidden glass-card p-6 border border-blue-500/20">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img id="selected-roblox-avatar" src="" class="w-16 h-16 rounded-xl">
+                            <div class="flex-1">
+                                <h3 id="selected-roblox-name" class="text-lg font-bold text-white"></h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span id="selected-roblox-id" class="search-roblox-id text-xs"></span>
+                                    <span id="selected-discord-info" class="text-xs text-slate-400"></span>
+                                </div>
+                            </div>
+                            <button onclick="clearSelectedUser()" class="p-2 hover:bg-white/10 rounded-lg">
+                                <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario para crear log -->
+                <div class="glass-card p-6">
+                    <h3 class="font-bold text-white mb-6 flex items-center gap-2">
+                        <i data-lucide="file-plus" class="w-5 h-5 text-green-400"></i>
+                        Crear Nueva Log
+                    </h3>
+                    
+                    <form id="log-form" class="space-y-4">
+                        <!-- Usuario (auto-rellenado) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Usuario</label>
+                            <input type="text" 
+                                   id="log-user" 
+                                   class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white placeholder-white/40"
+                                   readonly
+                                   placeholder="Selecciona un usuario primero">
+                        </div>
+
+                        <!-- Tipo de log -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Tipo</label>
+                            <select id="log-type" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white">
+                                <option value="">Selecciona un tipo</option>
+                                <option value="sancion">Sanción</option>
+                                <option value="ban_1">Baneo 1 día</option>
+                                <option value="ban_3">Baneo 3 días</option>
+                                <option value="ban_7">Baneo 7 días</option>
+                                <option value="ban_permanent">Baneo Permanente</option>
+                            </select>
+                        </div>
+
+                        <!-- Razón -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Razón</label>
+                            <textarea id="log-reason" 
+                                      rows="3" 
+                                      class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white placeholder-white/40 resize-none"
+                                      placeholder="Describe la razón de la sanción/ban..."></textarea>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" 
+                                    onclick="clearSelectedUser()" 
+                                    class="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-slate-600 font-medium transition-all">
+                                Salir Perfil
+                            </button>
+                            <button type="button" 
+                                    onclick="createLog()" 
+                                    class="flex-1 py-3 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="check" class="w-5 h-5"></i>
+                                Crear
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA - Historial y logs -->
+            <div class="w-96 space-y-6">
+                <!-- Buscador de historial -->
+                <div class="glass-card p-6">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-purple-400"></i>
+                        Historial de Logs
+                    </h3>
+                    
+                    <div class="relative mb-4">
+                        <input type="text" 
+                               id="history-search" 
+                               placeholder="Buscar usuario..." 
+                               class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white placeholder-white/40 focus:border-purple-500 outline-none"
+                               autocomplete="off">
+                        <div class="absolute right-3 top-3 text-white/40">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        
+                        <!-- Dropdown de resultados -->
+                        <div id="history-results" class="search-dropdown"></div>
+                    </div>
+
+                    <button onclick="loadRecentLogs()" class="w-full py-2 text-sm text-center text-slate-400 hover:text-white transition-colors">
+                        Ver logs recientes
+                    </button>
+                </div>
+
+                <!-- Lista de logs -->
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-white flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-amber-400"></i>
+                            Logs Encontrados
+                        </h3>
+                        <span id="logs-count" class="text-xs text-slate-400">0 logs</span>
+                    </div>
+                    
+                    <div id="logs-list" class="space-y-4 max-h-[500px] overflow-y-auto">
+                        <!-- Los logs se cargarán aquí -->
+                        <div class="text-center py-12 text-slate-500">
+                            <i data-lucide="file-text" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                            <p class="text-sm">No hay logs para mostrar</p>
+                            <p class="text-xs mt-1">Busca un usuario para ver su historial</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="px-6 py-4 border-t border-white/10 text-center text-sm text-slate-500">
+            <p>Panel de Staff EscazuRP • Sistema v1.0 • Solo personal autorizado</p>
+            <p class="text-xs mt-1">© 2024 EscazuRP • Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <!-- MODAL: SOLICITAR LOA -->
+    <div class="modal" id="modal-loa">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="umbrella" class="w-6 h-6 text-purple-400"></i>
+                    Solicitar LOA
+                </h3>
+                <button onclick="closeModal('loa')" class="p-2 hover:bg-white/10 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="loa-form" class="space-y-5">
+                <!-- Razón -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Razón</label>
+                    <textarea id="loa-reason" 
+                              rows="3" 
+                              class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white placeholder-white/40 resize-none"
+                              placeholder="Describe la razón de tu LOA..." 
+                              required></textarea>
+                </div>
+
+                <!-- Tipo de inicio -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Tipo de Comienzo</label>
+                    <select id="loa-start-type" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white" onchange="toggleLoaDatePicker()">
+                        <option value="aprobacion">Cuando se me apruebe el LOA</option>
+                        <option value="fecha">Por selector de fecha</option>
+                    </select>
+                </div>
+
+                <!-- Selector de fecha de inicio (condicional) -->
+                <div id="loa-start-date-container" class="hidden">
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Fecha de Inicio</label>
+                    <input type="datetime-local" 
+                           id="loa-start-date" 
+                           class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white">
+                </div>
+
+                <!-- Fecha de fin -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Fecha de Fin</label>
+                    <input type="datetime-local" 
+                           id="loa-end-date" 
+                           class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white"
+                           required>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" 
+                            onclick="closeModal('loa')" 
+                            class="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-slate-600 font-medium transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-700 hover:from-purple-700 hover:to-pink-800 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                        Subir Solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-loa-overlay"></div>
+
+    <!-- MODAL: VER SHIFTS -->
+    <div class="modal" id="modal-shifts">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="clock" class="w-6 h-6 text-blue-400"></i>
+                    Mis Shifts
+                </h3>
+                <button onclick="closeModal('shifts')" class="p-2 hover:bg-white/10 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Estadísticas -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="glass-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white" id="total-shifts">0</div>
+                    <div class="text-xs text-slate-400">Total Shifts</div>
+                </div>
+                <div class="glass-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white" id="total-hours">0h</div>
+                    <div class="text-xs text-slate-400">Horas Totales</div>
+                </div>
+                <div class="glass-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white" id="avg-shift">0h</div>
+                    <div class="text-xs text-slate-400">Promedio</div>
+                </div>
+            </div>
+
+            <!-- Historial de shifts -->
+            <div>
+                <h4 class="font-bold text-white mb-4">Historial Reciente</h4>
+                <div id="shifts-history" class="space-y-3 max-h-80 overflow-y-auto">
+                    <!-- Los shifts se cargarán aquí -->
+                    <div class="text-center py-8 text-slate-500">
+                        <i data-lucide="clock" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                        <p class="text-sm">No hay shifts registrados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-shifts-overlay"></div>
+
+    <!-- MODAL: VER ACTIVIDAD -->
+    <div class="modal" id="modal-activity">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="activity" class="w-6 h-6 text-green-400"></i>
+                    Mi Actividad
+                </h3>
+                <button onclick="closeModal('activity')" class="p-2 hover:bg-white/10 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Estadísticas de actividad -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="glass-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white" id="total-sanciones">0</div>
+                    <div class="text-xs text-slate-400">Sanciones Hechas</div>
+                </div>
+                <div class="glass-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white" id="total-baneos">0</div>
+                    <div class="text-xs text-slate-400">Baneos Hechos</div>
+                </div>
+            </div>
+
+            <!-- Lista de actividad reciente -->
+            <div>
+                <h4 class="font-bold text-white mb-4">Actividad Reciente</h4>
+                <div id="activity-list" class="space-y-3 max-h-80 overflow-y-auto">
+                    <!-- La actividad se cargará aquí -->
+                    <div class="text-center py-8 text-slate-500">
+                        <i data-lucide="activity" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                        <p class="text-sm">No hay actividad reciente</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-activity-overlay"></div>
+
+    <!-- MODAL: EDITAR LOG -->
+    <div class="modal" id="modal-edit-log">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="edit" class="w-6 h-6 text-amber-400"></i>
+                    Editar Log
+                </h3>
+                <button onclick="closeModal('edit-log')" class="p-2 hover:bg-white/10 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="edit-log-form" class="space-y-5">
+                <input type="hidden" id="edit-log-id">
+                <input type="hidden" id="edit-log-type">
+                
+                <!-- Tipo -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Tipo</label>
+                    <select id="edit-log-log-type" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white">
+                        <option value="sancion">Sanción</option>
+                        <option value="ban_1">Baneo 1 día</option>
+                        <option value="ban_3">Baneo 3 días</option>
+                        <option value="ban_7">Baneo 7 días</option>
+                        <option value="ban_permanent">Baneo Permanente</option>
+                    </select>
+                </div>
+
+                <!-- Razón -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Razón</label>
+                    <textarea id="edit-log-reason" 
+                              rows="3" 
+                              class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white placeholder-white/40 resize-none"
+                              required></textarea>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" 
+                            onclick="closeModal('edit-log')" 
+                            class="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-slate-600 font-medium transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 py-3 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-edit-log-overlay"></div>
+
+    <!-- MODAL: APELAR SANCIÓN -->
+    <div class="modal" id="modal-appeal">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="scale" class="w-6 h-6 text-green-400"></i>
+                    Apelar Sanción
+                </h3>
+                <button onclick="closeModal('appeal')" class="p-2 hover:bg-white/10 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="appeal-form" class="space-y-5">
+                <input type="hidden" id="appeal-log-id">
+                
+                <!-- Información de la sanción -->
+                <div class="glass-card p-4">
+                    <div class="text-sm text-slate-400 mb-1">Sanción a apelar:</div>
+                    <div class="font-bold text-white" id="appeal-log-info">Cargando...</div>
+                </div>
+
+                <!-- Razón de apelación -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Razón de Apelación</label>
+                    <textarea id="appeal-reason" 
+                              rows="4" 
+                              class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white placeholder-white/40 resize-none"
+                              placeholder="Explica por qué esta sanción debería ser apelada..."
+                              required></textarea>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" 
+                            onclick="closeModal('appeal')" 
+                            class="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-slate-600 font-medium transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 py-3 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        Enviar Apelación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-appeal-overlay"></div>
+
+    <!-- MODAL: CONFIRMAR ELIMINACIÓN -->
+    <div class="modal" id="modal-confirm-delete">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-400"></i>
+                    Confirmar Eliminación
+                </h3>
+                <button onclick="closeModal('confirm-delete')" class="p-2 hover:bg-white/10 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-5">
+                <input type="hidden" id="delete-log-id">
+                <input type="hidden" id="delete-log-type">
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="trash-2" class="w-8 h-8 text-red-400"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-white mb-2">¿Estás seguro?</h4>
+                    <p class="text-slate-400">Esta acción eliminará permanentemente el registro seleccionado.</p>
+                    <p class="text-sm text-red-400 mt-2">Esta acción no se puede deshacer.</p>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" 
+                            onclick="closeModal('confirm-delete')" 
+                            class="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-xl hover:border-slate-600 font-medium transition-all">
+                        Cancelar
+                    </button>
+                    <button type="button" 
+                            onclick="deleteLog()" 
+                            class="flex-1 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-confirm-delete-overlay"></div>
+
+    <script>
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let currentUser = null;
+        let currentToken = "VALOR_RETIRADO";
+        let selectedUser = null;
+        let currentLogs = [];
+        let shiftInterval = null;
+        let shiftStartTime = null;
+        let activeShifts = 0;
+
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i data-lucide="${type === 'error' ? 'alert-circle' : type === 'warning' ? 'alert-triangle' : 'check-circle'}" class="w-5 h-5"></i>
+                    <span class="text-sm font-bold tracking-tight">${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="ml-4 p-1 hover:bg-white/10 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-4 h-4 text-white/50"></i>
+                </button>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => { if(toast.parentElement) toast.remove(); }, 5000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            menu.classList.toggle('active');
+            
+            // Cerrar otros menús
+            document.querySelectorAll('.three-dots-menu').forEach(m => {
+                if (m.id !== menuId) m.classList.remove('active');
+            });
+        }
+
+        function openModal(modalName) {
+            document.getElementById(`modal-${modalName}`).classList.add('active');
+            document.getElementById(`modal-${modalName}-overlay`).classList.add('active');
+        }
+
+        function closeModal(modalName) {
+            document.getElementById(`modal-${modalName}`).classList.remove('active');
+            document.getElementById(`modal-${modalName}-overlay`).classList.remove('active');
+        }
+
+        function toggleLoaDatePicker() {
+            const startType = document.getElementById('loa-start-type').value;
+            const container = document.getElementById('loa-start-date-container');
+            if (startType === 'fecha') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE AUTENTICACIÓN
+        // ============================================
+        async function checkAuth() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = "VALOR_RETIRADO";
+            
+            if (!token) {
+                showLogin();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/staff/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        currentUser = data.user;
+                        currentToken = "VALOR_RETIRADO";
+                        localStorage.setItem('staff_token', token);
+                        window.history.replaceState({}, '', '/staff');
+                        loadStaffData();
+                        showDashboard();
+                    } else {
+                        showLogin();
+                    }
+                } else {
+                    localStorage.removeItem('staff_token');
+                    showLogin();
+                }
+            } catch (error) {
+                console.error('Error verificando autenticación:', error);
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('view-login').classList.remove('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function loginWithDiscord() {
+            window.location.href = '/staff/auth/discord';
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/staff/auth/logout', { method: 'POST' });
+            } catch (error) {
+                // Ignorar errores
+            }
+            
+            localStorage.removeItem('staff_token');
+            currentUser = null;
+            currentToken = "VALOR_RETIRADO";
+            showLogin();
+            showToast('Sesión cerrada correctamente', 'info');
+        }
+
+        // ============================================
+        // FUNCIONES DE CARGA DE DATOS
+        // ============================================
+        async function loadStaffData() {
+            if (!currentUser) return;
+
+            // Actualizar información del usuario
+            document.getElementById('user-name').textContent = currentUser.discordUsername || currentUser.username;
+            document.getElementById('staff-name').textContent = currentUser.discordUsername || currentUser.username;
+            document.getElementById('staff-discord').textContent = `@${currentUser.discordUsername || currentUser.username}`;
+            
+            const avatarUrl = currentUser.discordAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('user-avatar').src = avatarUrl;
+            document.getElementById('staff-avatar').src = avatarUrl;
+
+            // Cargar datos adicionales
+            await loadShiftData();
+            await loadLOAHistory();
+            await loadActivityStats();
+            
+            // Iniciar listeners de búsqueda
+            setupSearchListeners();
+            
+            // Cerrar menús al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.three-dots-menu') && !e.target.closest('#three-dots-container button')) {
+                    document.querySelectorAll('.three-dots-menu').forEach(m => m.classList.remove('active'));
+                }
+                
+                if (!e.target.closest('.search-dropdown') && !e.target.closest('#roblox-search')) {
+                    document.getElementById('roblox-results').classList.remove('active');
+                }
+                
+                if (!e.target.closest('.search-dropdown') && !e.target.closest('#history-search')) {
+                    document.getElementById('history-results').classList.remove('active');
+                }
+            });
+        }
+
+        async function loadShiftData() {
+            try {
+                const response = await fetch(`/api/staff/shift/${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        updateShiftUI(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando datos de shift:', error);
+            }
+        }
+
+        function updateShiftUI(shiftData) {
+            const statusElement = document.getElementById('staff-status');
+            const buttonsContainer = document.getElementById('shift-buttons');
+            
+            // Actualizar estado
+            statusElement.className = `badge-${shiftData.estado} text-xs px-2 py-1 rounded-full`;
+            statusElement.textContent = shiftData.estado === 'activo' ? 'Activo' : 
+                                       shiftData.estado === 'descansando' ? 'Descansando' : 'Inactivo';
+
+            // Actualizar botones
+            if (shiftData.estado === 'inactivo') {
+                buttonsContainer.innerHTML = `
+                    <button onclick="startShift()" class="btn-success w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="play" class="w-5 h-5"></i>
+                        Empezar Shift
+                    </button>
+                `;
+                if (shiftInterval) {
+                    clearInterval(shiftInterval);
+                    shiftInterval = null;
+                }
+                document.getElementById('shift-timer').textContent = '00:00:00';
+            } else if (shiftData.estado === 'activo') {
+                buttonsContainer.innerHTML = `
+                    <button onclick="takeBreak()" class="btn-warning w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 mb-3">
+                        <i data-lucide="coffee" class="w-5 h-5"></i>
+                        Descanso
+                    </button>
+                    <button onclick="endShift()" class="btn-danger w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="square" class="w-5 h-5"></i>
+                        Terminar Shift
+                    </button>
+                `;
+                
+                if (shiftData.shiftActual?.inicio) {
+                    shiftStartTime = new Date(shiftData.shiftActual.inicio);
+                    startShiftTimer();
+                }
+            } else if (shiftData.estado === 'descansando') {
+                buttonsContainer.innerHTML = `
+                    <button onclick="endBreak()" class="btn-success w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 mb-3">
+                        <i data-lucide="play" class="w-5 h-5"></i>
+                        Terminar Descanso
+                    </button>
+                    <button onclick="endShift()" class="btn-danger w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="square" class="w-5 h-5"></i>
+                        Terminar Shift
+                    </button>
+                `;
+            }
+            
+            // Actualizar contador de staff activos
+            document.getElementById('shift-count').textContent = `${activeShifts} staff activos`;
+            
+            lucide.createIcons();
+        }
+
+        function startShiftTimer() {
+            if (shiftInterval) clearInterval(shiftInterval);
+            
+            shiftInterval = setInterval(() => {
+                if (shiftStartTime) {
+                    const now = new Date();
+                    const diff = Math.floor((now - shiftStartTime) / 1000);
+                    document.getElementById('shift-timer').textContent = formatTime(diff);
+                }
+            }, 1000);
+        }
+
+        // ============================================
+        // FUNCIONES DE SHIFT
+        // ============================================
+        async function startShift() {
+            try {
+                const response = await fetch('/api/staff/shift/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        staffId: currentUser.id,
+                        accion: 'iniciar'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Shift iniciado correctamente', 'success');
+                    await loadShiftData();
+                    activeShifts++;
+                    updateActiveShiftsCount();
+                } else {
+                    showToast(data.message || 'Error al iniciar shift', 'error');
+                }
+            } catch (error) {
+                console.error('Error iniciando shift:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        async function endShift() {
+            try {
+                const response = await fetch('/api/staff/shift/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        staffId: currentUser.id,
+                        accion: 'terminar'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Shift terminado correctamente', 'success');
+                    await loadShiftData();
+                    if (activeShifts > 0) activeShifts--;
+                    updateActiveShiftsCount();
+                } else {
+                    showToast(data.message || 'Error al terminar shift', 'error');
+                }
+            } catch (error) {
+                console.error('Error terminando shift:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        async function takeBreak() {
+            try {
+                const response = await fetch('/api/staff/shift/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        staffId: currentUser.id,
+                        accion: 'descanso'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Descanso iniciado', 'info');
+                    await loadShiftData();
+                } else {
+                    showToast(data.message || 'Error al iniciar descanso', 'error');
+                }
+            } catch (error) {
+                console.error('Error iniciando descanso:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        async function endBreak() {
+            // Para simplificar, asumimos que terminar descanso es como iniciar shift nuevamente
+            await startShift();
+        }
+
+        function updateActiveShiftsCount() {
+            // En una implementación real, esto vendría del servidor
+            document.getElementById('shift-count').textContent = `${activeShifts} staff activos`;
+        }
+
+        // ============================================
+        // FUNCIONES DE LOA
+        // ============================================
+        function openLOAModal() {
+            // Establecer fecha mínima como hoy
+            const today = new Date().toISOString().slice(0, 16);
+            document.getElementById('loa-end-date').min = today;
+            document.getElementById('loa-start-date').min = today;
+            
+            // Limpiar formulario
+            document.getElementById('loa-form').reset();
+            document.getElementById('loa-start-date-container').classList.add('hidden');
+            
+            openModal('loa');
+        }
+
+        async function loadLOAHistory() {
+            try {
+                const response = await fetch(`/api/staff/loa/${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.loas.length > 0) {
+                        displayLOAHistory(data.loas);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando historial de LOA:', error);
+            }
+        }
+
+        function displayLOAHistory(loas) {
+            const container = document.getElementById('loa-history');
+            container.innerHTML = '';
+            
+            loas.slice(0, 3).forEach(loa => {
+                const loaElement = document.createElement('div');
+                loaElement.className = 'p-3 bg-white/5 rounded-lg border border-white/5';
+                
+                let statusColor = 'text-slate-400';
+                if (loa.estado === 'activa') statusColor = 'text-green-400';
+                if (loa.estado === 'pendiente') statusColor = 'text-amber-400';
+                if (loa.estado === 'rechazada') statusColor = 'text-red-400';
+                
+                loaElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <div>
+                            <div class="text-xs text-slate-400">${formatDate(loa.fechaSolicitud)}</div>
+                            <div class="text-sm font-medium text-white truncate">${loa.razon.substring(0, 30)}${loa.razon.length > 30 ? '...' : ''}</div>
+                        </div>
+                        <span class="text-xs font-medium ${statusColor}">${loa.estado}</span>
+                    </div>
+                    <div class="text-xs text-slate-500">Hasta: ${formatDate(loa.fechaFin)}</div>
+                `;
+                
+                container.appendChild(loaElement);
+            });
+            
+            if (loas.length > 3) {
+                const moreElement = document.createElement('div');
+                moreElement.className = 'text-center pt-2';
+                moreElement.innerHTML = `
+                    <button onclick="viewAllLOAs()" class="text-xs text-blue-400 hover:text-blue-300">
+                        Ver ${loas.length - 3} más
+                    </button>
+                `;
+                container.appendChild(moreElement);
+            }
+        }
+
+        document.getElementById('loa-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const reason = document.getElementById('loa-reason').value;
+            const startType = document.getElementById('loa-start-type').value;
+            const startDate = startType === 'fecha' ? document.getElementById('loa-start-date').value : null;
+            const endDate = document.getElementById('loa-end-date').value;
+            
+            if (!reason || !endDate) {
+                showToast('Por favor completa todos los campos requeridos', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/staff/loa/solicitar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        staffId: currentUser.id,
+                        razon: reason,
+                        tipoInicio: startType,
+                        fechaInicio: startDate,
+                        fechaFin: endDate
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Solicitud de LOA enviada correctamente', 'success');
+                    closeModal('loa');
+                    await loadLOAHistory();
+                } else {
+                    showToast(data.message || 'Error al enviar solicitud', 'error');
+                }
+            } catch (error) {
+                console.error('Error enviando LOA:', error);
+                showToast('Error de conexión', 'error');
+            }
+        });
+
+        // ============================================
+        // FUNCIONES DE BÚSQUEDA
+        // ============================================
+        function setupSearchListeners() {
+            // Búsqueda de Roblox
+            document.getElementById('roblox-search').addEventListener('input', debounce(async (e) => {
+                const query = e.target.value.trim();
+                if (query.length < 2) {
+                    document.getElementById('roblox-results').classList.remove('active');
+                    return;
+                }
+                
+                await searchRobloxUsers(query);
+            }, 300));
+
+            // Búsqueda de historial
+            document.getElementById('history-search').addEventListener('input', debounce(async (e) => {
+                const query = e.target.value.trim();
+                if (query.length < 2) {
+                    document.getElementById('history-results').classList.remove('active');
+                    return;
+                }
+                
+                await searchHistoryUsers(query);
+            }, 300));
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        async function searchRobloxUsers(query) {
+            try {
+                const response = await fetch(`/api/staff/search/roblox?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        displayRobloxResults(data.results);
+                    }
+                }
+            } catch (error) {
+                console.error('Error buscando usuarios Roblox:', error);
+            }
+        }
+
+        function displayRobloxResults(results) {
+            const container = document.getElementById('roblox-results');
+            container.innerHTML = '';
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="p-4 text-center text-slate-500">
+                        <i data-lucide="user-x" class="w-6 h-6 mx-auto mb-2"></i>
+                        <p class="text-sm">No se encontraron usuarios</p>
+                    </div>
+                `;
+            } else {
+                results.forEach(user => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'search-result';
+                    resultElement.onclick = () => selectRobloxUser(user);
+                    
+                    resultElement.innerHTML = `
+                        <img src="${user.robloxAvatar}" alt="Avatar" class="search-avatar">
+                        <div class="search-info">
+                            <div class="search-name">${user.robloxUsername}</div>
+                            <div class="search-details">
+                                <span class="search-roblox-id">ID: ${user.robloxId}</span>
+                                <span>Discord: ${user.discordUsername}</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    `;
+                    
+                    container.appendChild(resultElement);
+                });
+            }
+            
+            container.classList.add('active');
+            lucide.createIcons();
+        }
+
+        function selectRobloxUser(user) {
+            selectedUser = user;
+            
+            // Actualizar UI
+            document.getElementById('selected-roblox-avatar').src = user.robloxAvatar;
+            document.getElementById('selected-roblox-name').textContent = user.robloxUsername;
+            document.getElementById('selected-roblox-id').textContent = `ID: ${user.robloxId}`;
+            document.getElementById('selected-discord-info').textContent = user.discordUsername ? `@${user.discordUsername}` : 'Sin Discord';
+            
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('roblox-results').classList.remove('active');
+            document.getElementById('roblox-search').value = user.robloxUsername;
+            
+            // Rellenar formulario
+            document.getElementById('log-user').value = user.robloxUsername;
+            
+            // Cargar historial del usuario
+            loadUserLogs(user.discordId);
+        }
+
+        function clearSelectedUser() {
+            selectedUser = null;
+            document.getElementById('user-info').classList.add('hidden');
+            document.getElementById('roblox-search').value = '';
+            document.getElementById('log-form').reset();
+            document.getElementById('logs-list').innerHTML = `
+                <div class="text-center py-12 text-slate-500">
+                    <i data-lucide="file-text" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                    <p class="text-sm">No hay logs para mostrar</p>
+                    <p class="text-xs mt-1">Busca un usuario para ver su historial</p>
+                </div>
+            `;
+            document.getElementById('logs-count').textContent = '0 logs';
+        }
+
+        async function searchHistoryUsers(query) {
+            try {
+                // Buscar en usuarios de Discord
+                const response = await fetch(`/api/staff/search/discord?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        displayHistoryResults(data.results);
+                    }
+                }
+            } catch (error) {
+                console.error('Error buscando historial:', error);
+            }
+        }
+
+        function displayHistoryResults(results) {
+            const container = document.getElementById('history-results');
+            container.innerHTML = '';
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="p-4 text-center text-slate-500">
+                        <i data-lucide="user-x" class="w-6 h-6 mx-auto mb-2"></i>
+                        <p class="text-sm">No se encontraron usuarios</p>
+                    </div>
+                `;
+            } else {
+                results.forEach(user => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'search-result';
+                    resultElement.onclick = () => selectHistoryUser(user);
+                    
+                    resultElement.innerHTML = `
+                        <img src="${user.robloxAvatar}" alt="Avatar" class="search-avatar">
+                        <div class="search-info">
+                            <div class="search-name">${user.discordUsername || user.nombreCompleto}</div>
+                            <div class="search-details">
+                                <span class="search-roblox-id">Roblox: ${user.robloxUsername}</span>
+                                <span>ID: ${user.discordId}</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    `;
+                    
+                    container.appendChild(resultElement);
+                });
+            }
+            
+            container.classList.add('active');
+            lucide.createIcons();
+        }
+
+        async function selectHistoryUser(user) {
+            // Seleccionar usuario y cargar sus logs
+            selectedUser = user;
+            
+            document.getElementById('history-search').value = user.discordUsername || user.nombreCompleto;
+            document.getElementById('history-results').classList.remove('active');
+            
+            // También seleccionar en la búsqueda de Roblox si aplica
+            if (user.robloxUsername) {
+                document.getElementById('roblox-search').value = user.robloxUsername;
+                document.getElementById('log-user').value = user.robloxUsername;
+            }
+            
+            await loadUserLogs(user.discordId);
+        }
+
+        // ============================================
+        // FUNCIONES DE LOGS
+        // ============================================
+        async function loadUserLogs(discordId) {
+            try {
+                const response = await fetch(`/api/staff/user/sanciones/${discordId}`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        displayUserLogs(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando logs:', error);
+                showToast('Error cargando historial', 'error');
+            }
+        }
+
+        function displayUserLogs(data) {
+            const container = document.getElementById('logs-list');
+            const logs = [...(data.sanciones || []), ...(data.baneos || [])];
+            currentLogs = logs;
+            
+            if (logs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-500">
+                        <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                        <p class="text-sm">No hay logs para este usuario</p>
+                    </div>
+                `;
+                document.getElementById('logs-count').textContent = '0 logs';
+                return;
+            }
+            
+            // Ordenar por fecha (más reciente primero)
+            logs.sort((a, b) => new Date(b.fecha || b.start) - new Date(a.fecha || a.start));
+            
+            container.innerHTML = '';
+            logs.forEach((log, index) => {
+                const logElement = createLogElement(log, index);
+                container.appendChild(logElement);
+            });
+            
+            document.getElementById('logs-count').textContent = `${logs.length} logs`;
+        }
+
+        function createLogElement(log, index) {
+            const element = document.createElement('div');
+            element.className = `log-item p-4 ${log.estado === 'apelada' ? 'log-appealed' : log.estado ? 'log-sancion' : 'log-ban'}`;
+            
+            const isSanction = log.estado !== undefined;
+            const logType = isSanction ? 'Sanción' : 'Baneo';
+            const logDate = formatDate(log.fecha || log.start);
+            const logStatus = isSanction ? 
+                (log.estado === 'activa' ? 'Activa' : 'Apelada') : 
+                (log.active ? 'Activo' : 'Finalizado');
+            
+            let durationText = '';
+            if (!isSanction && log.days) {
+                durationText = log.days === 9999 ? 'Permanente' : `${log.days} día(s)`;
+            }
+            
+            element.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <div class="font-bold text-white">${logType} #${index + 1}</div>
+                        <div class="text-xs text-slate-400">${logDate}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs px-2 py-1 rounded-full ${logStatus === 'Activa' || logStatus === 'Activo' ? 'badge-active' : logStatus === 'Apelada' ? 'badge-loan' : 'badge-inactive'}">
+                            ${logStatus}
+                        </span>
+                        <div class="relative">
+                            <button onclick="toggleLogMenu('log-menu-${index}')" class="p-1 hover:bg-white/10 rounded">
+                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                            <div id="log-menu-${index}" class="three-dots-menu">
+                                ${isSanction ? `
+                                    <div class="menu-item" onclick="appealLog('${log.id}')">
+                                        <i data-lucide="scale" class="w-4 h-4"></i>
+                                        Apelar
+                                    </div>
+                                ` : `
+                                    <div class="menu-item" onclick="unbanLog('${log.id}')">
+                                        <i data-lucide="unlock" class="w-4 h-4"></i>
+                                        Desbanear
+                                    </div>
+                                `}
+                                <div class="menu-item" onclick="editLog('${log.id}', ${isSanction})">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                    Editar
+                                </div>
+                                <div class="menu-item danger" onclick="confirmDeleteLog('${log.id}', ${isSanction})">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Eliminar
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-sm text-slate-300 mb-2">${log.motivo || 'Sin motivo especificado'}</div>
+                ${durationText ? `<div class="text-xs text-slate-500">Duración: ${durationText}</div>` : ''}
+            `;
+            
+            return element;
+        }
+
+        function toggleLogMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            menu.classList.toggle('active');
+            
+            // Cerrar otros menús
+            document.querySelectorAll('.three-dots-menu').forEach(m => {
+                if (m.id !== menuId) m.classList.remove('active');
+            });
+        }
+
+        async function createLog() {
+            if (!selectedUser) {
+                showToast('Primero selecciona un usuario', 'error');
+                return;
+            }
+            
+            const logType = document.getElementById('log-type').value;
+            const reason = document.getElementById('log-reason').value;
+            
+            if (!logType || !reason) {
+                showToast('Por favor completa todos los campos', 'error');
+                return;
+            }
+            
+            try {
+                const endpoint = logType.startsWith('ban_') ? '/api/staff/banear' : '/api/staff/sancionar';
+                const dias = logType.includes('ban_') ? 
+                    (logType === 'ban_1' ? 1 : logType === 'ban_3' ? 3 : logType === 'ban_7' ? 7 : 9999) : null;
+                
+                const requestData = logType.startsWith('ban_') ? {
+                    discordId: selectedUser.discordId,
+                    dias: dias,
+                    motivo: reason,
+                    staffId: currentUser.id
+                } : {
+                    discordId: selectedUser.discordId,
+                    tipo: logType,
+                    motivo: reason,
+                    staffId: currentUser.id
+                };
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Log creado exitosamente', 'success');
+                    document.getElementById('log-form').reset();
+                    await loadUserLogs(selectedUser.discordId);
+                    
+                    // Actualizar estadísticas
+                    await loadActivityStats();
+                } else {
+                    showToast(data.message || 'Error al crear log', 'error');
+                }
+            } catch (error) {
+                console.error('Error creando log:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        function appealLog(logId) {
+            const log = currentLogs.find(l => l.id === logId);
+            if (!log) return;
+            
+            document.getElementById('appeal-log-id').value = logId;
+            document.getElementById('appeal-log-info').textContent = `Sanción: "${log.motivo.substring(0, 50)}${log.motivo.length > 50 ? '...' : ''}"`;
+            document.getElementById('appeal-form').reset();
+            
+            openModal('appeal');
+        }
+
+        async function editLog(logId, isSanction) {
+            const log = currentLogs.find(l => l.id === logId);
+            if (!log) return;
+            
+            document.getElementById('edit-log-id').value = logId;
+            document.getElementById('edit-log-type').value = isSanction ? 'sancion' : 'ban';
+            document.getElementById('edit-log-reason').value = log.motivo || '';
+            
+            // Determinar tipo de log
+            let logTypeValue = 'sancion';
+            if (!isSanction) {
+                if (log.days === 1) logTypeValue = 'ban_1';
+                else if (log.days === 3) logTypeValue = 'ban_3';
+                else if (log.days === 7) logTypeValue = 'ban_7';
+                else if (log.days === 9999) logTypeValue = 'ban_permanent';
+            }
+            
+            document.getElementById('edit-log-log-type').value = logTypeValue;
+            
+            openModal('edit-log');
+        }
+
+        function confirmDeleteLog(logId, isSanction) {
+            document.getElementById('delete-log-id').value = logId;
+            document.getElementById('delete-log-type').value = isSanction ? 'sancion' : 'ban';
+            openModal('confirm-delete');
+        }
+
+        // ============================================
+        // FUNCIONES DE MODALES
+        // ============================================
+        async function viewShifts() {
+            try {
+                const response = await fetch(`/api/staff/shift/${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        displayShiftsModal(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando shifts:', error);
+            }
+            
+            openModal('shifts');
+        }
+
+        function displayShiftsModal(shiftData) {
+            document.getElementById('total-shifts').textContent = shiftData.historial?.length || 0;
+            
+            const totalHours = shiftData.totalHoras || 0;
+            document.getElementById('total-hours').textContent = `${totalHours.toFixed(1)}h`;
+            
+            const avgShift = shiftData.historial?.length > 0 ? 
+                (totalHours / shiftData.historial.length).toFixed(1) : 0;
+            document.getElementById('avg-shift').textContent = `${avgShift}h`;
+            
+            const historyContainer = document.getElementById('shifts-history');
+            historyContainer.innerHTML = '';
+            
+            if (!shiftData.historial || shiftData.historial.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-500">
+                        <i data-lucide="clock" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                        <p class="text-sm">No hay shifts registrados</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            shiftData.historial.slice(0, 10).forEach((shift, index) => {
+                const shiftElement = document.createElement('div');
+                shiftElement.className = 'p-3 bg-white/5 rounded-lg';
+                
+                const inicio = formatDate(shift.inicio);
+                const fin = shift.fin ? formatDate(shift.fin) : 'En curso';
+                const duracion = shift.duracionHoras ? `${shift.duracionHoras}h` : 'N/A';
+                
+                shiftElement.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="font-medium text-white">Shift #${shiftData.historial.length - index}</div>
+                        <div class="text-sm text-slate-400">${duracion}</div>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        <div>Inicio: ${inicio}</div>
+                        <div>Fin: ${fin}</div>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(shiftElement);
+            });
+        }
+
+        async function viewActivity() {
+            await loadActivityStats();
+            openModal('activity');
+        }
+
+        async function loadActivityStats() {
+            try {
+                // En una implementación real, esto vendría del servidor
+                // Por ahora simulamos datos
+                const totalSanciones = Math.floor(Math.random() * 20);
+                const totalBaneos = Math.floor(Math.random() * 10);
+                
+                document.getElementById('total-sanciones').textContent = totalSanciones;
+                document.getElementById('total-baneos').textContent = totalBaneos;
+                
+                // Simular actividad reciente
+                const activityList = document.getElementById('activity-list');
+                activityList.innerHTML = '';
+                
+                const activities = [
+                    { type: 'sancion', user: 'Usuario1', reason: 'Falta leve', date: new Date(Date.now() - 3600000) },
+                    { type: 'ban', user: 'Usuario2', reason: 'Falta grave', date: new Date(Date.now() - 7200000) },
+                    { type: 'sancion', user: 'Usuario3', reason: 'Advertencia', date: new Date(Date.now() - 10800000) }
+                ];
+                
+                activities.forEach(activity => {
+                    const activityElement = document.createElement('div');
+                    activityElement.className = 'p-3 bg-white/5 rounded-lg';
+                    
+                    activityElement.innerHTML = `
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="w-8 h-8 rounded-full ${activity.type === 'sancion' ? 'bg-amber-500/20' : 'bg-red-500/20'} flex items-center justify-center">
+                                <i data-lucide="${activity.type === 'sancion' ? 'file-warning' : 'shield-alert'}" class="w-4 h-4 ${activity.type === 'sancion' ? 'text-amber-400' : 'text-red-400'}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-white">${activity.type === 'sancion' ? 'Sanción' : 'Baneo'} a ${activity.user}</div>
+                                <div class="text-xs text-slate-400">${activity.reason}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-500 text-right">${formatDate(activity.date)}</div>
+                    `;
+                    
+                    activityList.appendChild(activityElement);
+                });
+                
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error cargando actividad:', error);
+            }
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar iconos
+            lucide.createIcons();
+            
+            // Verificar autenticación
+            checkAuth();
+            
+            // Configurar formularios
+            document.getElementById('appeal-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                // Implementar lógica de apelación
+                showToast('Apelación enviada (funcionalidad en desarrollo)', 'info');
+                closeModal('appeal');
+            });
+            
+            document.getElementById('edit-log-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                // Implementar lógica de edición
+                showToast('Log editado (funcionalidad en desarrollo)', 'info');
+                closeModal('edit-log');
+            });
+        });
+
+        // ============================================
+        // FUNCIONES PENDIENTES DE IMPLEMENTACIÓN
+        // ============================================
+        async function deleteLog() {
+            const logId = document.getElementById('delete-log-id').value;
+            const logType = document.getElementById('delete-log-type').value;
+            
+            // Implementar lógica de eliminación
+            showToast('Log eliminado (funcionalidad en desarrollo)', 'info');
+            closeModal('confirm-delete');
+            
+            // Recargar logs
+            if (selectedUser) {
+                await loadUserLogs(selectedUser.discordId);
+            }
+        }
+
+        async function unbanLog(logId) {
+            // Implementar lógica de desbaneo
+            showToast('Usuario desbaneado (funcionalidad en desarrollo)', 'info');
+        }
+
+        function viewAllLOAs() {
+            showToast('Ver todos los LOAs (funcionalidad en desarrollo)', 'info');
+        }
+
+        async function loadRecentLogs() {
+            showToast('Cargando logs recientes (funcionalidad en desarrollo)', 'info');
+        }
+    </script>
+</body>
+</html>

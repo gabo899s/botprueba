@@ -1,0 +1,568 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m028_b001_tickets.js
+
+const { 
+    SlashCommandBuilder, 
+    MessageFlags, 
+    PermissionFlagsBits, 
+    ActionRowBuilder, 
+    ButtonBuilder, 
+    ButtonStyle, 
+    ModalBuilder, 
+    TextInputBuilder, 
+    TextInputStyle,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    ContainerBuilder, 
+    SectionBuilder, 
+    TextDisplayBuilder, 
+    SeparatorBuilder, 
+    SeparatorSpacingSize,
+    AttachmentBuilder
+} = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
+// --- CONFIGURACIÓN ---
+const ROLES = {
+    STAFF: ['ID_POR_CONFIGURAR', 'ID_POR_CONFIGURAR'],
+    ASUNTOS_INTERNOS: 'ID_POR_CONFIGURAR',
+    VETADO_NOMBRE: '➔ | Vetado Tickets', // Buscamos por nombre como pediste
+    EMIFERO: ['ID_POR_CONFIGURAR', 'ID_POR_CONFIGURAR'] // Roles para evaluar
+};
+
+const CATEGORIA_TICKETS = 'ID_POR_CONFIGURAR';
+const CANAL_LOGS = 'ID_POR_CONFIGURAR';
+
+const PATH_DATA_COUNT = path.join(__dirname, '../../data/ticketCount.json');
+const PATH_DATA_EVAL = path.join(__dirname, '../../data/evaluaciones-tickets.json');
+const PATH_DATA_CONFIG = path.join(__dirname, '../../data/ticketConfig.json');
+
+// --- UTILIDADES ---
+
+// Asegurar directorios y archivos
+if (!fs.existsSync(path.dirname(PATH_DATA_COUNT))) fs.mkdirSync(path.dirname(PATH_DATA_COUNT), { recursive: true });
+
+function getTicketCount() {
+    if (!fs.existsSync(PATH_DATA_COUNT)) return 0;
+    return JSON.parse(fs.readFileSync(PATH_DATA_COUNT)).count;
+}
+
+function incrementTicketCount() {
+    let count = getTicketCount();
+    count++;
+    fs.writeFileSync(PATH_DATA_COUNT, JSON.stringify({ count }));
+    return count;
+}
+
+function getHighVolumeMode() {
+    if (!fs.existsSync(PATH_DATA_CONFIG)) return false;
+    return JSON.parse(fs.readFileSync(PATH_DATA_CONFIG)).highVolume || false;
+}
+
+function setHighVolumeMode(status) {
+    fs.writeFileSync(PATH_DATA_CONFIG, JSON.stringify({ highVolume: status }));
+}
+
+function saveEvaluation(data) {
+    let evals = [];
+    if (fs.existsSync(PATH_DATA_EVAL)) evals = JSON.parse(fs.readFileSync(PATH_DATA_EVAL));
+    evals.push(data);
+    fs.writeFileSync(PATH_DATA_EVAL, JSON.stringify(evals, null, 2));
+}
+
+function getCRTime() {
+    return new Date().toLocaleString("es-CR", { timeZone: "America/Costa_Rica" });
+}
+
+// Generador de Error
+const enviarError = async (interaction, errorMsg) => {
+    const msg = `
+ ✅ **Error general**
+> ${errorMsg}
+{separador]
+© Todos los derechos reservados, La Finca Roleplay | ER:LC`.replace('{separador]', '');
+    
+    const container = new ContainerBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`✅ **Error general**\n> ${errorMsg}`))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# © Todos los derechos reservados, La Finca Roleplay | ER:LC`));
+
+    if (interaction.deferred || interaction.replied) {
+        await interaction.followUp({ components: [container], flags: MessageFlags.IsComponentsV2, ephemeral: true });
+    } else {
+        await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2, ephemeral: true });
+    }
+};
+
+// Generador HTML simple
+async function generarHTML(channel, users) {
+    const messages = await channel.messages.fetch({ limit: 100 });
+    let html = `
+    <html>
+    <head>
+        <title>Transcripción ${channel.name}</title>
+        <style>
+            body { background-color: #36393f; color: #dcddde; font-family: sans-serif; padding: 20px; }
+            .msg { margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #4f545c; }
+            .user { font-weight: bold; color: #fff; }
+            .time { font-size: 0.8em; color: #72767d; margin-left: 10px; }
+            .content { margin-top: 5px; }
+            .embed { background: #2f3136; padding: 10px; border-left: 4px solid #00b0f4; margin-top: 5px; }
+        </style>
+    </head>
+    <body>
+        <h1>Transcripción del Ticket: ${channel.name}</h1>
+        <p>Generado el: ${getCRTime()}</p>
+    `;
+
+    messages.reverse().forEach(m => {
+        html += `
+        <div class="msg">
+            <span class="user">${m.author.tag}</span>
+            <span class="time">${m.createdAt.toLocaleString("es-CR", { timeZone: "America/Costa_Rica" })}</span>
+            <div class="content">${m.content || '[Contenido Multimedia/Embed]'}</div>
+            ${m.attachments.size > 0 ? `<div class="content">Adjuntos: ${m.attachments.map(a => `<a href="${a.url}" style="color:cyan">Link</a>`).join(', ')}</div>` : ''}
+        </div>`;
+    });
+
+    html += '</body></html>';
+    return Buffer.from(html, 'utf-8');
+}
+
+// --- COMANDOS ---
+
+const slashCommand = new SlashCommandBuilder()
+    .setName('ticket-sys') // Nombre interno agrupado para no colisionar
+    .setDescription('Sistema de tickets')
+    .addSubcommand(s => s
+        .setName('enviar-panel')
+        .setDescription('Envia el panel de tickets')
+        .addChannelOption(o => o.setName('canal').setDescription('Canal donde enviar').setRequired(true))
+    )
+    .addSubcommand(s => s
+        .setName('inactividad')
+        .setDescription('Mandar aviso de inactividad (Solo Tickets)')
+    )
+    .addSubcommand(s => s
+        .setName('alto-volumen')
+        .setDescription('Activar/Desactivar modo alto volumen')
+        .addStringOption(o => o.setName('opcion').setDescription('Activar o desactivar').setRequired(true).addChoices(
+            { name: 'Activar', value: 'on' }, { name: 'Desactivar', value: 'off' }
+        ))
+    );
+
+// --- COMPONENT HANDLERS ---
+
+const handlers = {
+    // 1. BOTONES DEL PANEL PRINCIPAL
+    'btn_panel_report': async (i) => handleOpenForm(i, 'report'),
+    'btn_panel_role': async (i) => handleOpenForm(i, 'role'),
+    'btn_panel_general': async (i) => handleOpenForm(i, 'general'),
+    'btn_panel_appeal': async (i) => handleOpenForm(i, 'appeal'),
+    'btn_panel_other': async (i) => crearTicketDirecto(i, 'otro'),
+
+    // 2. SUBMIT DE MODALES
+    'modal_ticket_report': async (i) => procesarTicket(i, 'report'),
+    'modal_ticket_role': async (i) => procesarTicket(i, 'role'),
+    'modal_ticket_general': async (i) => procesarTicket(i, 'general'),
+    'modal_ticket_appeal': async (i) => procesarTicket(i, 'appeal'),
+
+    // 3. ACCIONES DENTRO DEL TICKET
+    'btn_ticket_archive': async (i) => handleArchiveRequest(i),
+    'modal_archive_reason': async (i) => finalizeArchive(i),
+    'btn_ticket_claim': async (i) => handleClaim(i),
+    'btn_ticket_evaluate': async (i) => handleEvaluationRequest(i),
+    'select_eval_staff': async (i) => handleStaffSelection(i),
+    'btn_eval_score_': async (i) => handleScore(i), // Prefijo
+    'btn_transcript_view': async (i) => handleViewTranscript(i)
+};
+
+// --- LÓGICA ---
+
+// A. Verificar Rol Vetado
+const checkVetado = (interaction) => {
+    if (interaction.member.roles.cache.some(r => r.name === ROLES.VETADO_NOMBRE)) {
+        const errorContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`✅ **No tienes permitido abrir tickets**\n> Por algún motivo, no tienes permisos para abrir ticket ya que tienes el rol de ➔ | Vetado Tickets. Si crees que se trata de un error, contacta con administración.`))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`© Todos los derechos reservados, La Finca Roleplay | ER:LC`));
+        
+        interaction.reply({ components: [errorContainer], flags: MessageFlags.IsComponentsV2, ephemeral: true });
+        return true;
+    }
+    return false;
+};
+
+// B. Abrir Formularios
+async function handleOpenForm(i, type) {
+    if (checkVetado(i)) return;
+
+    const modal = new ModalBuilder().setCustomId(`modal_ticket_${type}`).setTitle('Formulario de Ticket');
+    const inputs = [];
+
+    if (type === 'appeal') {
+        inputs.push(
+            new TextInputBuilder().setCustomId('q1').setLabel('Motivo original de la sanción').setStyle(TextInputStyle.Short).setRequired(true),
+            new TextInputBuilder().setCustomId('q2').setLabel('¿Por qué quieres apelar?').setStyle(TextInputStyle.Paragraph).setRequired(true),
+            new TextInputBuilder().setCustomId('q3').setLabel('¿Por qué debemos aceptar?').setStyle(TextInputStyle.Paragraph).setRequired(true)
+        );
+    } else if (type === 'role') {
+        inputs.push(
+            new TextInputBuilder().setCustomId('q1').setLabel('¿Cuál rol solicitas?').setPlaceholder('Fuerza Publica, Transito...').setStyle(TextInputStyle.Short).setRequired(true),
+            new TextInputBuilder().setCustomId('q2').setLabel('¿Es de un departamento? (SI/NO)').setStyle(TextInputStyle.Short).setRequired(true),
+            new TextInputBuilder().setCustomId('q3').setLabel('Si es depto, ¿cuál es tu placa?').setStyle(TextInputStyle.Short).setRequired(false)
+        );
+    } else if (type === 'report') {
+        inputs.push(
+            new TextInputBuilder().setCustomId('q1').setLabel('¿A quién reportas?').setStyle(TextInputStyle.Short).setRequired(true),
+            new TextInputBuilder().setCustomId('q2').setLabel('¿Cuándo y dónde ocurrió?').setStyle(TextInputStyle.Short).setRequired(true),
+            new TextInputBuilder().setCustomId('q3').setLabel('¿Por qué reportas?').setStyle(TextInputStyle.Paragraph).setRequired(true),
+            new TextInputBuilder().setCustomId('q4').setLabel('Pruebas/Evidencias').setStyle(TextInputStyle.Paragraph).setRequired(true)
+        );
+    } else if (type === 'general') {
+        inputs.push(
+            new TextInputBuilder().setCustomId('q1').setLabel('¿En qué te podemos ayudar?').setStyle(TextInputStyle.Paragraph).setMinLength(8).setRequired(true)
+        );
+    }
+
+    inputs.forEach(input => modal.addComponents(new ActionRowBuilder().addComponents(input)));
+    await i.showModal(modal);
+}
+
+// C. Crear Ticket (Lógica Core)
+async function crearTicket(interaction, tipo, respuestas = []) {
+    const guild = interaction.guild;
+    const count = incrementTicketCount();
+    const channelName = `ticket-${count}`;
+
+    // Crear Canal
+    const channel = await guild.channels.create({
+        name: channelName,
+        parent: CATEGORIA_TICKETS,
+        permissionOverwrites: [
+            { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+            { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory], deny: [PermissionFlagsBits.UseApplicationCommands] },
+            ...ROLES.STAFF.map(rid => ({ id: rid, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages] }))
+        ]
+    });
+
+    // Construir Mensaje de Apertura
+    let emojiTitulo = '';
+    if (tipo === 'soporte general') emojiTitulo = '✅';
+    else if (tipo === 'apelar sancion') emojiTitulo = '✅';
+    else if (tipo === 'reportar usuario/staff') emojiTitulo = '✅';
+    else if (tipo === 'solicitar rol') emojiTitulo = '✅';
+    else if (tipo === 'otro') emojiTitulo = '✅';
+
+    const containerApertura = new ContainerBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ✅ Ticket Abierto - ${emojiTitulo} ${tipo.toUpperCase()}`))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`👋 ¡Hola <@${interaction.user.id}>! Hemos recibido tu ticket en la categoría de '${tipo}'. Estamos emocionados por ayudarte con cualquier pregunta o solicitud relacionada con el servidor. Nuestro equipo se esfuerza por brindarte la mejor experiencia de atención posible. Gracias por confiar en nosotros.`))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`✅ Ticket Abierto hace: ${getCRTime()}\n✅Reclamado por: Nadie\n✅Abierto por: <@${interaction.user.id}>`)
+        )
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+
+    // Añadir preguntas y respuestas
+    respuestas.forEach(r => {
+        containerApertura.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**\`❓\` ${r.pregunta}**\n\`\`\`${r.respuesta}\`\`\``));
+    });
+
+    containerApertura.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+
+    const botonesControl = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('btn_ticket_archive').setLabel('Archivar Ticket').setStyle(ButtonStyle.Secondary).setEmoji('✅'),
+        new ButtonBuilder().setCustomId('btn_ticket_claim').setLabel('Reclamar Ticket').setStyle(ButtonStyle.Secondary).setEmoji('✅')
+    );
+
+    // Menciones
+    const mencionesStaff = ROLES.STAFF.map(r => `<@&${r}>`).join(' ');
+    
+    // Alto Volumen
+    const highVolume = getHighVolumeMode();
+
+    // Enviar mensaje inicial
+    const msg = await channel.send({ 
+        content: mencionesStaff,
+        components: [containerApertura, botonesControl],
+        flags: MessageFlags.IsComponentsV2 
+    });
+    
+    // Borrar "fijado" message
+    await msg.pin().then(() => {
+        channel.messages.fetch({ limit: 1 }).then(messages => {
+            const pinMsg = messages.first();
+            if (pinMsg && pinMsg.system) pinMsg.delete().catch(() => {});
+        });
+    });
+
+    if (highVolume) {
+        const volContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('## ⚠️ ¡Se ha detectado un alto volumen de tickets!'))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('Debido a un gran número de tickets abiertos actualmente, los tiempos de respuesta pueden ser más largos de lo habitual. ¡Agradecemos tu paciencia y te asistiremos lo antes posible! Gracias por tu comprensión.'))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(false).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('-# © Todos los derechos reservados, La Finca Roleplay | ER:LC'));
+        
+        await channel.send({ components: [volContainer], flags: MessageFlags.IsComponentsV2 });
+    }
+
+    // Respuesta a la interacción (Boton original)
+    const confirmContainer = new ContainerBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`✅ **Ticket Creado**\n> <@${interaction.user.id}>, tu ticket ha sido creado correctamente. Para ir a el, [seleccione aquí](https://discord.com/channels/${guild.id}/${channel.id}) o seleccione el botón.`))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+    
+    const btnLink = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setLabel('Ir al Ticket').setStyle(ButtonStyle.Link).setURL(`https://discord.com/channels/${guild.id}/${channel.id}`)
+    );
+    
+    const footer = new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('-# © Todos los derechos reservados, La Finca Roleplay | ER:LC'));
+
+    await interaction.reply({ 
+        components: [confirmContainer, btnLink, footer], 
+        flags: MessageFlags.IsComponentsV2, 
+        ephemeral: true 
+    });
+
+    // Log Ticket Abierto
+    const logChannel = guild.channels.cache.get(CANAL_LOGS);
+    if (logChannel) {
+        const logContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('## Ticket Abierto'))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`El usuario <@${interaction.user.id}> ha abierto el [${channelName}](https://discord.com/channels/${guild.id}/${channel.id}).\n✅ Hora de Apertura: ${getCRTime()}\n✅ Tipo de Ticket: ${tipo}`))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+        
+        respuestas.forEach(r => {
+            logContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**\`❓\` ${r.pregunta}**\n\`\`\`${r.respuesta}\`\`\``));
+        });
+        
+        logContainer.addSeparatorComponents(new SeparatorBuilder().setDivider(false).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('-# © Todos los derechos reservados, La Finca Roleplay | ER:LC'));
+
+        await logChannel.send({ components: [logContainer], flags: MessageFlags.IsComponentsV2 });
+    }
+}
+
+async function procesarTicket(i, tipo) {
+    const respuestas = [];
+    if (tipo === 'appeal') {
+        respuestas.push({ pregunta: 'Motivo original', respuesta: i.fields.getTextInputValue('q1') });
+        respuestas.push({ pregunta: '¿Por qué apelar?', respuesta: i.fields.getTextInputValue('q2') });
+        respuestas.push({ pregunta: '¿Por qué aceptar?', respuesta: i.fields.getTextInputValue('q3') });
+        await crearTicket(i, 'apelar sancion', respuestas);
+    } else if (tipo === 'role') {
+        respuestas.push({ pregunta: 'Rol solicitado', respuesta: i.fields.getTextInputValue('q1') });
+        respuestas.push({ pregunta: 'Es depto?', respuesta: i.fields.getTextInputValue('q2') });
+        respuestas.push({ pregunta: 'Placa', respuesta: i.fields.getTextInputValue('q3') || 'N/A' });
+        await crearTicket(i, 'solicitar rol', respuestas);
+    } else if (tipo === 'report') {
+        respuestas.push({ pregunta: 'Reportado', respuesta: i.fields.getTextInputValue('q1') });
+        respuestas.push({ pregunta: 'Cuándo/Dónde', respuesta: i.fields.getTextInputValue('q2') });
+        respuestas.push({ pregunta: 'Razón', respuesta: i.fields.getTextInputValue('q3') });
+        respuestas.push({ pregunta: 'Pruebas', respuesta: i.fields.getTextInputValue('q4') });
+        await crearTicket(i, 'reportar usuario/staff', respuestas);
+    } else if (tipo === 'general') {
+        respuestas.push({ pregunta: 'Ayuda', respuesta: i.fields.getTextInputValue('q1') });
+        await crearTicket(i, 'soporte general', respuestas);
+    }
+}
+
+async function crearTicketDirecto(i, tipo) {
+    if (checkVetado(i)) return;
+    await crearTicket(i, 'otro', []); // Otro no tiene form
+}
+
+// D. Archivar Ticket
+async function handleArchiveRequest(i) {
+    if (!ROLES.STAFF.some(r => i.member.roles.cache.has(r))) return i.reply({ content: 'No tienes permisos.', ephemeral: true });
+
+    const modal = new ModalBuilder().setCustomId('modal_archive_reason').setTitle('Archivar Ticket');
+    modal.addComponents(new ActionRowBuilder().addComponents(
+        new TextInputBuilder().setCustomId('reason').setLabel('Razón de cierre').setStyle(TextInputStyle.Short).setRequired(true)
+    ));
+    await i.showModal(modal);
+}
+
+async function finalizeArchive(i) {
+    await i.deferUpdate();
+    const reason = i.fields.getTextInputValue('reason');
+    const channel = i.channel;
+
+    // Generar Transcripción (Simulada para HTML)
+    const transcriptBuffer = await generarHTML(channel);
+    const transcriptFile = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
+    
+    // Permisos
+    const userPerm = channel.permissionOverwrites.cache.find(p => p.type === 1 && p.allow.has(PermissionFlagsBits.ViewChannel) && !ROLES.STAFF.includes(p.id));
+    const userId = userPerm ? userPerm.id : null;
+
+    if (userId) await channel.permissionOverwrites.edit(userId, { ViewChannel: false });
+    ROLES.STAFF.forEach(async r => await channel.permissionOverwrites.edit(r, { ViewChannel: false }));
+    await channel.permissionOverwrites.edit(ROLES.ASUNTOS_INTERNOS, { ViewChannel: true });
+
+    await channel.setName('archivado');
+
+    // Mensaje en Canal
+    const archiveContainer = new ContainerBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent('## 🗃️ Ticket Archivado'))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent('✅ Este ticket ha sido archivado y ahora solo es accesible para el departamento de Asuntos Internos, para su respectiva revisión y evaluación de la atención del moderador.'))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`Usa los botones de abajo para gestionar este ticket.\n\`📋\` Detalles del Archivo\n✅ Archivado por: <@${i.user.id}>\n✅ Archivado en: ${getCRTime()}\n✅ Creador del Ticket: ${userId ? `<@${userId}>` : 'Desconocido'}`))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`\`📝\` Razón del Cierre: \`${reason}\``))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+
+    const btnEval = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('btn_ticket_evaluate').setLabel('Evaluar Ticket').setStyle(ButtonStyle.Secondary).setEmoji('📝')
+    );
+    const mentionRole = new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`<@&${ROLES.ASUNTOS_INTERNOS}>\n-# © Todos los derechos reservados, La Finca Roleplay | ER:LC`));
+
+    await channel.send({ components: [archiveContainer, btnEval, mentionRole], flags: MessageFlags.IsComponentsV2 });
+
+    // Mensaje DM al Usuario
+    if (userId) {
+        try {
+            const user = await i.client.users.fetch(userId);
+            const dmContainer = new ContainerBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent('## Ticket Cerrado'))
+                .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(`> Tu ticket en La Finca RP ha sido cerrado con éxito. ¡Esperamos haberte ayudado!`))
+                .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(`\`📋\` Detalles del Ticket\n> Razón del Cierre: ${reason}\n> Cerrado por: <@${i.user.id}>`))
+                .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent('`📝` Transcripción'));
+
+            const btnTrans = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('btn_transcript_view').setLabel('Ver Transcripcion').setStyle(ButtonStyle.Secondary)
+            );
+            
+            await user.send({ 
+                components: [dmContainer], 
+                files: [transcriptFile],
+                flags: MessageFlags.IsComponentsV2
+            });
+        } catch (e) { console.log('No se pudo enviar DM al usuario'); }
+    }
+
+    // Deshabilitar botones viejos
+    const msgs = await channel.messages.fetch({ limit: 10 });
+    const welcomeMsg = msgs.find(m => m.content.includes(ROLES.STAFF[0])); // Buscamos el ping del inicio
+    if (welcomeMsg) {
+        // Logic to disable buttons would go here
+    }
+}
+
+// E. Evaluar Ticket
+async function handleEvaluationRequest(i) {
+    if (!ROLES.EMIFERO.some(r => i.member.roles.cache.has(r))) return i.reply({ content: 'No tienes permisos para evaluar.', ephemeral: true });
+
+    // Usar UserSelectMenuBuilder
+    const { UserSelectMenuBuilder } = require('discord.js');
+    const userSelect = new ActionRowBuilder().addComponents(
+        new UserSelectMenuBuilder().setCustomId('select_eval_staff').setPlaceholder('Selecciona STAFF que atendió')
+    );
+
+    await i.reply({ 
+        content: 'Por favor, selecciona a el/los usuarios del equipo administrativo que atendio/eron este ticket.',
+        components: [userSelect],
+        ephemeral: true
+    });
+}
+
+async function handleStaffSelection(i) {
+    const staffIds = i.values; // Array de IDs
+    const idString = staffIds.join(',');
+    
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`btn_eval_score_1_${idString}`).setLabel('1').setStyle(ButtonStyle.Success).setEmoji('1️⃣'),
+        new ButtonBuilder().setCustomId(`btn_eval_score_2_${idString}`).setLabel('2').setStyle(ButtonStyle.Success).setEmoji('2️⃣'),
+        new ButtonBuilder().setCustomId(`btn_eval_score_3_${idString}`).setLabel('3').setStyle(ButtonStyle.Success).setEmoji('3️⃣'),
+        new ButtonBuilder().setCustomId(`btn_eval_score_4_${idString}`).setLabel('4').setStyle(ButtonStyle.Success).setEmoji('4️⃣'),
+        new ButtonBuilder().setCustomId(`btn_eval_score_5_${idString}`).setLabel('5').setStyle(ButtonStyle.Success).setEmoji('5️⃣')
+    );
+
+    await i.update({
+        content: 'Por favor, revisa el ticket actual y en una escala del 1 al 5, evalúa la atención del staff que atendió el ticket. Recuerda que en una escala del 1 al 5, 1 significa Pesimo Servicio y 5 Excelente servicio.',
+        components: [row]
+    });
+}
+
+async function handleScore(i) {
+    const parts = i.customId.split('_');
+    const score = parts[3];
+    const staffIds = parts[4].split(',');
+    const channel = i.channel;
+
+    // Guardar Evaluación
+    saveEvaluation({
+        ticket: channel.name,
+        evaluator: i.user.tag,
+        staff: staffIds,
+        score: score,
+        date: getCRTime()
+    });
+
+    // Log Final y Borrado
+    const transcriptBuffer = await generarHTML(channel);
+    const transcriptFile = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
+
+    const logChannel = i.guild.channels.cache.get(CANAL_LOGS);
+    if (logChannel) {
+        const logContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('## Ticket Cerrado'))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`El ${channel.name} ha sido cerrado por <@${i.user.id}>.\n✅ Staff Atendió: ${staffIds.map(id => `<@${id}>`).join(', ')}\n✅ Calificación: ${score}/5`))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`[Transcripción Adjunta]`))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(false).setSpacing(SeparatorSpacingSize.Small))
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent('-# © Todos los derechos reservados, La Finca Roleplay | ER:LC'));
+
+        await logChannel.send({ components: [logContainer], files: [transcriptFile], flags: MessageFlags.IsComponentsV2 });
+    }
+
+    await i.reply({ content: 'Evaluación guardada. Cerrando ticket...', ephemeral: true });
+    setTimeout(() => channel.delete(), 5000);
+}
+
+// F. Reclamar
+async function handleClaim(i) {
+    if (!ROLES.STAFF.some(r => i.member.roles.cache.has(r))) return i.reply({ content: 'No tienes permisos.', ephemeral: true });
+
+    // Quitar permisos a roles globales, dar al usuario
+    ROLES.STAFF.forEach(async r => await i.channel.permissionOverwrites.edit(r, { ViewChannel: false }));
+    await i.channel.permissionOverwrites.edit(i.user.id, { ViewChannel: true, SendMessages: true });
+
+    const claimContainer = new ContainerBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent('**Ticket Reclamado**'))
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`Usuario, a partir de ahora el moderador <@${i.user.id}> sera el encargado de ayudarte en todo lo que necesites. Si tienes alguna duda o inquietud, puedes consultar con el.`));
+
+    await i.reply({ components: [claimContainer], flags: MessageFlags.IsComponentsV2 });
+}
+
+async function handleViewTranscript(i) {
+    await i.reply({ content: 'Descarga el archivo HTML adjunto arriba para ver la transcripción.', ephemeral: true });
+}
+
+// --- EXECUTE ---
+
+module.exports = {
+    data: slashCommand,
+    componentHandlers: handlers, // EXPORTAMOS HANDLERS PARA INDEX.JS
+
+    async execute(interaction, client) {
+        if (!interaction.member.roles.cache.has('ID_POR_CONFIGURAR')) { // Rol del comando enviar-panel
+            return enviarError(interaction, 'No tienes permisos para usar este comando.');
+        }
+
+        const sub = interaction.options.getSubcommand();
+
+        if (sub === 'enviar-panel') {
+            const canal = interaction.options.getChannel('canal');
+            
+            const panelContainerSections = new ContainerBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent('##

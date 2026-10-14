@@ -1,0 +1,299 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/061_Actualizacion_de_jerarquia_administrativa_en_Discord/m004_b001_hierarchyAdmin.js
+
+// hierarchyAdmin.js
+
+// Jerarquía interna del Equipo Administrativo en EMBED
+
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+
+// Servidor de staff
+const STAFF_GUILD_ID = 'ID_POR_CONFIGURAR';
+
+// Canal donde se publica la jerarquía
+const HIERARCHY_CHANNEL_ID = 'ID_POR_CONFIGURAR';
+
+// 🔑 ID del usuario que tiene permiso para ejecutar el comando de actualización manual
+const ALLOWED_COMMAND_USER_ID = 'ID_POR_CONFIGURAR';
+
+// 👑 Roles en orden + título mostrado (ACTUALIZADO)
+const HIERARCHY_ROLES = [
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Fundador' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Co Fundador' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Asuntos Internos' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Gerente' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Community Manager' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Supervisor' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Administrador' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Moderador' },
+  { id: 'ID_POR_CONFIGURAR', title: '@➜ | Helper' },
+];
+
+const FOOTER_ICON =
+  'https://cdn.discordapp.com/icons/ID_POR_CONFIGURAR/54ca61bce8995e0c165f3b2bd5b083c2.webp?size=1024';
+
+// Cache para almacenar el estado actual de los miembros por rol
+let roleMembersCache = new Map();
+let hierarchyMessageId = null;
+
+// Construye el EMBED completo
+async function buildHierarchyEmbed(client) {
+  const guild = await client.guilds.fetch(STAFF_GUILD_ID);
+  await guild.members.fetch();
+
+  const ts = Math.floor(Date.now() / 1000);
+  const embed = new EmbedBuilder()
+    .setTitle('📋 Jerarquía interna del Equipo Administrativo')
+    .setColor('#f1c40f') // amarillo
+    .setTimestamp(new Date())
+    .setDescription(
+      `Se muestra la jerarquía actual del Equipo Administrativo.\n\nActualizada el <t:${ts}:f>.`
+    )
+    .setFooter({
+      text: 'Escazú Roleplay | ER:LC © Todos los derechos reservados.',
+      iconURL: FOOTER_ICON,
+    });
+
+  // Nuevo cache para comparar después
+  const newCache = new Map();
+
+  for (const roleInfo of HIERARCHY_ROLES) {
+    const role = guild.roles.cache.get(roleInfo.id);
+    if (!role) continue;
+
+    const members = role.members.sort((a, b) =>
+      a.displayName.localeCompare(b.displayName)
+    );
+
+    // Almacenar en cache los miembros actuales de este rol
+    const memberIds = members.map(m => m.id);
+    newCache.set(roleInfo.id, memberIds.sort());
+
+    let value;
+    if (members.size === 0) {
+      value = '_Sin miembros actualmente_';
+    } else {
+      // 👇 AQUÍ SÍ HACE PING A LOS MIEMBROS
+      value = members
+        .map((m) => `${m}`) // equivalente a <@id>
+        .join('\n');
+    }
+
+    // name: solo el texto del rol, SIN ping a roles
+    embed.addFields({
+      name: roleInfo.title,
+      value,
+      inline: false,
+    });
+  }
+
+  // Verificar si hay cambios
+  const hasChanges = checkForChanges(newCache);
+  
+  // Actualizar cache
+  roleMembersCache = newCache;
+
+  return { embed, hasChanges };
+}
+
+// Verifica si hay cambios en los miembros de los roles
+function checkForChanges(newCache) {
+  if (roleMembersCache.size === 0) return true; // Primera ejecución
+
+  // Verificar si el número de entradas es diferente
+  if (roleMembersCache.size !== newCache.size) return true;
+
+  // Verificar cada rol
+  for (const [roleId, members] of newCache) {
+    const cachedMembers = roleMembersCache.get(roleId);
+    
+    if (!cachedMembers) return true; // Rol nuevo en cache
+    
+    // Verificar si los arrays son diferentes
+    if (members.length !== cachedMembers.length) return true;
+    
+    // Verificar cada miembro
+    for (let i = 0; i < members.length; i++) {
+      if (members[i] !== cachedMembers[i]) return true;
+    }
+  }
+
+  return false; // No hay cambios
+}
+
+// Busca el mensaje de jerarquía existente
+async function findHierarchyMessage(channel) {
+  if (hierarchyMessageId) {
+    try {
+      const message = await channel.messages.fetch(hierarchyMessageId);
+      return message;
+    } catch (error) {
+      hierarchyMessageId = null;
+    }
+  }
+
+  // Si no hay ID cacheado, buscar el último mensaje del bot
+  const messages = await channel.messages.fetch({ limit: 50 });
+  const botMessages = messages.filter(m => m.author.id === channel.client.user.id && m.embeds.length > 0);
+  
+  if (botMessages.size > 0) {
+    const message = botMessages.first();
+    hierarchyMessageId = message.id;
+    return message;
+  }
+
+  return null;
+}
+
+// Envía / actualiza jerarquía SOLO si hay cambios
+async function sendOrUpdateHierarchy(client, commandUserId) {
+  // ⛔ RESTRICCIÓN: Si se proporciona un userId (comando manual), verificar el permiso.
+  if (commandUserId && commandUserId !== ALLOWED_COMMAND_USER_ID) {
+    console.log(`❌ Usuario ${commandUserId} intentó usar el comando sin permiso.`);
+    return;
+  }
+
+  const guild = await client.guilds.fetch(STAFF_GUILD_ID);
+  const channel = await guild.channels.fetch(HIERARCHY_CHANNEL_ID);
+  
+  if (!channel || !channel.isTextBased()) {
+    console.log('❌ Canal de jerarquía no válido.');
+    return;
+  }
+
+  const { embed, hasChanges } = await buildHierarchyEmbed(client);
+
+  // Solo actualizar si hay cambios o si es un comando manual
+  if (!hasChanges && !commandUserId) {
+    console.log('ℹ️ No hay cambios en la jerarquía, no se actualiza.');
+    return;
+  }
+
+  // Buscar mensaje existente
+  const existingMessage = await findHierarchyMessage(channel);
+
+  if (existingMessage) {
+    // Editar mensaje existente
+    try {
+      await existingMessage.edit({
+        embeds: [embed],
+        allowedMentions: { parse: ['users'] },
+      });
+      console.log('✅ Jerarquía interna actualizada (embed editado, ping a miembros).');
+    } catch (error) {
+      console.log('❌ Error al editar mensaje:', error);
+    }
+  } else {
+    // Crear nuevo mensaje
+    try {
+      const message = await channel.send({
+        embeds: [embed],
+        allowedMentions: { parse: ['users'] },
+      });
+      hierarchyMessageId = message.id;
+      console.log('✅ Jerarquía interna publicada (nuevo embed, ping a miembros).');
+    } catch (error) {
+      console.log('❌ Error al publicar mensaje:', error);
+    }
+  }
+}
+
+// Configurar listeners para detectar cambios en roles de staff
+function startHierarchyAutoUpdate(client) {
+  console.log('🔍 Configurando listeners para cambios en roles de staff...');
+
+  // Función para verificar si un rol es de staff
+  function isStaffRole(roleId) {
+    return HIERARCHY_ROLES.some(role => role.id === roleId);
+  }
+
+  // Listener para cambios en miembros (roles añadidos/eliminados)
+  client.on('guildMemberUpdate', (oldMember, newMember) => {
+    // Verificar si es el servidor correcto
+    if (oldMember.guild.id !== STAFF_GUILD_ID) return;
+
+    // Obtener roles antiguos y nuevos
+    const oldRoles = oldMember.roles.cache.map(role => role.id);
+    const newRoles = newMember.roles.cache.map(role => role.id);
+
+    // Verificar si hay cambios en roles de staff
+    const hadStaffRole = oldRoles.some(isStaffRole);
+    const hasStaffRole = newRoles.some(isStaffRole);
+    
+    // Si el miembro tenía o tiene roles de staff, actualizar jerarquía
+    if (hadStaffRole || hasStaffRole) {
+      console.log(`🔄 Cambio detectado en roles de staff para ${newMember.user.tag}`);
+      setTimeout(() => sendOrUpdateHierarchy(client).catch(console.error), 1000);
+    }
+  });
+
+  // Listener para miembros que salen del servidor
+  client.on('guildMemberRemove', (member) => {
+    if (member.guild.id !== STAFF_GUILD_ID) return;
+
+    // Verificar si el miembro tenía algún rol de staff
+    const memberRoles = member.roles.cache.map(role => role.id);
+    const hadStaffRole = memberRoles.some(isStaffRole);
+
+    if (hadStaffRole) {
+      console.log(`👋 Miembro con rol de staff salió: ${member.user.tag}`);
+      setTimeout(() => sendOrUpdateHierarchy(client).catch(console.error), 1000);
+    }
+  });
+
+  // Listener para miembros que entran al servidor (podrían obtener roles después)
+  client.on('guildMemberAdd', (member) => {
+    if (member.guild.id !== STAFF_GUILD_ID) return;
+    
+    // Inicializar cache si está vacía
+    if (roleMembersCache.size === 0) {
+      setTimeout(() => sendOrUpdateHierarchy(client).catch(console.error), 2000);
+    }
+  });
+
+  // Actualizar una primera vez al iniciar
+  setTimeout(() => {
+    sendOrUpdateHierarchy(client).catch(console.error);
+  }, 3000);
+}
+
+// Definición del comando de barra para actualizar manualmente
+const hierarchyCommand = {
+  data: new SlashCommandBuilder()
+    .setName('actualizar-jerarquia')
+    .setDescription('Actualiza manualmente la jerarquía del equipo administrativo.'),
+  
+  async execute(interaction) {
+    // Verificar permisos
+    if (interaction.user.id !== ALLOWED_COMMAND_USER_ID) {
+      return interaction.reply({
+        content: '❌ No tienes permiso para ejecutar este comando.',
+        ephemeral: true,
+      });
+    }
+
+    // Deferir la respuesta porque puede tardar
+    await interaction.deferReply({ ephemeral: true });
+
+    try {
+      // Llamar a la función de actualización
+      await sendOrUpdateHierarchy(interaction.client, interaction.user.id);
+      
+      // Responder al usuario
+      await interaction.editReply({
+        content: '✅ Jerarquía actualizada manualmente.',
+      });
+    } catch (error) {
+      console.error('Error al ejecutar el comando de jerarquía:', error);
+      await interaction.editReply({
+        content: '❌ Hubo un error al actualizar la jerarquía.',
+      });
+    }
+  },
+};
+
+module.exports = {
+  startHierarchyAutoUpdate,
+  sendOrUpdateHierarchy,
+  hierarchyCommand, // Exportamos el comando para que pueda ser registrado
+};

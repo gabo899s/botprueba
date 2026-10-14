@@ -1,0 +1,317 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: codigo/Licencias_js_adaptado_CR/vehicular_v001.js
+
+// commands/vehicular.js
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+} = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
+// ====== CONFIG ======
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const VEHICULOS_FILE = path.join(DATA_DIR, 'vehiculos.json');
+const CEDULAS_FILE = 'cedulas.json';
+
+const ADMIN_VEHICULAR_ROLE_ID = 'ID_POR_CONFIGURAR';
+
+// ====== HELPERS ======
+function ensureDataDir() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function loadVehiculos() {
+  ensureDataDir();
+  if (!fs.existsSync(VEHICULOS_FILE)) return {};
+  try {
+    const raw = fs.readFileSync(VEHICULOS_FILE, 'utf8');
+    const db = JSON.parse(raw);
+    return typeof db === 'object' ? db : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveVehiculos(db) {
+  ensureDataDir();
+  fs.writeFileSync(VEHICULOS_FILE, JSON.stringify(db, null, 2), 'utf8');
+}
+
+function loadCedulas() {
+  if (!fs.existsSync(CEDULAS_FILE)) return {};
+  try {
+    const raw = fs.readFileSync(CEDULAS_FILE, 'utf8');
+    const db = JSON.parse(raw);
+    return typeof db === 'object' ? db : {};
+  } catch {
+    return {};
+  }
+}
+
+// ===== Cookie API (Avatar) =====
+const COOKIE_API = 'https://cookie.tech/api';
+
+async function fetchRobloxAvatar(username) {
+  try {
+    const res = await fetch(
+      `${COOKIE_API}/roblox/thumbnail?username=${encodeURIComponent(
+        username,
+      )}&size=420x420&format=png&isCircular=false`,
+    );
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    return data?.data?.imageUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// ========================================================
+// ================== /registrar-vehiculo =================
+// ========================================================
+const registrarVehiculoCommand = {
+  data: new SlashCommandBuilder()
+    .setName('registrar-vehiculo')
+    .setDescription('Inscribir un vehículo en el registro vehicular de Costa Rica RP V2.')
+    .addStringOption(o =>
+      o.setName('usuario_roblox').setDescription('Usuario de Roblox del propietario IC').setRequired(true),
+    )
+    .addStringOption(o => o.setName('modelo').setDescription('Modelo del vehículo').setRequired(true))
+    .addStringOption(o => o.setName('marca').setDescription('Marca del vehículo').setRequired(true))
+    .addIntegerOption(o =>
+      o.setName('año')
+        .setDescription('Año del vehículo')
+        .setRequired(true)
+        .setMinValue(1900)
+        .setMaxValue(new Date().getFullYear() + 1),
+    )
+    .addStringOption(o => o.setName('placa').setDescription('Placa del vehículo').setRequired(true))
+    .addStringOption(o => o.setName('color').setDescription('Color principal del vehículo').setRequired(true))
+    .addAttachmentOption(o =>
+      o.setName('imagen').setDescription('Captura o imagen del vehículo').setRequired(true),
+    ),
+
+  async execute(interaction) {
+    const user = interaction.user;
+    const cedulas = loadCedulas();
+
+    // Verifica cédula
+    const cedulaData = cedulas[user.id];
+    if (!cedulaData || !cedulaData.numeroCedula) {
+      return interaction.reply({
+        content: '❌ Antes de registrar un vehículo debes tener tu cédula registrada con `/registrar-cedula`.',
+        ephemeral: true,
+      });
+    }
+
+    const robloxUser = interaction.options.getString('usuario_roblox');
+    const modelo = interaction.options.getString('modelo');
+    const marca = interaction.options.getString('marca');
+    const año = interaction.options.getInteger('año');
+    const placa = interaction.options.getString('placa');
+    const color = interaction.options.getString('color');
+    const imagen = interaction.options.getAttachment('imagen');
+
+    const avatarUrl = await fetchRobloxAvatar(robloxUser);
+
+    const db = loadVehiculos();
+    if (!Array.isArray(db[user.id])) db[user.id] = [];
+
+    const vehiculoId = `veh_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+
+    const registro = {
+      id: vehiculoId,
+      discordId: user.id,
+      robloxUsername: robloxUser,
+      modelo,
+      marca,
+      año,
+      placa,
+      color,
+      imagenUrl: imagen.url,
+      cedula: cedulaData.numeroCedula,
+      registradoEn: new Date().toISOString(),
+    };
+
+    db[user.id].push(registro);
+    saveVehiculos(db);
+
+    const embed = new EmbedBuilder()
+      .setTitle('🚗 Vehículo inscrito en el registro')
+      .setColor(0x3498db)
+      .addFields(
+        { name: '👤 Propietario (Discord)', value: `${user}`, inline: false },
+        { name: '🎮 Usuario de Roblox', value: robloxUser, inline: true },
+        { name: '🪪 Número de cédula', value: cedulaData.numeroCedula, inline: true },
+        {
+          name: '🚘 Detalles del vehículo',
+          value: `**Marca:** ${marca}\n**Modelo:** ${modelo}\n**Año:** ${año}\n**Color:** ${color}`,
+          inline: false,
+        },
+        { name: '📛 Placa registrada', value: placa, inline: true },
+        {
+          name: '📅 Fecha de registro (CR)',
+          value: new Date().toLocaleString('es-CR', {
+            timeZone: 'America/Costa_Rica',
+          }),
+          inline: false,
+        },
+        { name: '🆔 ID interno del vehículo', value: vehiculoId },
+      )
+      .setImage(imagen.url)
+      .setFooter({ text: 'Registro Vehicular | Costa Rica RP V2' });
+
+    if (avatarUrl) embed.setThumbnail(avatarUrl);
+
+    return interaction.reply({ embeds: [embed] });
+  },
+};
+
+// ========================================================
+// ====================== /vehiculos ======================
+// ========================================================
+const vehiculosCommand = {
+  data: new SlashCommandBuilder()
+    .setName('vehiculos')
+    .setDescription('Consultar los vehículos registrados de un usuario en el RP.')
+    .addUserOption(o =>
+      o.setName('usuario').setDescription('Usuario de Discord del que verás los vehículos'),
+    ),
+
+  async execute(interaction) {
+    const target = interaction.options.getUser('usuario') || interaction.user;
+
+    const db = loadVehiculos();
+    const lista = db[target.id] || [];
+
+    if (!lista.length)
+      return interaction.reply({
+        content: `📂 ${target} no tiene vehículos registrados en el sistema vehicular.`,
+        ephemeral: true,
+      });
+
+    const embeds = lista.slice(0, 10).map(v => {
+      const embed = new EmbedBuilder()
+        .setTitle('🚗 Vehículo registrado en Costa Rica RP V2')
+        .setColor(0x1abc9c)
+        .addFields(
+          { name: '👤 Propietario (Discord)', value: `${target}`, inline: false },
+          { name: '🎮 Usuario de Roblox', value: v.robloxUsername, inline: true },
+          { name: '🪪 Cédula asociada', value: v.cedula, inline: true },
+          {
+            name: '🚘 Información del vehículo',
+            value: `**Marca:** ${v.marca}\n**Modelo:** ${v.modelo}\n**Año:** ${v.año}\n**Color:** ${v.color}`,
+            inline: false,
+          },
+          { name: '📛 Placa', value: v.placa, inline: true },
+          {
+            name: '📅 Fecha de inscripción (CR)',
+            value: new Date(v.registradoEn).toLocaleString('es-CR', {
+              timeZone: 'America/Costa_Rica',
+            }),
+            inline: false,
+          },
+          { name: '🆔 ID interno', value: v.id },
+        )
+        .setFooter({ text: 'Consulta de registro vehicular' });
+
+      if (v.imagenUrl) embed.setImage(v.imagenUrl);
+      return embed;
+    });
+
+    return interaction.reply({ embeds, ephemeral: true });
+  },
+};
+
+// ========================================================
+// ================== /eliminar-vehiculo ==================
+// ========================================================
+const eliminarVehiculoCommand = {
+  data: new SlashCommandBuilder()
+    .setName('eliminar-vehiculo')
+    .setDescription('Eliminar un vehículo del registro vehicular.')
+    .addUserOption(o =>
+      o.setName('usuario').setDescription('Usuario dueño del vehículo').setRequired(true),
+    ),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member.roles.cache.has(ADMIN_VEHICULAR_ROLE_ID))
+      return interaction.reply({
+        content: '⛔ No cuentas con permisos para gestionar el registro vehicular.',
+        ephemeral: true,
+      });
+
+    const usuario = interaction.options.getUser('usuario');
+    const db = loadVehiculos();
+    const lista = db[usuario.id] || [];
+
+    if (!lista.length)
+      return interaction.reply({
+        content: `📂 ${usuario} no tiene vehículos registrados en el sistema.`,
+        ephemeral: true,
+      });
+
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId(`delveh_${interaction.id}`)
+      .setPlaceholder('Selecciona el vehículo que deseas eliminar del registro')
+      .addOptions(
+        lista.map(v => ({
+          label: `${v.modelo} ${v.año}`,
+          description: `Placa: ${v.placa} | Fecha: ${new Date(
+            v.registradoEn,
+          ).toLocaleDateString('es-CR')}`,
+          value: v.id,
+        })),
+      );
+
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    const msg = await interaction.reply({
+      content: '🗑️ Usa el menú para escoger qué vehículo quieres eliminar:',
+      components: [row],
+      ephemeral: true,
+    });
+
+    const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+    collector.on('collect', async i => {
+      if (i.customId !== `delveh_${interaction.id}`) return;
+      if (i.user.id !== interaction.user.id)
+        return i.reply({ content: '❌ Solo quien ejecutó el comando puede usar este menú.', ephemeral: true });
+
+      const id = i.values[0];
+      const nuevos = lista.filter(v => v.id !== id);
+
+      db[usuario.id] = nuevos;
+      saveVehiculos(db);
+
+      collector.stop();
+      return i.update({
+        content: `✅ El vehículo seleccionado fue eliminado correctamente del registro.`,
+        components: [],
+      });
+    });
+
+    collector.on('end', async () => {
+      try {
+        await msg.edit({
+          content: '⌛ El menú de eliminación ha expirado.',
+          components: [],
+        });
+      } catch {}
+    });
+  },
+};
+
+// ===== EXPORT =====
+module.exports = {
+  commands: [
+    registrarVehiculoCommand,
+    vehiculosCommand,
+    eliminarVehiculoCommand,
+  ],
+};

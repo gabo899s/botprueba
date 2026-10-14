@@ -1,0 +1,821 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b010_shifts.js
+
+const {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  MessageFlags,
+  ComponentType,
+  PermissionFlagsBits
+} = require('discord.js');
+const fs = require('fs').promises;
+const fsSync = require('fs');
+const path = require('path');
+
+// ================== CONFIGURACIÓN ==================
+const GUILD_PRINCIPAL_ID = process.env.GUILD_ID; // Servidor principal desde .env
+const GUILD_SECUNDARIO_ID = 'ID_POR_CONFIGURAR'; // Servidor secundario para ranking
+const CANAL_RANKING_ID = 'ID_POR_CONFIGURAR'; // Canal para embed de ranking
+const CANAL_VOZ_REQUERIDO_ID = 'ID_POR_CONFIGURAR'; // Canal de voz obligatorio
+const CANAL_LOGS_SHIFTS = 'ID_POR_CONFIGURAR'; // Cambia por tu canal de logs
+
+// Roles que pueden usar shift sin estar en el canal de voz
+const ROLES_EXCEPTUADOS = [
+  'ID_POR_CONFIGURAR',
+  'ID_POR_CONFIGURAR', 
+  'ID_POR_CONFIGURAR',
+  'ID_POR_CONFIGURAR'
+];
+
+// Configuración del sistema
+const EMBED_AUTO_ENVIAR = 'YES'; // YES/NO - Envía embed al reiniciar
+const MAXIMO_HORAS_SHIFT = 5; // Máximo 5 horas por shift
+const TIEMPO_VERIFICACION = 30000; // 30 segundos para verificar actividad
+const TIEMPO_ACTUALIZACION_EMBED = 15000; // 15 segundos para actualizar embed
+
+// Archivos de datos
+const DATA_DIR = path.join(__dirname, '..', 'data', 'shifts');
+const SHIFTS_FILE = path.join(DATA_DIR, 'activos.json');
+const HISTORIAL_FILE = path.join(DATA_DIR, 'historial.json');
+const RANKING_FILE = path.join(DATA_DIR, 'ranking.json');
+const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
+
+// ================== INICIALIZACIÓN DE DATOS ==================
+// Asegurar que el directorio existe
+if (!fsSync.existsSync(DATA_DIR)) {
+  fsSync.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Datos en memoria
+let shiftsActivos = new Map(); // userId -> {startTime, totalPaused, lastPause, voiceChecks}
+let shiftsConfig = {
+  sistemaActivo: false,
+  embedMessageId: null,
+  embedChannelId: null,
+  embedGuildId: null
+};
+let rankingData = {};
+let historialShifts = [];
+
+// Cargar datos desde archivos
+async function cargarDatos() {
+  try {
+    // Cargar shifts activos
+    if (fsSync.existsSync(SHIFTS_FILE)) {
+      const data = await fs.readFile(SHIFTS_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      shiftsActivos = new Map(Object.entries(parsed));
+      
+      // Asegurar que los tiempos sean números
+      for (const [userId, shift] of shiftsActivos) {
+        if (shift.startTime) shift.startTime = Number(shift.startTime);
+        if (shift.totalPaused) shift.totalPaused = Number(shift.totalPaused);
+        if (shift.lastPause) shift.lastPause = Number(shift.lastPause);
+        if (!shift.voiceChecks) shift.voiceChecks = 0;
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error cargando shifts activos:', error);
+  }
+
+  try {
+    // Cargar configuración
+    if (fsSync.existsSync(CONFIG_FILE)) {
+      const data = await fs.readFile(CONFIG_FILE, 'utf8');
+      shiftsConfig = JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('❌ Error cargando configuración:', error);
+  }
+
+  try {
+    // Cargar ranking
+    if (fsSync.existsSync(RANKING_FILE)) {
+      const data = await fs.readFile(RANKING_FILE, 'utf8');
+      rankingData = JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('❌ Error cargando ranking:', error);
+  }
+
+  try {
+    // Cargar historial
+    if (fsSync.existsSync(HISTORIAL_FILE)) {
+      const data = await fs.readFile(HISTORIAL_FILE, 'utf8');
+      historialShifts = JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('❌ Error cargando historial:', error);
+  }
+}
+
+// Guardar datos a archivos
+async function guardarDatos() {
+  try {
+    await fs.writeFile(SHIFTS_FILE, JSON.stringify(Object.fromEntries(shiftsActivos), null, 2));
+    await fs.writeFile(CONFIG_FILE, JSON.stringify(shiftsConfig, null, 2));
+    await fs.writeFile(RANKING_FILE, JSON.stringify(rankingData, null, 2));
+    await fs.writeFile(HISTORIAL_FILE, JSON.stringify(historialShifts, null, 2));
+  } catch (error) {
+    console.error('❌ Error guardando datos:', error);
+  }
+}
+
+// Inicializar datos
+cargarDatos();
+
+// ================== FUNCIONES DE UTILIDAD ==================
+function tieneRolExceptuado(member) {
+  return ROLES_EXCEPTUADOS.some(roleId => member.roles.cache.has(roleId));
+}
+
+function estaEnCanalVoz(member) {
+  return member.voice.channel && member.voice.channel.id === CANAL_VOZ_REQUERIDO_ID;
+}
+
+function puedeIniciarShift(member) {
+  return estaEnCanalVoz(member) || tieneRolExceptuado(member);
+}
+
+function calcularTiempoActivo(shift) {
+  if (!shift || !shift.startTime) return 0;
+  
+  let tiempoActivo = Date.now() - shift.startTime;
+  
+  // Restar tiempo pausado
+  if (shift.totalPaused) {
+    tiempoActivo -= shift.totalPaused;
+  }
+  
+  // Si está pausado actualmente, restar desde la última pausa
+  if (shift.lastPause) {
+    tiempoActivo -= (Date.now() - shift.lastPause);
+  }
+  
+  return Math.max(0, tiempoActivo);
+}
+
+function formatearTiempo(ms) {
+  const segundos = Math.floor(ms / 1000);
+  const horas = Math.floor(segundos / 3600);
+  const minutos = Math.floor((segundos % 3600) / 60);
+  const segs = segundos % 60;
+  
+  if (horas > 0) {
+    return `${horas}h ${minutos}m ${segs}s`;
+  } else if (minutos > 0) {
+    return `${minutos}m ${segs}s`;
+  } else {
+    return `${segs}s`;
+  }
+}
+
+async function actualizarRanking(userId, tiempoMs) {
+  if (!rankingData[userId]) {
+    rankingData[userId] = {
+      totalTiempo: 0,
+      totalShifts: 0,
+      mejorTiempo: 0,
+      ultimoShift: null
+    };
+  }
+  
+  rankingData[userId].totalTiempo += tiempoMs;
+  rankingData[userId].totalShifts += 1;
+  rankingData[userId].mejorTiempo = Math.max(rankingData[userId].mejorTiempo, tiempoMs);
+  rankingData[userId].ultimoShift = Date.now();
+  
+  await guardarDatos();
+}
+
+async function registrarHistorial(userId, accion, tiempoMs = null, motivo = null) {
+  const entry = {
+    userId,
+    accion,
+    timestamp: Date.now(),
+    tiempoMs,
+    motivo
+  };
+  
+  historialShifts.push(entry);
+  
+  // Mantener solo los últimos 1000 registros
+  if (historialShifts.length > 1000) {
+    historialShifts = historialShifts.slice(-1000);
+  }
+  
+  await guardarDatos();
+  
+  // Enviar a canal de logs si está configurado
+  // (Se implementará más adelante)
+}
+
+// ================== SISTEMA DE VERIFICACIÓN ==================
+async function verificarShiftsActivos(client) {
+  const ahora = Date.now();
+  const shiftsParaRemover = [];
+  
+  for (const [userId, shift] of shiftsActivos) {
+    const tiempoActivo = calcularTiempoActivo(shift);
+    
+    // Verificar si excede el tiempo máximo
+    if (tiempoActivo >= MAXIMO_HORAS_SHIFT * 3600 * 1000) {
+      shiftsParaRemover.push({ userId, motivo: 'Tiempo máximo excedido (5h)' });
+      continue;
+    }
+    
+    // Verificar actividad en canal de voz (excepto roles exceptuados)
+    try {
+      const guild = client.guilds.cache.get(GUILD_PRINCIPAL_ID);
+      if (!guild) continue;
+      
+      const member = await guild.members.fetch(userId).catch(() => null);
+      if (!member) {
+        shiftsParaRemover.push({ userId, motivo: 'Usuario no encontrado en el servidor' });
+        continue;
+      }
+      
+      // Si tiene rol exceptuado, saltar verificación de voz
+      if (tieneRolExceptuado(member)) continue;
+      
+      // Verificar si está en el canal de voz requerido
+      if (!estaEnCanalVoz(member)) {
+        if (!shift.lastPause) {
+          // Primera vez que sale - pausar
+          shift.lastPause = ahora;
+          await registrarHistorial(userId, 'PAUSA_AUTO', null, 'Salido del canal de voz');
+        } else if ((ahora - shift.lastPause) > 60000) {
+          // Lleva más de 1 minuto fuera - cortar shift
+          shiftsParaRemover.push({ userId, motivo: 'Fuera del canal de voz por más de 1 minuto' });
+        }
+      } else {
+        // Si está en el canal y estaba pausado, reanudar
+        if (shift.lastPause) {
+          const tiempoPausado = ahora - shift.lastPause;
+          shift.totalPaused = (shift.totalPaused || 0) + tiempoPausado;
+          shift.lastPause = null;
+          await registrarHistorial(userId, 'REANUDACION_AUTO', tiempoPausado);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error verificando shift de ${userId}:`, error);
+    }
+  }
+  
+  // Remover shifts que cumplen condiciones
+  for (const { userId, motivo } of shiftsParaRemover) {
+    await finalizarShift(userId, motivo, client);
+  }
+  
+  // Actualizar embed si hay cambios
+  if (shiftsParaRemover.length > 0 && shiftsConfig.sistemaActivo) {
+    await actualizarEmbedShifts(client);
+  }
+}
+
+// ================== FUNCIONES PRINCIPALES DE SHIFT ==================
+async function iniciarShift(userId, client) {
+  if (shiftsActivos.has(userId)) {
+    return { success: false, error: 'Ya tienes un shift activo' };
+  }
+  
+  const shiftData = {
+    startTime: Date.now(),
+    totalPaused: 0,
+    lastPause: null,
+    voiceChecks: 0
+  };
+  
+  shiftsActivos.set(userId, shiftData);
+  await guardarDatos();
+  await registrarHistorial(userId, 'INICIO');
+  
+  return { success: true, data: shiftData };
+}
+
+async function finalizarShift(userId, motivo = 'Finalizado manualmente', client = null) {
+  const shift = shiftsActivos.get(userId);
+  if (!shift) {
+    return { success: false, error: 'No tienes un shift activo' };
+  }
+  
+  const tiempoActivo = calcularTiempoActivo(shift);
+  
+  // Actualizar ranking
+  await actualizarRanking(userId, tiempoActivo);
+  
+  // Registrar en historial
+  await registrarHistorial(userId, 'FIN', tiempoActivo, motivo);
+  
+  // Remover de activos
+  shiftsActivos.delete(userId);
+  await guardarDatos();
+  
+  // Notificar al usuario si hay client
+  if (client) {
+    try {
+      const guild = client.guilds.cache.get(GUILD_PRINCIPAL_ID);
+      if (guild) {
+        const member = await guild.members.fetch(userId).catch(() => null);
+        if (member) {
+          await member.send({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(0x00ff00)
+                .setTitle('⏹️ Shift Finalizado')
+                .setDescription(`Tu shift ha sido finalizado`)
+                .addFields(
+                  { name: 'Duración', value: formatearTiempo(tiempoActivo), inline: true },
+                  { name: 'Motivo', value: motivo, inline: true },
+                  { name: 'Fecha', value: `<t:${Math.floor(Date.now()/1000)}:F>`, inline: true }
+                )
+                .setFooter({ text: 'Sistema de Shifts - Escazú RP' })
+            ]
+          }).catch(() => {}); // Ignorar si no puede enviar DM
+        }
+      }
+    } catch (error) {
+      console.error('Error notificando finalización:', error);
+    }
+  }
+  
+  return { success: true, tiempoMs: tiempoActivo };
+}
+
+async function pausarShift(userId) {
+  const shift = shiftsActivos.get(userId);
+  if (!shift) {
+    return { success: false, error: 'No tienes un shift activo' };
+  }
+  
+  if (shift.lastPause) {
+    return { success: false, error: 'El shift ya está pausado' };
+  }
+  
+  shift.lastPause = Date.now();
+  await guardarDatos();
+  await registrarHistorial(userId, 'PAUSA_MANUAL');
+  
+  return { success: true };
+}
+
+async function reanudarShift(userId) {
+  const shift = shiftsActivos.get(userId);
+  if (!shift) {
+    return { success: false, error: 'No tienes un shift activo' };
+  }
+  
+  if (!shift.lastPause) {
+    return { success: false, error: 'El shift no está pausado' };
+  }
+  
+  const tiempoPausado = Date.now() - shift.lastPause;
+  shift.totalPaused = (shift.totalPaused || 0) + tiempoPausado;
+  shift.lastPause = null;
+  await guardarDatos();
+  await registrarHistorial(userId, 'REANUDACION_MANUAL', tiempoPausado);
+  
+  return { success: true, tiempoPausado };
+}
+
+// ================== EMBEDS Y BOTONES ==================
+function crearEmbedShifts() {
+  const embed = new EmbedBuilder()
+    .setColor(0x5865F2)
+    .setTitle('🕐 Sistema de Shifts de Moderación')
+    .setDescription('Controla tu tiempo de moderación con este sistema')
+    .addFields(
+      {
+        name: '📋 Instrucciones',
+        value: '1. Debes estar en el canal de voz designado\n2. Usa los botones para iniciar/terminar\n3. El sistema verifica actividad automáticamente',
+        inline: false
+      },
+      {
+        name: '⚙️ Configuración',
+        value: `• Máximo por shift: ${MAXIMO_HORAS_SHIFT}h\n• Canal de voz requerido: <#${CANAL_VOZ_REQUERIDO_ID}>\n• Sistema: ${shiftsConfig.sistemaActivo ? '🟢 ACTIVO' : '🔴 INACTIVO'}`,
+        inline: false
+      }
+    )
+    .setFooter({ text: 'Escazú Roleplay | Sistema de Shifts' })
+    .setTimestamp();
+
+  // Añadir lista de moderadores activos
+  if (shiftsActivos.size > 0) {
+    const listaActivos = [];
+    for (const [userId, shift] of shiftsActivos) {
+      const tiempo = formatearTiempo(calcularTiempoActivo(shift));
+      const estado = shift.lastPause ? '⏸️ PAUSADO' : '🟢 ACTIVO';
+      listaActivos.push(`<@${userId}> - ${tiempo} (${estado})`);
+    }
+    
+    embed.addFields({
+      name: `👥 Moderadores Activos (${shiftsActivos.size})`,
+      value: listaActivos.join('\n') || 'No hay moderadores activos',
+      inline: false
+    });
+  } else {
+    embed.addFields({
+      name: '👥 Moderadores Activos',
+      value: 'No hay moderadores activos actualmente',
+      inline: false
+    });
+  }
+
+  return embed;
+}
+
+function crearBotonesShifts(deshabilitados = false) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('shift_iniciar')
+      .setLabel('▶️ Iniciar Shift')
+      .setStyle(ButtonStyle.Success)
+      .setDisabled(deshabilitados),
+    new ButtonBuilder()
+      .setCustomId('shift_terminar')
+      .setLabel('⏹️ Terminar Shift')
+      .setStyle(ButtonStyle.Danger)
+      .setDisabled(deshabilitados)
+  );
+}
+
+async function actualizarEmbedShifts(client) {
+  if (!shiftsConfig.sistemaActivo || !shiftsConfig.embedChannelId || !shiftsConfig.embedMessageId) {
+    return;
+  }
+
+  try {
+    const channel = client.channels.cache.get(shiftsConfig.embedChannelId);
+    if (!channel) return;
+
+    const message = await channel.messages.fetch(shiftsConfig.embedMessageId).catch(() => null);
+    if (!message) return;
+
+    const embed = crearEmbedShifts();
+    const botones = crearBotonesShifts();
+    
+    await message.edit({ embeds: [embed], components: [botones] });
+  } catch (error) {
+    console.error('❌ Error actualizando embed de shifts:', error);
+  }
+}
+
+// ================== COMANDOS SLASH ==================
+const activarShiftCommand = {
+  data: new SlashCommandBuilder()
+    .setName('activar-shift')
+    .setDescription('Activa el sistema de shifts y envía el embed')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+  
+  async execute(interaction) {
+    if (shiftsConfig.sistemaActivo) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xff0000)
+            .setDescription('❌ El sistema de shifts ya está activado')
+        ],
+        ephemeral: true
+      });
+    }
+
+    shiftsConfig.sistemaActivo = true;
+    shiftsConfig.embedChannelId = interaction.channel.id;
+    shiftsConfig.embedGuildId = interaction.guild.id;
+
+    const embed = crearEmbedShifts();
+    const botones = crearBotonesShifts();
+
+    const message = await interaction.reply({ 
+      embeds: [embed], 
+      components: [botones],
+      fetchReply: true 
+    });
+
+    shiftsConfig.embedMessageId = message.id;
+    await guardarDatos();
+
+    await interaction.followUp({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setDescription('✅ Sistema de shifts activado correctamente')
+      ],
+      ephemeral: true
+    });
+  }
+};
+
+const apagarShiftCommand = {
+  data: new SlashCommandBuilder()
+    .setName('apagar-shift')
+    .setDescription('Desactiva el sistema de shifts')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+  
+  async execute(interaction) {
+    if (!shiftsConfig.sistemaActivo) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xff0000)
+            .setDescription('❌ El sistema de shifts ya está desactivado')
+        ],
+        ephemeral: true
+      });
+    }
+
+    // Finalizar todos los shifts activos
+    const client = interaction.client;
+    for (const [userId] of shiftsActivos) {
+      await finalizarShift(userId, 'Sistema desactivado', client);
+    }
+
+    // Desactivar sistema
+    shiftsConfig.sistemaActivo = false;
+    
+    // Deshabilitar botones en el embed
+    if (shiftsConfig.embedChannelId && shiftsConfig.embedMessageId) {
+      try {
+        const channel = client.channels.cache.get(shiftsConfig.embedChannelId);
+        if (channel) {
+          const message = await channel.messages.fetch(shiftsConfig.embedMessageId).catch(() => null);
+          if (message) {
+            const embed = crearEmbedShifts();
+            const botones = crearBotonesShifts(true); // Botones deshabilitados
+            await message.edit({ embeds: [embed], components: [botones] });
+          }
+        }
+      } catch (error) {
+        console.error('Error deshabilitando botones:', error);
+      }
+    }
+
+    shiftsConfig.embedMessageId = null;
+    shiftsConfig.embedChannelId = null;
+    shiftsConfig.embedGuildId = null;
+    
+    await guardarDatos();
+
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setDescription('✅ Sistema de shifts desactivado. Todos los shifts han sido finalizados.')
+      ],
+      ephemeral: true
+    });
+  }
+};
+
+const rankingShiftCommand = {
+  data: new SlashCommandBuilder()
+    .setName('ranking')
+    .setDescription('Muestra el ranking de tiempo en shifts')
+    .addIntegerOption(option =>
+      option.setName('pagina')
+        .setDescription('Página del ranking (1-10)')
+        .setMinValue(1)
+        .setMaxValue(10)
+        .setRequired(false)
+    ),
+  
+  async execute(interaction) {
+    const pagina = interaction.options.getInteger('pagina') || 1;
+    const usuariosPorPagina = 10;
+    const inicio = (pagina - 1) * usuariosPorPagina;
+    const fin = inicio + usuariosPorPagina;
+
+    // Ordenar ranking por tiempo total
+    const rankingArray = Object.entries(rankingData)
+      .sort(([, a], [, b]) => b.totalTiempo - a.totalTiempo)
+      .slice(inicio, fin);
+
+    if (rankingArray.length === 0) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xff9900)
+            .setTitle('🏆 Ranking de Shifts')
+            .setDescription('No hay datos de ranking aún.')
+            .setFooter({ text: `Página ${pagina}` })
+        ],
+        ephemeral: true
+      });
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(0xffd700)
+      .setTitle('🏆 Ranking de Shifts')
+      .setDescription(`Top ${inicio + 1}-${inicio + rankingArray.length} por tiempo total`)
+      .setFooter({ text: `Página ${pagina} | Total de usuarios: ${Object.keys(rankingData).length}` })
+      .setTimestamp();
+
+    let descripcion = '';
+    rankingArray.forEach(([userId, data], index) => {
+      const posicion = inicio + index + 1;
+      const medalla = posicion === 1 ? '🥇' : posicion === 2 ? '🥈' : posicion === 3 ? '🥉' : `${posicion}.`;
+      
+      descripcion += `${medalla} <@${userId}>\n`;
+      descripcion += `   ⏱️ Total: ${formatearTiempo(data.totalTiempo)}\n`;
+      descripcion += `   📊 Shifts: ${data.totalShifts}\n`;
+      descripcion += `   ⭐ Mejor: ${formatearTiempo(data.mejorTiempo)}\n\n`;
+    });
+
+    embed.setDescription(descripcion);
+
+    await interaction.reply({ embeds: [embed] });
+  }
+};
+
+// ================== MANEJADOR DE INTERACCIONES ==================
+async function handleComponentInteraction(interaction) {
+  if (!interaction.isButton()) return false;
+
+  const { customId, user, member } = interaction;
+  
+  if (customId === 'shift_iniciar' || customId === 'shift_terminar') {
+    // Verificar si el sistema está activo
+    if (!shiftsConfig.sistemaActivo) {
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xff0000)
+            .setDescription('❌ El sistema de shifts está desactivado')
+        ],
+        ephemeral: true
+      });
+      return true;
+    }
+
+    if (customId === 'shift_iniciar') {
+      // Verificar permisos para iniciar shift
+      if (!puedeIniciarShift(member)) {
+        await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor(0xff0000)
+              .setDescription(`❌ Debes estar en el canal de voz <#${CANAL_VOZ_REQUERIDO_ID}> para iniciar shift\n\n*Excepción para roles superiores*`)
+          ],
+          ephemeral: true
+        });
+        return true;
+      }
+
+      const resultado = await iniciarShift(user.id, interaction.client);
+      
+      if (!resultado.success) {
+        await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor(0xff0000)
+              .setDescription(`❌ ${resultado.error}`)
+          ],
+          ephemeral: true
+        });
+      } else {
+        await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor(0x00ff00)
+              .setDescription('✅ Shift iniciado correctamente\n\n⏱️ El tiempo comenzó a contar')
+              .addFields(
+                { name: 'Canal requerido', value: `<#${CANAL_VOZ_REQUERIDO_ID}>`, inline: true },
+                { name: 'Máximo', value: `${MAXIMO_HORAS_SHIFT} horas`, inline: true }
+              )
+          ],
+          ephemeral: true
+        });
+
+        // Actualizar embed de shifts
+        await actualizarEmbedShifts(interaction.client);
+        
+        // Registrar en logs
+        await registrarHistorial(user.id, 'INICIO_BOTON');
+      }
+
+    } else if (customId === 'shift_terminar') {
+      const resultado = await finalizarShift(user.id, 'Finalizado por botón', interaction.client);
+      
+      if (!resultado.success) {
+        await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor(0xff0000)
+              .setDescription(`❌ ${resultado.error}`)
+          ],
+          ephemeral: true
+        });
+      } else {
+        await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor(0x00ff00)
+              .setDescription('✅ Shift terminado correctamente')
+              .addFields(
+                { name: 'Duración total', value: formatearTiempo(resultado.tiempoMs), inline: true },
+                { name: 'Fecha', value: `<t:${Math.floor(Date.now()/1000)}:R>`, inline: true }
+              )
+          ],
+          ephemeral: true
+        });
+
+        // Actualizar embed de shifts
+        await actualizarEmbedShifts(interaction.client);
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+// ================== INICIALIZACIÓN DEL SISTEMA ==================
+async function inicializarSistema(client) {
+  console.log('🚀 Inicializando sistema de shifts...');
+  
+  // Cargar datos
+  await cargarDatos();
+  
+  // Verificar shifts activos periódicamente
+  setInterval(() => verificarShiftsActivos(client), TIEMPO_VERIFICACION);
+  
+  // Actualizar embed periódicamente
+  setInterval(() => {
+    if (shiftsConfig.sistemaActivo) {
+      actualizarEmbedShifts(client);
+    }
+  }, TIEMPO_ACTUALIZACION_EMBED);
+  
+  // Enviar embed al servidor secundario si está configurado
+  if (EMBED_AUTO_ENVIAR === 'YES') {
+    try {
+      const guildSecundario = client.guilds.cache.get(GUILD_SECUNDARIO_ID);
+      if (guildSecundario) {
+        const canalRanking = guildSecundario.channels.cache.get(CANAL_RANKING_ID);
+        if (canalRanking) {
+          const embed = new EmbedBuilder()
+            .setColor(0x5865F2)
+            .setTitle('🏆 Ranking de Shifts - Escazú RP')
+            .setDescription('Sistema de seguimiento de tiempo de moderación\n\n*Usa `/ranking` en el servidor principal para ver el ranking completo*')
+            .addFields(
+              { name: '👥 Moderadores Activos', value: `${shiftsActivos.size} actualmente`, inline: true },
+              { name: '⏱️ Tiempo Total', value: 'Ver ranking completo', inline: true },
+              { name: '🏅 Top 3', value: 'Cargando...', inline: true }
+            )
+            .setFooter({ text: 'Sistema reiniciado | ' + new Date().toLocaleDateString() })
+            .setTimestamp();
+
+          await canalRanking.send({ embeds: [embed] });
+          console.log('✅ Embed de ranking enviado al servidor secundario');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error enviando embed al servidor secundario:', error);
+    }
+  }
+  
+  // Verificar shifts al iniciar
+  await verificarShiftsActivos(client);
+  
+  // Actualizar embed si el sistema está activo
+  if (shiftsConfig.sistemaActivo) {
+    await actualizarEmbedShifts(client);
+  }
+  
+  console.log('✅ Sistema de shifts inicializado correctamente');
+}
+
+// ================== FUNCIONES DE INTEGRACIÓN CON APERTURAS ==================
+async function cerrarTodosShiftsPorApertura(client) {
+  console.log('🔄 Cerrando todos los shifts por cambio de estado del servidor...');
+  
+  const resultados = [];
+  for (const [userId] of shiftsActivos) {
+    const resultado = await finalizarShift(userId, 'Servidor cerrado (desde aperturas)', client);
+    if (resultado.success) {
+      resultados.push({ userId, tiempo: resultado.tiempoMs });
+    }
+  }
+  
+  // Actualizar embed
+  if (shiftsConfig.sistemaActivo) {
+    await actualizarEmbedShifts(client);
+  }
+  
+  console.log(`✅ ${resultados.length} shifts cerrados por cambio de estado`);
+  return resultados;
+}
+
+// ================== EXPORTS ==================
+module.exports = {
+  commands: [activarShiftCommand, apagarShiftCommand, rankingShiftCommand],
+  handleComponentInteraction,
+  inicializarSistema,
+  cerrarTodosShiftsPorApertura,
+  shiftsActivos: () => shiftsActivos, // Getter para acceso externo
+  shiftsConfig: () => shiftsConfig   // Getter para acceso externo
+};

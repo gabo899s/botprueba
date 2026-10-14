@@ -1,0 +1,25 @@
+node_modules/
+.env
+*.log
+public/pdfs/*
+public/uploads/*
+bot/data/*.json
+bot/data/notifications/*.json
+bot/data/processed/*.json
+bot/data/errors/*.json
+
+.runtime/
+bot/config.json
+bot/data/*.sqlite*
+exportacion-datos/
+*.tar.gz
+
+# Estado local: nunca se publica ni se sobrescribe al actualizar.
+bot/data/
+.runtime/
+*.zip
+*.bak
+.env.*
+!.env.example
+
+node_modules

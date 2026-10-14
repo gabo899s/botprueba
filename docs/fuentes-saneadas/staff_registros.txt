@@ -1,0 +1,321 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m010_b001_registrarplacas.js
+
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
+// Ruta al archivo infostaff.js
+const INFOSTAFF_PATH = path.join(__dirname, '../data/infostaff.js');
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('actualizar-info')
+    .setDescription('Actualiza la base de datos de placas del staff')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption(option =>
+      option
+        .setName('confirmacion')
+        .setDescription('Escribe "CONFIRMAR" para proceder')
+        .setRequired(true)
+    ),
+
+  async execute(interaction) {
+    // Verificar que el comando se ejecuta en el servidor correcto
+    const STAFF_GUILD_ID = 'ID_POR_CONFIGURAR';
+    if (interaction.guildId !== STAFF_GUILD_ID) {
+      return interaction.reply({
+        content: '❌ Este comando solo puede usarse en el servidor de staff.',
+        ephemeral: true
+      });
+    }
+
+    // Verificar que tenga uno de los roles permitidos
+    const allowedRoles = [
+      'ID_POR_CONFIGURAR', // Dueño
+      'ID_POR_CONFIGURAR', // Co dueño
+      'ID_POR_CONFIGURAR', // Directiva General
+      'ID_POR_CONFIGURAR'  // Recursos Humanos
+    ];
+
+    const member = interaction.member;
+    const hasPermission = allowedRoles.some(roleId => member.roles.cache.has(roleId));
+    
+    if (!hasPermission) {
+      return interaction.reply({
+        content: '❌ No tienes permiso para usar este comando. Se requiere uno de estos roles: Dueño, Co dueño, Directiva General o Recursos Humanos.',
+        ephemeral: true
+      });
+    }
+
+    // Verificar confirmación
+    const confirmation = interaction.options.getString('confirmacion');
+    if (confirmation !== 'CONFIRMAR') {
+      return interaction.reply({
+        content: '❌ Para proceder, debes escribir "CONFIRMAR" en el campo de confirmación.',
+        ephemeral: true
+      });
+    }
+
+    // Defer la respuesta porque puede tardar
+    await interaction.deferReply({ ephemeral: true });
+
+    try {
+      // Datos de placas y rangos (extraídos de tu mensaje)
+      const staffData = {
+        // Dueño (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-00', rango: 'Dueño' },
+        'ID_POR_CONFIGURAR': { placa: 'A-01', rango: 'Dueño' },
+        // A-02 sin ID
+        
+        // Co dueño (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-03', rango: 'Co dueño' },
+        'ID_POR_CONFIGURAR': { placa: 'A-04', rango: 'Co dueño' },
+        // A-05 sin ID
+        
+        // Directiva General (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-07', rango: 'Directiva General' },
+        'ID_POR_CONFIGURAR': { placa: 'A-08', rango: 'Directiva General' },
+        'ID_POR_CONFIGURAR': { placa: 'A-09', rango: 'Directiva General' },
+        // A-06, A-10, A-11 sin ID
+        
+        // Junta Directiva (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-12', rango: 'Junta Directiva' },
+        'ID_POR_CONFIGURAR': { placa: 'A-13', rango: 'Junta Directiva' },
+        // A-14, A-15, A-16, A-17 sin ID
+        
+        // Jefe Recursos Humanos (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-18', rango: 'Jefe Recursos Humanos' },
+        // A-19 sin ID
+        
+        // Personal Recursos Humanos (ID_POR_CONFIGURAR)
+        // A-20, A-21, A-22, A-23 sin ID
+        
+        // Comité Comunitario (ID_POR_CONFIGURAR)
+        // A-24, A-25, A-26, A-27 sin ID
+        
+        // Jefe Personal (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-28', rango: 'Jefe Personal' },
+        'ID_POR_CONFIGURAR': { placa: 'A-29', rango: 'Jefe Personal' },
+        // A-30, A-31 sin ID
+        
+        // Administrador (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-32', rango: 'Administrador' },
+        'ID_POR_CONFIGURAR': { placa: 'A-33', rango: 'Administrador' },
+        // A-34, A-35 sin ID
+        
+        // Soporte (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-36', rango: 'Soporte' },
+        // Nota: ID_POR_CONFIGURAR ya tiene A-32, no se duplica
+        'ID_POR_CONFIGURAR': { placa: 'A-38', rango: 'Soporte' },
+        'ID_POR_CONFIGURAR': { placa: 'A-39', rango: 'Soporte' },
+        // A-40, A-41, A-42, A-43 sin ID
+        
+        // Soporte en Pruebas (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-44', rango: 'Soporte en Pruebas' },
+        'ID_POR_CONFIGURAR': { placa: 'A-45', rango: 'Soporte en Pruebas' },
+        // A-46, A-47, A-48, A-49, A-50 sin ID
+        
+        // Soporte en Pruebas (ID_POR_CONFIGURAR)
+        'ID_POR_CONFIGURAR': { placa: 'A-51', rango: 'Soporte en Pruebas' },
+        'ID_POR_CONFIGURAR': { placa: 'A-52', rango: 'Soporte en Pruebas' },
+        'ID_POR_CONFIGURAR': { placa: 'A-53', rango: 'Soporte en Pruebas' }
+        // A-54 a A-60 sin ID
+      };
+
+      // Objeto final para infostaff.js
+      const infostaff = {};
+
+      // Contadores
+      let totalMiembros = 0;
+      let miembrosConInfo = 0;
+      let miembrosActualizados = 0;
+
+      // Procesar cada miembro del servidor
+      const guild = interaction.guild;
+      const members = await guild.members.fetch();
+
+      for (const [discordId, data] of Object.entries(staffData)) {
+        totalMiembros++;
+        
+        try {
+          const member = members.get(discordId);
+          
+          if (member) {
+            miembrosConInfo++;
+            
+            // Obtener fecha de ingreso al servidor
+            const fechaIngreso = member.joinedAt ? member.joinedAt.toISOString().split('T')[0] : 'Desconocida';
+            
+            // Obtener roles principales del usuario (excluyendo @everyone)
+            const roles = member.roles.cache
+              .filter(role => role.id !== guild.id)
+              .sort((a, b) => b.position - a.position)
+              .map(role => role.name)
+              .slice(0, 5); // Solo los 5 roles principales
+            
+            // Crear entrada en infostaff
+            infostaff[discordId] = {
+              placa: data.placa,
+              rango: data.rango,
+              nombre: member.user.globalName || member.user.username,
+              discordUsername: member.user.tag,
+              fechaIngreso: fechaIngreso,
+              estado: 'Activo',
+              avatar: member.user.avatar,
+              roles: roles,
+              telefono: '',
+              correo: '',
+              ultimaActualizacion: new Date().toISOString()
+            };
+            
+            miembrosActualizados++;
+          } else {
+            // Miembro no encontrado en el servidor, pero guardamos datos básicos
+            infostaff[discordId] = {
+              placa: data.placa,
+              rango: data.rango,
+              nombre: 'No encontrado en el servidor',
+              discordUsername: 'Usuario desconocido',
+              fechaIngreso: 'No disponible',
+              estado: 'Inactivo',
+              avatar: null,
+              roles: [],
+              telefono: '',
+              correo: '',
+              ultimaActualizacion: new Date().toISOString()
+            };
+          }
+        } catch (error) {
+          console.error(`Error procesando miembro ${discordId}:`, error);
+          // Guardar datos mínimos en caso de error
+          infostaff[discordId] = {
+            placa: data.placa,
+            rango: data.rango,
+            nombre: 'Error al procesar',
+            discordUsername: 'Error',
+            fechaIngreso: 'Error',
+            estado: 'Error',
+            avatar: null,
+            roles: [],
+            telefono: '',
+            correo: '',
+            ultimaActualizacion: new Date().toISOString()
+          };
+        }
+      }
+
+      // Agregar miembros sin Discord ID (placas vacías)
+      const placasSinID = [
+        { placa: 'A-02', rango: 'Dueño' },
+        { placa: 'A-05', rango: 'Co dueño' },
+        { placa: 'A-06', rango: 'Directiva General' },
+        { placa: 'A-10', rango: 'Directiva General' },
+        { placa: 'A-11', rango: 'Directiva General' },
+        { placa: 'A-14', rango: 'Junta Directiva' },
+        { placa: 'A-15', rango: 'Junta Directiva' },
+        { placa: 'A-16', rango: 'Junta Directiva' },
+        { placa: 'A-17', rango: 'Junta Directiva' },
+        { placa: 'A-19', rango: 'Jefe Recursos Humanos' },
+        { placa: 'A-20', rango: 'Personal Recursos Humanos' },
+        { placa: 'A-21', rango: 'Personal Recursos Humanos' },
+        { placa: 'A-22', rango: 'Personal Recursos Humanos' },
+        { placa: 'A-23', rango: 'Personal Recursos Humanos' },
+        { placa: 'A-24', rango: 'Comité Comunitario' },
+        { placa: 'A-25', rango: 'Comité Comunitario' },
+        { placa: 'A-26', rango: 'Comité Comunitario' },
+        { placa: 'A-27', rango: 'Comité Comunitario' },
+        { placa: 'A-30', rango: 'Jefe Personal' },
+        { placa: 'A-31', rango: 'Jefe Personal' },
+        { placa: 'A-34', rango: 'Administrador' },
+        { placa: 'A-35', rango: 'Administrador' },
+        { placa: 'A-37', rango: 'Soporte' }, // Nota: A-37 tiene mismo ID que A-32
+        { placa: 'A-40', rango: 'Soporte' },
+        { placa: 'A-41', rango: 'Soporte' },
+        { placa: 'A-42', rango: 'Soporte' },
+        { placa: 'A-43', rango: 'Soporte' },
+        { placa: 'A-46', rango: 'Soporte en Pruebas' },
+        { placa: 'A-47', rango: 'Soporte en Pruebas' },
+        { placa: 'A-48', rango: 'Soporte en Pruebas' },
+        { placa: 'A-49', rango: 'Soporte en Pruebas' },
+        { placa: 'A-50', rango: 'Soporte en Pruebas' },
+        { placa: 'A-54', rango: 'Soporte en Pruebas' },
+        { placa: 'A-55', rango: 'Soporte en Pruebas' },
+        { placa: 'A-56', rango: 'Soporte en Pruebas' },
+        { placa: 'A-57', rango: 'Soporte en Pruebas' },
+        { placa: 'A-58', rango: 'Soporte en Pruebas' },
+        { placa: 'A-59', rango: 'Soporte en Pruebas' },
+        { placa: 'A-60', rango: 'Soporte en Pruebas' }
+      ];
+
+      // Crear IDs temporales para placas sin Discord ID
+      let tempIdCounter = 1000;
+      for (const data of placasSinID) {
+        const tempId = `temp_${tempIdCounter}`;
+        tempIdCounter++;
+        
+        infostaff[tempId] = {
+          placa: data.placa,
+          rango: data.rango,
+          nombre: 'Pendiente de asignación',
+          discordUsername: 'Sin usuario asignado',
+          fechaIngreso: 'Pendiente',
+          estado: 'Vacante',
+          avatar: null,
+          roles: [],
+          telefono: '',
+          correo: '',
+          ultimaActualizacion: new Date().toISOString(),
+          nota: 'Esta placa no tiene Discord ID asignado en la lista'
+        };
+        
+        totalMiembros++;
+      }
+
+      // Escribir el archivo infostaff.js
+      const fileContent = `module.exports = ${JSON.stringify(infostaff, null, 2)};`;
+      fs.writeFileSync(INFOSTAFF_PATH, fileContent, 'utf8');
+
+      // Crear embed de resultados
+      const { EmbedBuilder } = require('discord.js');
+      const embed = new EmbedBuilder()
+        .setColor(0x00FF00)
+        .setTitle('✅ Base de datos actualizada')
+        .setDescription('Se ha actualizado la información del staff en `infostaff.js`')
+        .addFields(
+          {
+            name: '📊 Estadísticas',
+            value: `• **Total de miembros procesados:** ${totalMiembros}\n• **Miembros con Discord ID:** ${miembrosConInfo}\n• **Miembros actualizados:** ${miembrosActualizados}\n• **Placas sin ID asignado:** ${placasSinID.length}`,
+            inline: false
+          },
+          {
+            name: '📁 Archivo',
+            value: `\`${INFOSTAFF_PATH}\``,
+            inline: false
+          },
+          {
+            name: '🔄 Proceso',
+            value: 'Se han actualizado los siguientes datos:\n• Placa asignada\n• Rango jerárquico\n• Nombre de Discord\n• Fecha de ingreso al servidor\n• Estado actual\n• Roles principales',
+            inline: false
+          }
+        )
+        .setTimestamp()
+        .setFooter({ text: 'Sistema de gestión de staff - EscazuRP' });
+
+      await interaction.editReply({
+        embeds: [embed],
+        ephemeral: true
+      });
+
+      console.log(`✅ Base de datos de staff actualizada por ${interaction.user.tag}`);
+      console.log(`📊 Total registros: ${Object.keys(infostaff).length}`);
+
+    } catch (error) {
+      console.error('❌ Error actualizando la base de datos:', error);
+      await interaction.editReply({
+        content: `❌ Error al actualizar la base de datos: \`${error.message}\``,
+        ephemeral: true
+      });
+    }
+  }
+};

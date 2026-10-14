@@ -1,0 +1,444 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m006_b002_arrestos.js
+
+const { 
+    SlashCommandBuilder, 
+    StringSelectMenuBuilder, 
+    ActionRowBuilder,
+    MessageFlags,
+    TextDisplayBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    ContainerBuilder
+} = require('discord.js');
+const fs = require('fs').promises;
+const path = require('path');
+
+// Configuración de rutas
+const CEDULAS_PATH = path.resolve(__dirname, '../data/cedulas.json');
+const ARRESTOS_PATH = path.resolve(__dirname, '../data/arrestos.json');
+
+// ROLES PERMITIDOS PARA /ARRESTAR
+const ROLES_PERMITIDOS = ['ID_POR_CONFIGURAR', 'ID_POR_CONFIGURAR'];
+
+// ARTÍCULOS DE DELITOS CON ARRESTO
+const DELITOS_ARRESTOS = [
+    { numero: 1, descripcion: 'Homicidio' },
+    { numero: 2, descripcion: 'Intento de homicidio' },
+    { numero: 3, descripcion: 'Secuestro' },
+    { numero: 4, descripcion: 'Robo a mano armada' },
+    { numero: 5, descripcion: 'Asalto agravado' },
+    { numero: 6, descripcion: 'Disparos en vía pública' },
+    { numero: 7, descripcion: 'Portación ilegal de arma de fuego' },
+    { numero: 8, descripcion: 'Uso de arma en comisión de delito' },
+    { numero: 9, descripcion: 'Terrorismo o amenaza masiva' },
+    { numero: 10, descripcion: 'Tráfico de armas' },
+    { numero: 11, descripcion: 'Agresión física' },
+    { numero: 12, descripcion: 'Peña en vía pública' },
+    { numero: 13, descripcion: 'Violencia doméstica' },
+    { numero: 14, descripcion: 'Amenazas graves' },
+    { numero: 15, descripcion: 'Resistencia al arresto' },
+    { numero: 16, descripcion: 'Conducción temeraria con riesgo a terceros' },
+    { numero: 17, descripcion: 'Carrera ilegal con daños' },
+    { numero: 18, descripcion: 'Atropello y fuga' },
+    { numero: 19, descripcion: 'Conducir bajo efectos de alcohol o drogas (DUI)' },
+    { numero: 20, descripcion: 'Uso del vehículo como arma' },
+    { numero: 21, descripcion: 'Allanamiento de morada' },
+    { numero: 22, descripcion: 'Robo simple' },
+    { numero: 23, descripcion: 'Daños graves a propiedad' },
+    { numero: 24, descripcion: 'Incendio provocado' },
+    { numero: 25, descripcion: 'Ocupación ilegal de propiedad' },
+    { numero: 26, descripcion: 'Obstrucción grave a la justicia' },
+    { numero: 27, descripcion: 'Suplantación de autoridad' },
+    { numero: 28, descripcion: 'Fuga policial' },
+    { numero: 29, descripcion: 'Intento de fuga de custodia' },
+    { numero: 30, descripcion: 'Soborno a funcionario público' },
+    { numero: 31, descripcion: 'Robo de vehículo' },
+    { numero: 32, descripcion: 'Posesión de vehículo robado' },
+    { numero: 33, descripcion: 'Intento de robo' },
+    { numero: 34, descripcion: 'Extorsión' },
+    { numero: 35, descripcion: 'Amenaza con arma' },
+    { numero: 36, descripcion: 'Posesión ilegal de arma blanca' },
+    { numero: 37, descripcion: 'Posesión de arma modificada' },
+    { numero: 38, descripcion: 'Portación de arma sin permiso' }
+];
+
+// ==================== FUNCIONES AUXILIARES ====================
+
+async function cargarCedulas() {
+    try {
+        const data = await fs.readFile(CEDULAS_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error cargando cédulas:', error);
+        return {};
+    }
+}
+
+async function cargarArrestos() {
+    try {
+        // Verificar si el archivo existe
+        try {
+            await fs.access(ARRESTOS_PATH);
+        } catch {
+            // Si no existe, crearlo con un objeto vacío
+            console.log(`[ARRESTOS] Archivo arrestos.json no existe, creando...`);
+            await fs.writeFile(ARRESTOS_PATH, JSON.stringify({}, null, 2));
+            return {};
+        }
+        
+        const data = await fs.readFile(ARRESTOS_PATH, 'utf8');
+        
+        // Verificar si el archivo está vacío
+        if (!data.trim()) {
+            console.log(`[ARRESTOS] Archivo arrestos.json está vacío`);
+            return {};
+        }
+        
+        const parsed = JSON.parse(data);
+        console.log(`[ARRESTOS] Arrestos cargados: ${Object.keys(parsed).length}`);
+        return parsed;
+    } catch (error) {
+        console.error('Error cargando arrestos:', error);
+        return {};
+    }
+}
+
+async function guardarArrestos(arrestos) {
+    try {
+        await fs.writeFile(ARRESTOS_PATH, JSON.stringify(arrestos, null, 2));
+        console.log(`[ARRESTOS] Arrestos guardados exitosamente: ${Object.keys(arrestos).length} arrestos`);
+    } catch (error) {
+        console.error('Error guardando arrestos:', error);
+    }
+}
+
+function generarIdArresto() {
+    return `ARR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function formatoError(mensajeEspecifico) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    
+    return new ContainerBuilder()
+        .addTextDisplayComponents(
+            new TextDisplayBuilder()
+                .setContent('✅ **Error general**')
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder()
+                .setDivider(true)
+                .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder()
+                .setContent(`> ${mensajeEspecifico}`)
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder()
+                .setDivider(true)
+                .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder()
+                .setContent(`© Todos los derechos reservados, Old Capital Roleplay  | ER:LC - <t:${timestamp}:R>`)
+        );
+}
+
+function obtenerTimestamp() {
+    return Math.floor(Date.now() / 1000);
+}
+
+// ==================== COMANDO /ARRESTAR ====================
+
+const comandoArrestar = {
+    data: new SlashCommandBuilder()
+        .setName('arrestar')
+        .setDescription('Registra un arresto a un usuario')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Usuario a arrestar')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('articulos')
+                .setDescription('Artículos infringidos')
+                .setRequired(true)
+                .setAutocomplete(true))
+        .addStringOption(option =>
+            option.setName('tiempo')
+                .setDescription('Tiempo de cárcel (ej: 30 minutos, 1 hora, 2 horas)')
+                .setRequired(true)),
+    
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused().toLowerCase();
+        
+        const choices = DELITOS_ARRESTOS.map(delito => ({
+            name: `Art.${delito.numero} - ${delito.descripcion}`,
+            value: `Art.${delito.numero} - ${delito.descripcion}`
+        }));
+        
+        const filtered = choices.filter(choice =>
+            choice.name.toLowerCase().includes(focusedValue)
+        );
+        
+        await interaction.respond(filtered.slice(0, 25));
+    },
+    
+    async execute(interaction) {
+        // Verificar roles
+        const tieneRol = ROLES_PERMITIDOS.some(rol => 
+            interaction.member.roles.cache.has(rol)
+        );
+        
+        if (!tieneRol) {
+            await interaction.reply({
+                components: [formatoError('No puedes usar este comando. Este comando es de uso único del staff, si crees que se trata de un error contacta con administración.')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        const usuario = interaction.options.getUser('usuario');
+        const articulos = interaction.options.getString('articulos');
+        const tiempo = interaction.options.getString('tiempo');
+        
+        // Cargar cédulas
+        const cedulas = await cargarCedulas();
+        const cedulaUsuario = cedulas[usuario.id];
+        const cedulaOficial = cedulas[interaction.user.id];
+        
+        // Verificar que ambos tengan cédula
+        if (!cedulaUsuario || !cedulaOficial) {
+            await interaction.reply({
+                components: [formatoError('El usuario seleccionado no cuenta con cédula/No cuentas con cédula')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        // Generar ID de arresto
+        const idArresto = generarIdArresto();
+        const fechaArresto = new Date().toISOString();
+        
+        // Crear objeto de arresto
+        const arresto = {
+            id: idArresto,
+            usuarioId: usuario.id,
+            oficialId: interaction.user.id,
+            articulos: articulos,
+            tiempo: tiempo,
+            fechaArresto: fechaArresto,
+            estado: 'activo',
+            usuarioNombre: `${cedulaUsuario.nombre} ${cedulaUsuario.apellido1}${cedulaUsuario.apellido2 ? ' ' + cedulaUsuario.apellido2 : ''}${cedulaUsuario.apellido3 ? ' ' + cedulaUsuario.apellido3 : ''}`,
+            oficialNombre: `${cedulaOficial.nombre} ${cedulaOficial.apellido1}${cedulaOficial.apellido2 ? ' ' + cedulaOficial.apellido2 : ''}${cedulaOficial.apellido3 ? ' ' + cedulaOficial.apellido3 : ''}`
+        };
+        
+        // Guardar arresto
+        const arrestos = await cargarArrestos();
+        arrestos[idArresto] = arresto;
+        await guardarArrestos(arrestos);
+        
+        // Formatear nombres para el mensaje
+        const nombreUsuario = `${cedulaUsuario.apellido1}${cedulaUsuario.apellido2 ? ' ' + cedulaUsuario.apellido2 : ''}${cedulaUsuario.apellido3 ? ' ' + cedulaUsuario.apellido3 : ''} ${cedulaUsuario.nombre}`;
+        const nombreOficial = `${cedulaOficial.apellido1}${cedulaOficial.apellido2 ? ' ' + cedulaOficial.apellido2 : ''}${cedulaOficial.apellido3 ? ' ' + cedulaOficial.apellido3 : ''} ${cedulaOficial.nombre}`;
+        
+        // Crear mensaje de confirmación (SIN EPHEMERAL)
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('## ✅ Nuevo Arresto Registrado')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`Estimado/a ${nombreUsuario} (<@${usuario.id}>) de parte de Chicago Police Department (CPD) se le informa que se ha registrado un arresto hacia su persona.`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`\`:police_officer:\` Oficial Encargado: ${nombreOficial} (<@${interaction.user.id}>)`),
+                new TextDisplayBuilder()
+                    .setContent(`\`:pushpin:\` Articulos: ${articulos}`),
+                new TextDisplayBuilder()
+                    .setContent(`\`:pencil:\` Tiempo de Carcel: ${tiempo}`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('✅ Tiene derecho a guardar silencio, todo lo que diga puede y será usado en su contra.')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+            );
+        
+        await interaction.reply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2
+        });
+    }
+};
+
+// ==================== COMANDO /VER-ARRESTOS ====================
+
+const comandoVerArrestos = {
+    data: new SlashCommandBuilder()
+        .setName('ver-arrestos')
+        .setDescription('Muestra los arrestos registrados')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Filtrar por usuario (opcional)')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('id_arresto')
+                .setDescription('Buscar por ID de arresto (opcional)')
+                .setRequired(false)
+                .setAutocomplete(true)),
+    
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused().toLowerCase();
+        const arrestos = await cargarArrestos();
+        const cedulas = await cargarCedulas();
+        
+        const choices = Object.values(arrestos).map(arresto => {
+            const cedulaUsuario = cedulas[arresto.usuarioId] || {};
+            const nombreUsuario = cedulaUsuario.nombre || 'Desconocido';
+            const apellidoUsuario = cedulaUsuario.apellido1 || '';
+            
+            return {
+                name: `Arresto - ${nombreUsuario} ${apellidoUsuario} (${arresto.id.substring(0, 10)}...)`,
+                value: arresto.id
+            };
+        });
+        
+        const filtered = choices.filter(choice =>
+            choice.name.toLowerCase().includes(focusedValue) ||
+            choice.value.toLowerCase().includes(focusedValue)
+        );
+        
+        await interaction.respond(filtered.slice(0, 25));
+    },
+    
+    async execute(interaction) {
+        const arrestos = await cargarArrestos();
+        const cedulas = await cargarCedulas();
+        const usuarioFiltro = interaction.options.getUser('usuario');
+        const idArrestoFiltro = interaction.options.getString('id_arresto');
+        
+        // Determinar el usuario objetivo
+        let usuarioId = interaction.user.id;
+        if (usuarioFiltro) {
+            usuarioId = usuarioFiltro.id;
+        }
+        
+        let arrestosFiltrados = Object.values(arrestos);
+        
+        // Filtrar por usuario si no se especificó un ID
+        if (!idArrestoFiltro) {
+            arrestosFiltrados = arrestosFiltrados.filter(a => a.usuarioId === usuarioId);
+        }
+        
+        // Filtrar por ID de arresto si se especificó
+        if (idArrestoFiltro) {
+            arrestosFiltrados = arrestosFiltrados.filter(a => a.id === idArrestoFiltro);
+        }
+        
+        if (arrestosFiltrados.length === 0) {
+            const cedulaUsuario = cedulas[usuarioId] || {};
+            const nombreUsuario = cedulaUsuario.nombre ? `${cedulaUsuario.nombre} ${cedulaUsuario.apellido1}` : 'este usuario';
+            
+            await interaction.reply({
+                components: [formatoError(`No se encontraron arrestos para ${nombreUsuario}`)],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        // Formatear lista de arrestos
+        let textoArrestos = '';
+        arrestosFiltrados.forEach((arresto, index) => {
+            const cedulaUsuario = cedulas[arresto.usuarioId] || {};
+            const cedulaOficial = cedulas[arresto.oficialId] || {};
+            
+            textoArrestos += `**Arresto #${index + 1}**\n`;
+            textoArrestos += `ID: \`${arresto.id}\`\n`;
+            textoArrestos += `Usuario: ${cedulaUsuario.nombre || 'Desconocido'} ${cedulaUsuario.apellido1 || ''}\n`;
+            textoArrestos += `Oficial: ${cedulaOficial.nombre || 'Desconocido'} ${cedulaOficial.apellido1 || ''}\n`;
+            textoArrestos += `Artículos: ${arresto.articulos}\n`;
+            textoArrestos += `Tiempo: ${arresto.tiempo}\n`;
+            textoArrestos += `Estado: ${arresto.estado ? arresto.estado.toUpperCase() : 'SIN ESTADO'}\n`;
+            
+            if (arresto.fechaArresto) {
+                const fecha = new Date(arresto.fechaArresto);
+                textoArrestos += `Fecha: <t:${Math.floor(fecha.getTime() / 1000)}:R>\n`;
+            }
+            
+            textoArrestos += `---\n\n`;
+        });
+        
+        // Determinar título
+        let titulo = 'Tus Arrestos';
+        if (usuarioFiltro) {
+            titulo = `Arrestos de ${usuarioFiltro.username}`;
+        }
+        if (idArrestoFiltro) {
+            titulo = `Arresto Específico`;
+        }
+        
+        const timestamp = obtenerTimestamp();
+        
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`✅ **${titulo}**`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(textoArrestos)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`© Todos los derechos reservados, Old Capital Roleplay  | ER:LC - <t:${timestamp}:R>`)
+            );
+        
+        await interaction.reply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2,
+            ephemeral: false
+        });
+    }
+};
+
+// ==================== EXPORTACIÓN ====================
+
+module.exports = [comandoArrestar, comandoVerArrestos];

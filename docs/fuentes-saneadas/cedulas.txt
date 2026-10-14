@@ -1,0 +1,967 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m010_b002_cedulas.js
+
+// commands/cedulas.js
+const {
+  SlashCommandBuilder,
+  AttachmentBuilder,
+  MessageFlags,
+  // Components V2
+  TextDisplayBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
+  ContainerBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder
+} = require('discord.js');
+
+const {
+  loadJson,
+  saveJson,
+  calculateAge,
+  generateCedulaNumber,
+  fetchRobloxUser,
+} = require('../utils');
+
+const path = require('path');
+const { createCanvas, loadImage } = require('canvas');
+const sharp = require('sharp');
+
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const CEDULAS_FILE = 'cedulas.json';
+const MOD_ROLE_ID = 'ID_POR_CONFIGURAR';
+const LOG_CHANNEL_ID = 'ID_POR_CONFIGURAR';
+
+// Provincias de Costa Rica
+const PROVINCIAS = [
+  { name: '1 - San José', value: '1' },
+  { name: '2 - Alajuela', value: '2' },
+  { name: '3 - Cartago', value: '3' },
+  { name: '4 - Heredia', value: '4' },
+  { name: '5 - Guanacaste', value: '5' },
+  { name: '6 - Puntarenas', value: '6' },
+  { name: '7 - Limón', value: '7' },
+];
+
+// Algunas nacionalidades comunes
+const NACIONALIDADES = [
+  { name: 'Costarricense', value: 'Costarricense' },
+  { name: 'Nicaragüense', value: 'Nicaragüense' },
+  { name: 'Panameño/a', value: 'Panameño/a' },
+  { name: 'Salvadoreño/a', value: 'Salvadoreño/a' },
+  { name: 'Hondureño/a', value: 'Hondureño/a' },
+  { name: 'Guatemalteco/a', value: 'Guatemalteco/a' },
+  { name: 'Mexicano/a', value: 'Mexicano/a' },
+  { name: 'Colombiano/a', value: 'Colombiano/a' },
+  { name: 'Venezolano/a', value: 'Venezolano/a' },
+  { name: 'Dominicano/a', value: 'Dominicano/a' },
+  { name: 'Estadounidense', value: 'Estadounidense' },
+  { name: 'Canadiense', value: 'Canadiense' },
+  { name: 'Español/a', value: 'Español/a' },
+  { name: 'Argentino/a', value: 'Argentino/a' },
+  { name: 'Chileno/a', value: 'Chileno/a' },
+  { name: 'Peruano/a', value: 'Peruano/a' },
+  { name: 'Brasileño/a', value: 'Brasileño/a' },
+  { name: 'Ecuatoriano/a', value: 'Ecuatoriano/a' },
+];
+
+// ========= FUNCIONES AUXILIARES =========
+
+function getCostaRicaTimestamp() {
+  const ahora = new Date();
+  return ahora.toLocaleString('es-CR', {
+    timeZone: 'America/Costa_Rica',
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function parseFechaLatam(fechaStr) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fechaStr);
+  if (!match) return null;
+
+  const dia = parseInt(match[1], 10);
+  const mes = parseInt(match[2], 10);
+  const anio = parseInt(match[3], 10);
+
+  if (mes < 1 || mes > 12 || dia < 1 || dia > 31) return null;
+
+  const date = new Date(anio, mes - 1, dia);
+
+  if (
+    date.getFullYear() !== anio ||
+    date.getMonth() !== mes - 1 ||
+    date.getDate() !== dia
+  ) {
+    return null;
+  }
+
+  const iso =
+    anio.toString().padStart(4, '0') +
+    '-' +
+    mes.toString().padStart(2, '0') +
+    '-' +
+    dia.toString().padStart(2, '0');
+
+  return { iso, display: fechaStr, anio };
+}
+
+function capitalizarPalabras(str) {
+  return str
+    .split(' ')
+    .filter(Boolean)
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join(' ');
+}
+
+// ========= FORMATOS CONTAINER V2 =========
+
+function buildErrorContainer(errorGeneral, errorEspecifico) {
+  const timestamp = getCostaRicaTimestamp();
+  
+  const container = new ContainerBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`✅  **${errorGeneral}**\n> ${errorEspecifico}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${timestamp}`)
+    );
+
+  return container;
+}
+
+function buildRegistroContainer(datosUsuario, attachmentName) {
+  const timestamp = getCostaRicaTimestamp();
+  let provinciaDisplay = datosUsuario.provinciaNombre;
+  if (datosUsuario.nacionalidad !== 'Costarricense') {
+    provinciaDisplay = 'Extranjero';
+  }
+
+  const container = new ContainerBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## 🪪 Cédula Registrada Correctamente')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`🆔 Numero de Cedula: ${datosUsuario.numeroCedula}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`**👤 Nombre:** ${datosUsuario.nombre} ${datosUsuario.apellidos}\n**🎂 Nacimiento:** ${datosUsuario.fechaNacimiento} (${datosUsuario.edad} años)\n**🌎 Nacionalidad:** ${datosUsuario.nacionalidad}`)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## Cedula Registrada Exitosamente.')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('**INFORMACIÓN PERSONAL**\n> **Nombre:** ' + datosUsuario.nombre + ' ' + datosUsuario.apellidos + '\n> **F.Nacimiento:** ' + datosUsuario.fechaNacimiento + ' (' + datosUsuario.edad + ' años)\n> **Genero:** ' + datosUsuario.sexo + '\n> **Nacionalidad:** ' + datosUsuario.nacionalidad + ' (' + provinciaDisplay + ')\n> **Estatura:** ' + datosUsuario.estatura)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## INFORMACION PERSONAL')
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('- ✅ **Usuario Discord:** <@' + datosUsuario.discordId + '>\n- ✅ **Usuario Roblox:** ' + datosUsuario.roblox.username)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addMediaGalleryComponents(
+      new MediaGalleryBuilder()
+        .addItems(
+          new MediaGalleryItemBuilder()
+            .setURL(`attachment://${attachmentName}`)
+            .setDescription(`Cédula de ${datosUsuario.nombre} ${datosUsuario.apellidos}`)
+        )
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${timestamp}`)
+    );
+
+  return container;
+}
+
+function buildVerCedulaContainer(datosUsuario, attachmentName) {
+  const timestamp = getCostaRicaTimestamp();
+  let provinciaDisplay = datosUsuario.provinciaNombre;
+  if (datosUsuario.nacionalidad !== 'Costarricense') {
+    provinciaDisplay = 'Extranjero';
+  }
+
+  const container = new ContainerBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`## 🪪 Cédula de ${datosUsuario.nombre} ${datosUsuario.apellidos}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`🆔 Numero de Cedula: ${datosUsuario.numeroCedula}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`**👤 Nombre:** ${datosUsuario.nombre} ${datosUsuario.apellidos}\n**🎂 Nacimiento:** ${datosUsuario.fechaNacimiento} (${datosUsuario.edad} años)\n**🌎 Nacionalidad:** ${datosUsuario.nacionalidad}`)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## Información de la Cédula')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('**INFORMACIÓN PERSONAL**\n> **Nombre:** ' + datosUsuario.nombre + ' ' + datosUsuario.apellidos + '\n> **F.Nacimiento:** ' + datosUsuario.fechaNacimiento + ' (' + datosUsuario.edad + ' años)\n> **Genero:** ' + datosUsuario.sexo + '\n> **Nacionalidad:** ' + datosUsuario.nacionalidad + ' (' + provinciaDisplay + ')\n> **Estatura:** ' + datosUsuario.estatura)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## INFORMACION PERSONAL')
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('- ✅ **Usuario Discord:** <@' + datosUsuario.discordId + '>\n- ✅ **Usuario Roblox:** ' + datosUsuario.roblox.username)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addMediaGalleryComponents(
+      new MediaGalleryBuilder()
+        .addItems(
+          new MediaGalleryItemBuilder()
+            .setURL(`attachment://${attachmentName}`)
+            .setDescription(`Cédula de ${datosUsuario.nombre} ${datosUsuario.apellidos}`)
+        )
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${timestamp}`)
+    );
+
+  return container;
+}
+
+function buildInfoCedulaContainer(datosUsuario) {
+  const timestamp = getCostaRicaTimestamp();
+  let provinciaDisplay = datosUsuario.provinciaNombre;
+  if (datosUsuario.nacionalidad !== 'Costarricense') {
+    provinciaDisplay = 'Extranjero';
+  }
+
+  const container = new ContainerBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## 🪪 Información de Cédula')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`🆔 Numero de Cedula: ${datosUsuario.numeroCedula}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`**👤 Nombre:** ${datosUsuario.nombre} ${datosUsuario.apellidos}\n**🎂 Nacimiento:** ${datosUsuario.fechaNacimiento} (${datosUsuario.edad} años)\n**🌎 Nacionalidad:** ${datosUsuario.nacionalidad}`)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## Información Detallada')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('**INFORMACIÓN PERSONAL**\n> **Nombre:** ' + datosUsuario.nombre + ' ' + datosUsuario.apellidos + '\n> **F.Nacimiento:** ' + datosUsuario.fechaNacimiento + ' (' + datosUsuario.edad + ' años)\n> **Genero:** ' + datosUsuario.sexo + '\n> **Nacionalidad:** ' + datosUsuario.nacionalidad + ' (' + provinciaDisplay + ')\n> **Estatura:** ' + datosUsuario.estatura)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## INFORMACION PERSONAL')
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('- ✅ **Usuario Discord:** <@' + datosUsuario.discordId + '>\n- ✅ **Usuario Roblox:** ' + datosUsuario.roblox.username)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${timestamp}`)
+    );
+
+  return container;
+}
+
+function buildEliminarCedulaContainer(datosUsuario, ejecutadoPor) {
+  const timestamp = getCostaRicaTimestamp();
+  let provinciaDisplay = datosUsuario.provinciaNombre;
+  if (datosUsuario.nacionalidad !== 'Costarricense') {
+    provinciaDisplay = 'Extranjero';
+  }
+
+  const container = new ContainerBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## ✅ Cédula Eliminada Correctamente')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`🆔 Numero de Cedula Eliminada: ${datosUsuario.numeroCedula}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`**👤 Nombre:** ${datosUsuario.nombre} ${datosUsuario.apellidos}\n**🎂 Nacimiento:** ${datosUsuario.fechaNacimiento} (${datosUsuario.edad} años)\n**🌎 Nacionalidad:** ${datosUsuario.nacionalidad}`)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## Cédula Eliminada Exitosamente.')
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('**INFORMACIÓN ELIMINADA**\n> **Nombre:** ' + datosUsuario.nombre + ' ' + datosUsuario.apellidos + '\n> **F.Nacimiento:** ' + datosUsuario.fechaNacimiento + ' (' + datosUsuario.edad + ' años)\n> **Genero:** ' + datosUsuario.sexo + '\n> **Nacionalidad:** ' + datosUsuario.nacionalidad + ' (' + provinciaDisplay + ')\n> **Estatura:** ' + datosUsuario.estatura)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('## INFORMACION PERSONAL')
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent('- ✅ **Usuario Discord:** <@' + datosUsuario.discordId + '>\n- ✅ **Usuario Roblox:** ' + datosUsuario.roblox.username)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`**Eliminada por:** ${ejecutadoPor}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder()
+        .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${timestamp}`)
+    );
+
+  return container;
+}
+
+// ========= GENERADOR DE IMÁGENES DE CÉDULA =========
+
+class GeneradorCedula {
+  constructor() {
+    this.coordenadas = {
+      nombre: { x: 553, y: 205, fontSize: 20, fontFamily: 'Arial' },
+      apellido1: { x: 545, y: 248, fontSize: 20, fontFamily: 'Arial' },
+      apellido2: { x: 545, y: 291, fontSize: 20, fontFamily: 'Arial' },
+      fechaNacimiento: { x: 546, y: 333, fontSize: 18, fontFamily: 'Arial' },
+      nacionalidad: { x: 551, y: 404, fontSize: 18, fontFamily: 'Arial' },
+      genero: { x: 546, y: 448, fontSize: 18, fontFamily: 'Arial' },
+      numeroCedula: { x: 587, y: 144, fontSize: 22, fontFamily: 'Arial', bold: true },
+      usuarioRoblox: { x: 105, y: 447, fontSize: 16, fontFamily: 'Arial' },
+      avatar: {
+        x: 65,
+        y: 197,
+        width: 239,
+        height: 228
+      }
+    };
+  }
+
+  async generarImagen(datosUsuario) {
+    try {
+      const templatePath = path.join(__dirname, '..', '..', 'web', 'public', 'images', 'cedula.png');
+      const template = await loadImage(templatePath);
+      const canvas = createCanvas(template.width, template.height);
+      const ctx = canvas.getContext('2d');
+      
+      ctx.drawImage(template, 0, 0);
+      ctx.fillStyle = '#000000';
+      ctx.textBaseline = 'top';
+      
+      const apellidosArray = datosUsuario.apellidos.split(' ');
+      let primerApellido = '';
+      let segundoApellido = '';
+      
+      if (apellidosArray.length === 1) {
+        primerApellido = apellidosArray[0];
+        segundoApellido = '';
+      } else if (apellidosArray.length === 2) {
+        primerApellido = apellidosArray[0];
+        segundoApellido = apellidosArray[1];
+      } else {
+        primerApellido = apellidosArray[0];
+        segundoApellido = apellidosArray.slice(1).join(' ');
+      }
+      
+      const cedulaPos = this.coordenadas.numeroCedula;
+      ctx.font = `bold ${cedulaPos.fontSize}px "${cedulaPos.fontFamily}"`;
+      ctx.fillText(datosUsuario.numeroCedula, cedulaPos.x, cedulaPos.y);
+      
+      ctx.font = `${this.coordenadas.nombre.fontSize}px "${this.coordenadas.nombre.fontFamily}"`;
+      ctx.fillText(datosUsuario.nombre, this.coordenadas.nombre.x, this.coordenadas.nombre.y);
+      ctx.fillText(primerApellido, this.coordenadas.apellido1.x, this.coordenadas.apellido1.y);
+      
+      if (segundoApellido) {
+        ctx.fillText(segundoApellido, this.coordenadas.apellido2.x, this.coordenadas.apellido2.y);
+      }
+      
+      ctx.font = `${this.coordenadas.fechaNacimiento.fontSize}px "${this.coordenadas.fechaNacimiento.fontFamily}"`;
+      ctx.fillText(datosUsuario.fechaNacimiento, this.coordenadas.fechaNacimiento.x, this.coordenadas.fechaNacimiento.y);
+      ctx.fillText(datosUsuario.nacionalidad, this.coordenadas.nacionalidad.x, this.coordenadas.nacionalidad.y);
+      ctx.fillText(datosUsuario.sexo, this.coordenadas.genero.x, this.coordenadas.genero.y);
+      ctx.fillText(datosUsuario.roblox.username, this.coordenadas.usuarioRoblox.x, this.coordenadas.usuarioRoblox.y);
+      
+      if (datosUsuario.roblox?.avatarUrl) {
+        try {
+          const avatar = await loadImage(datosUsuario.roblox.avatarUrl);
+          const avatarCanvas = createCanvas(this.coordenadas.avatar.width, this.coordenadas.avatar.height);
+          const avatarCtx = avatarCanvas.getContext('2d');
+          
+          avatarCtx.drawImage(avatar, 0, 0, this.coordenadas.avatar.width, this.coordenadas.avatar.height);
+          ctx.drawImage(
+            avatarCanvas,
+            this.coordenadas.avatar.x,
+            this.coordenadas.avatar.y,
+            this.coordenadas.avatar.width,
+            this.coordenadas.avatar.height
+          );
+        } catch (error) {
+          console.log('⚠️ No se pudo cargar el avatar de Roblox:', error.message);
+        }
+      }
+      
+      const buffer = canvas.toBuffer('image/png');
+      const optimizedBuffer = await sharp(buffer)
+        .png({ quality: 90 })
+        .toBuffer();
+      
+      return optimizedBuffer;
+    } catch (error) {
+      console.error('❌ Error generando imagen de cédula:', error);
+      throw error;
+    }
+  }
+}
+
+const generadorCedula = new GeneradorCedula();
+
+// ========= /registrar-cedula =========
+
+const registrarCedula = {
+  data: new SlashCommandBuilder()
+    .setName('registrar-cedula')
+    .setDescription('Registra tu cédula IC en el servidor.')
+    .addStringOption(opt =>
+      opt.setName('nombre')
+        .setDescription('Nombre(s)')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt.setName('apellidos')
+        .setDescription('Apellidos (separados por espacio si son dos)')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt.setName('estatura')
+        .setDescription('Estatura en metros (ej: 1.75)')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt.setName('nacionalidad')
+        .setDescription('Nacionalidad')
+        .setRequired(true)
+        .addChoices(...NACIONALIDADES),
+    )
+    .addStringOption(opt =>
+      opt.setName('provincia')
+        .setDescription('Provincia de nacimiento')
+        .setRequired(true)
+        .addChoices(...PROVINCIAS),
+    )
+    .addStringOption(opt =>
+      opt.setName('fecha')
+        .setDescription('Fecha de nacimiento (DD/MM/AAAA)')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt.setName('sexo')
+        .setDescription('Sexo')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Hombre', value: 'Hombre' },
+          { name: 'Mujer', value: 'Mujer' },
+          { name: 'Otro', value: 'Otro' },
+        ),
+    )
+    .addStringOption(opt =>
+      opt.setName('roblox')
+        .setDescription('Tu usuario de Roblox')
+        .setRequired(true),
+    ),
+
+  async execute(interaction) {
+    await interaction.deferReply();
+
+    let nombre = interaction.options.getString('nombre').trim();
+    let apellidosInput = interaction.options.getString('apellidos').trim();
+    const estatura = interaction.options.getString('estatura').trim();
+    const nacionalidad = interaction.options.getString('nacionalidad');
+    const provinciaValue = interaction.options.getString('provincia');
+    const fechaInput = interaction.options.getString('fecha').trim();
+    const sexo = interaction.options.getString('sexo');
+    const robloxUsername = interaction.options.getString('roblox').trim();
+
+    nombre = capitalizarPalabras(nombre);
+    const apellidos = capitalizarPalabras(apellidosInput);
+
+    const parsed = parseFechaLatam(fechaInput);
+    if (!parsed) {
+      return interaction.editReply({
+        components: [buildErrorContainer('Error de Formato', 'La fecha debe estar en formato **DD/MM/AAAA**, por ejemplo `04/10/2008`.')],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    const edad = calculateAge(parsed.iso);
+    if (edad < 18) {
+      return interaction.editReply({
+        components: [buildErrorContainer('Error de Edad', `Debes ser mayor de 18 años para registrar tu cédula. (Actualmente ${edad} años)`)],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    let provinciaNum;
+    let provinciaNombre;
+
+    if (nacionalidad !== 'Costarricense') {
+      provinciaNum = 8;
+      provinciaNombre = 'Extranjero';
+    } else {
+      provinciaNum = parseInt(provinciaValue, 10);
+      const provinciaObj = PROVINCIAS.find(p => p.value === provinciaValue);
+      provinciaNombre = provinciaObj
+        ? provinciaObj.name.split(' - ')[1]
+        : 'Desconocida';
+    }
+
+    let robloxInfo;
+    try {
+      robloxInfo = await fetchRobloxUser(robloxUsername);
+    } catch (err) {
+      console.error('Error llamando a Roblox:', err);
+      return interaction.editReply({
+        components: [buildErrorContainer('Error de Roblox', 'No se pudo obtener información de Roblox. Intenta de nuevo más tarde.')],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    if (!robloxInfo) {
+      return interaction.editReply({
+        components: [buildErrorContainer('Usuario no encontrado', 'No se encontró ese usuario de Roblox.')],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    const db = loadJson(CEDULAS_FILE);
+    const userId = interaction.user.id;
+    const numeroCedula = generateCedulaNumber(provinciaNum);
+
+    const datosUsuario = {
+      discordId: userId,
+      discordTag: interaction.user.tag,
+      nombre,
+      apellidos,
+      estatura,
+      nacionalidad,
+      provinciaNum,
+      provinciaNombre,
+      fechaNacimiento: parsed.display,
+      edad,
+      sexo,
+      roblox: {
+        username: robloxInfo.name,
+        id: robloxInfo.id,
+        profileUrl: robloxInfo.profileUrl,
+        avatarUrl: robloxInfo.avatarUrl,
+      },
+      numeroCedula,
+      registradoEn: new Date().toISOString(),
+    };
+
+    db[userId] = datosUsuario;
+    saveJson(CEDULAS_FILE, db);
+
+    let imagenBuffer;
+    try {
+      imagenBuffer = await generadorCedula.generarImagen(datosUsuario);
+    } catch (error) {
+      console.error('Error generando imagen:', error);
+      return interaction.editReply({
+        components: [buildErrorContainer('Error de Generación', 'Error al generar la imagen de la cédula. Contacta con un administrador.')],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    const attachmentName = `cedula-${numeroCedula}.png`;
+    const attachment = new AttachmentBuilder(imagenBuffer, { name: attachmentName });
+
+    await interaction.editReply({
+      components: [buildRegistroContainer(datosUsuario, attachmentName)],
+      files: [attachment],
+      flags: MessageFlags.IsComponentsV2
+    });
+
+    // DM al usuario
+    try {
+      await interaction.user.send({
+        components: [buildRegistroContainer(datosUsuario, attachmentName)],
+        files: [attachment],
+        flags: MessageFlags.IsComponentsV2
+      });
+    } catch (error) {
+      console.log('⚠️ No se pudo enviar DM al usuario:', error.message);
+    }
+
+    // Log al canal de logs
+    const logChannel = interaction.client.channels.cache.get(LOG_CHANNEL_ID);
+    if (logChannel) {
+      const logData = {
+        discordId: userId,
+        discordTag: interaction.user.tag,
+        nombre,
+        apellidos,
+        estatura,
+        nacionalidad,
+        provinciaNum,
+        provinciaNombre,
+        fechaNacimiento: parsed.display,
+        edad,
+        sexo,
+        robloxUsername: robloxInfo.name,
+        numeroCedula,
+        registradoPor: interaction.user.tag
+      };
+
+      const logContainer = new ContainerBuilder()
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent('## 📝 Registro de Cédula - LOG')
+        )
+        .addSeparatorComponents(
+          new SeparatorBuilder()
+            .setDivider(true)
+            .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent(`**👤 Usuario:** <@${userId}> (${interaction.user.tag})\n**🆔 Cédula:** ${numeroCedula}\n**📛 Nombre:** ${nombre} ${apellidos}\n**🌎 Nacionalidad:** ${nacionalidad}\n**🎮 Roblox:** ${robloxInfo.name}\n**👮 Registrado por:** ${interaction.user.tag}`)
+        )
+        .addSeparatorComponents(
+          new SeparatorBuilder()
+            .setDivider(true)
+            .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${getCostaRicaTimestamp()}`)
+        );
+
+      logChannel.send({
+        components: [logContainer],
+        flags: MessageFlags.IsComponentsV2
+      }).catch(err => {
+        console.error('Error enviando log de registro de cédula:', err);
+      });
+    }
+
+    console.log(
+      `[CEDULAS] ${interaction.user.tag} (${interaction.user.id}) registró la cédula ${numeroCedula}`
+    );
+  },
+};
+
+// ========= /ver-cedula =========
+
+const verCedula = {
+  data: new SlashCommandBuilder()
+    .setName('ver-cedula')
+    .setDescription('Muestra la imagen de la cédula registrada de un usuario.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario a consultar')
+        .setRequired(true),
+    ),
+
+  async execute(interaction) {
+    await interaction.deferReply();
+
+    const user = interaction.options.getUser('usuario');
+    const db = loadJson(CEDULAS_FILE);
+    const record = db[user.id];
+
+    if (!record) {
+      return interaction.editReply({
+        components: [buildErrorContainer('Cédula no encontrada', 'Ese usuario no tiene cédula registrada.')],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    try {
+      const imagenBuffer = await generadorCedula.generarImagen(record);
+      const attachmentName = `cedula-${record.numeroCedula}.png`;
+      const attachment = new AttachmentBuilder(imagenBuffer, { name: attachmentName });
+
+      await interaction.editReply({
+        components: [buildVerCedulaContainer(record, attachmentName)],
+        files: [attachment],
+        flags: MessageFlags.IsComponentsV2
+      });
+    } catch (error) {
+      console.error('Error generando imagen para /ver-cedula:', error);
+      await interaction.editReply({
+        components: [buildErrorContainer('Error de Generación', 'Error al generar la imagen de la cédula. Contacta con un administrador.')],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+  },
+};
+
+// ========= /info-cedula =========
+
+const infoCedula = {
+  data: new SlashCommandBuilder()
+    .setName('info-cedula')
+    .setDescription('Muestra la información detallada de la cédula de un usuario.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario a consultar')
+        .setRequired(true),
+    ),
+
+  async execute(interaction) {
+    const user = interaction.options.getUser('usuario');
+    const db = loadJson(CEDULAS_FILE);
+    const record = db[user.id];
+
+    if (!record) {
+      return interaction.reply({
+        components: [buildErrorContainer('Cédula no encontrada', 'Ese usuario no tiene cédula registrada.')],
+        flags: MessageFlags.IsComponentsV2,
+        ephemeral: true
+      });
+    }
+
+    await interaction.reply({
+      components: [buildInfoCedulaContainer(record)],
+      flags: MessageFlags.IsComponentsV2
+    });
+  },
+};
+
+// ========= /eliminar-cedula =========
+
+const eliminarCedula = {
+  data: new SlashCommandBuilder()
+    .setName('eliminar-cedula')
+    .setDescription('Elimina la cédula registrada de un usuario.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario cuya cédula quieres borrar')
+        .setRequired(true),
+    ),
+
+  async execute(interaction) {
+    const member = interaction.member;
+
+    if (!member.roles.cache.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        components: [buildErrorContainer('Permiso Denegado', 'No tienes permiso para usar este comando.')],
+        flags: MessageFlags.IsComponentsV2,
+        ephemeral: true
+      });
+    }
+
+    const user = interaction.options.getUser('usuario');
+    const db = loadJson(CEDULAS_FILE);
+
+    const record = db[user.id];
+    if (!record) {
+      return interaction.reply({
+        components: [buildErrorContainer('Cédula no encontrada', 'Ese usuario no tiene cédula registrada.')],
+        flags: MessageFlags.IsComponentsV2,
+        ephemeral: true
+      });
+    }
+
+    delete db[user.id];
+    saveJson(CEDULAS_FILE, db);
+
+    await interaction.reply({
+      components: [buildEliminarCedulaContainer(record, interaction.user.tag)],
+      flags: MessageFlags.IsComponentsV2
+    });
+
+    // DM al usuario
+    try {
+      await user.send({
+        components: [buildEliminarCedulaContainer(record, interaction.user.tag)],
+        flags: MessageFlags.IsComponentsV2
+      });
+    } catch (error) {
+      console.log('⚠️ No se pudo enviar DM al usuario:', error.message);
+    }
+
+    // Log al canal de logs
+    const logChannel = interaction.client.channels.cache.get(LOG_CHANNEL_ID);
+    if (logChannel) {
+      const logContainer = new ContainerBuilder()
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent('## 🗑️ Eliminación de Cédula - LOG')
+        )
+        .addSeparatorComponents(
+          new SeparatorBuilder()
+            .setDivider(true)
+            .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent(`**👤 Usuario afectado:** <@${user.id}> (${user.tag})\n**🆔 Cédula eliminada:** ${record.numeroCedula}\n**📛 Nombre:** ${record.nombre} ${record.apellidos}\n**👮 Eliminado por:** ${interaction.user.tag}`)
+        )
+        .addSeparatorComponents(
+          new SeparatorBuilder()
+            .setDivider(true)
+            .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent(`© Todos los derechos reservados, Maes Roleplay  | ER:LC - ${getCostaRicaTimestamp()}`)
+        );
+
+      logChannel.send({
+        components: [logContainer],
+        flags: MessageFlags.IsComponentsV2
+      }).catch(err => {
+        console.error('Error enviando log de eliminación de cédula:', err);
+      });
+    }
+
+    console.log(
+      `[CEDULAS] ${interaction.user.tag} (${interaction.user.id}) eliminó la cédula de ${user.tag} (${user.id})`
+    );
+  },
+};
+
+module.exports = {
+  commands: [registrarCedula, verCedula, infoCedula, eliminarCedula],
+};

@@ -1,0 +1,1428 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: recuperacion_inicial/adjuntos/pruebas_1.html
+
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaesRP - La Élite del Rol en Costa Rica</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&amp;family=Syncopate:wght@400;700&amp;display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        title: ['Syncopate', 'sans-serif'],
+                    },
+                    colors: {
+                        maesRed: '#FF1E1E',   
+                        maesDeep: '#050505',
+                        maesGlass: 'rgba(255, 255, 255, 0.03)',
+                        maesBorder: 'rgba(255, 255, 255, 0.1)',
+                        discordBlue: '#5865F2'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: #fff; overflow-x: hidden; }
+
+        .glass {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 15vw, 11rem);
+            line-height: 1.2; 
+            -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+            color: transparent;
+            background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.1) 100%);
+            -webkit-background-clip: text;
+            padding: 0 0.2em;
+            margin-bottom: -0.1em;
+            display: inline-block;
+        }
+
+        .red-glow {
+            box-shadow: 0 0 50px -10px rgba(255, 30, 30, 0.3);
+        }
+
+        /* Botones Premium del Hero */
+        .btn-premium {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .btn-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        .btn-premium:hover::before {
+            left: 100%;
+        }
+
+        .btn-main {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-main:hover {
+            background: #FF1E1E;
+            color: #fff;
+            box-shadow: 0 10px 30px -5px rgba(255, 30, 30, 0.5);
+            transform: translateY(-3px);
+            border-color: #FF1E1E;
+        }
+
+        .btn-discord {
+            background: rgba(88, 101, 242, 0.1);
+            border: 1px solid rgba(88, 101, 242, 0.4);
+            color: #fff;
+        }
+
+        .btn-discord:hover {
+            background: #5865F2;
+            box-shadow: 0 10px 30px -5px rgba(88, 101, 242, 0.4);
+            transform: translateY(-3px);
+            border-color: #5865F2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #fff, #FF1E1E);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-right: 0.2em;
+        }
+
+        /* Card System */
+        .dept-card {
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .dept-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 30, 30, 0.6);
+        }
+
+        .dept-overlay {
+            background: linear-gradient(to top, rgba(5,5,5,1) 0%, rgba(5,5,5,0.8) 30%, rgba(5,5,5,0.2) 100%);
+            transition: opacity 0.4s ease;
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-slow { animation: pulse-slow 4s infinite; }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 5;
+            background: linear-gradient(0deg, rgba(255,30,30,0) 0%, rgba(255,30,30,0.05) 50%, rgba(255,30,30,0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100%; }
+        }
+
+        .prevent-clip {
+            padding: 0.2em 0.3em;
+            display: inline-block;
+            line-height: 1.4;
+        }
+
+        /* Nuevos estilos para el sistema de perfil */
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 1rem;
+            width: 320px;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 30, 30, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 30, 30, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .profile-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-menu-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .profile-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 30, 30, 0.3);
+            object-fit: cover;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-username {
+            font-weight: 600;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .profile-userid {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: monospace;
+        }
+
+        .menu-section {
+            margin-bottom: 16px;
+        }
+
+        .menu-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+        }
+
+        .connection-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .connection-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 30, 30, 0.2);
+        }
+
+        .connection-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .connection-info {
+            flex: 1;
+        }
+
+        .connection-platform {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .connection-username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .connect-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            width: 100%;
+            background: rgba(255, 30, 30, 0.1);
+            border: 1px solid rgba(255, 30, 30, 0.3);
+            border-radius: 10px;
+            color: #FF1E1E;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .connect-btn:hover {
+            background: rgba(255, 30, 30, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .connect-btn .icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .menu-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .update-btn, .logout-btn {
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .update-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .update-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn {
+            background: rgba(255, 30, 30, 0.1);
+            border: 1px solid rgba(255, 30, 30, 0.3);
+            color: #FF1E1E;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 30, 30, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .profile-trigger:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 30, 30, 0.3);
+        }
+
+        .profile-trigger-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 30, 30, 0.3);
+            object-fit: cover;
+        }
+
+        .profile-trigger-info {
+            text-align: left;
+        }
+
+        .profile-trigger-username {
+            font-weight: 600;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .profile-trigger-role {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .profile-trigger-arrow {
+            color: rgba(255, 255, 255, 0.6);
+            transition: transform 0.2s ease;
+        }
+
+        .profile-trigger.active .profile-trigger-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 5px solid #FF1E1E;
+            padding: 16px 20px;
+            border-radius: 12px;
+            min-width: 320px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideInRight 0.3s ease-out;
+            border: 1px solid rgba(255, 30, 30, 0.2);
+        }
+
+        .toast.error {
+            border-left-color: #FF1E1E;
+            background: rgba(30, 0, 0, 0.95);
+        }
+
+        .toast.success {
+            border-left-color: #00FF00;
+            background: rgba(0, 30, 0, 0.95);
+        }
+
+        .toast.info {
+            border-left-color: #5865F2;
+            background: rgba(0, 0, 30, 0.95);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #FF1E1E;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Hero section con información del usuario */
+        .user-hero-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 30, 30, 0.3);
+            object-fit: cover;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 30, 30, 0.2);
+        }
+
+        .user-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 30, 30, 0.15);
+            color: #FF1E1E;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 30, 30, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .user-hero-name {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .user-hero-role {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+        }
+
+        /* Modal de anuncio Roblox */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 30, 30, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 30, 30, 0.1);
+            border: 1px solid rgba(255, 30, 30, 0.3);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 30, 30, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            color: #FF1E1E;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .modal-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .modal-button {
+            background: linear-gradient(135deg, #FF1E1E 0%, #CC0000 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 30, 30, 0.3);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-maesRed selection:text-white font-sans">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal de anuncio Roblox -->
+    <div id="roblox-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeRobloxModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="text-align: center;">
+                <div class="modal-icon">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <h2 class="modal-title">Vincula tu cuenta de <span class="gradient-text">Roblox</span></h2>
+                <p class="modal-text">
+                    Para acceder a todos los sistemas y funcionalidades de MaesRP, necesitas vincular tu cuenta de Roblox.
+                </p>
+                <button class="modal-button" onclick="initiateRobloxLogin()">
+                    <i class="fa-brands fa-roblox" style="margin-right: 10px;"></i>
+                    Iniciar Sesión con Roblox
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-[100] px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-8 py-3">
+            <div class="flex items-center gap-2">
+                <img src="/images/logo.png" alt="MaesRP Logo" class="w-8 h-8 rounded-lg object-cover border-2 border-maesRed">
+                <span class="font-title font-bold text-xl tracking-tighter">MAES<span class="text-maesRed">RP</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8 font-medium text-sm uppercase tracking-widest">
+                <a href="#inicio" class="hover:text-maesRed transition-all">Inicio</a>
+                <a href="#departamentos" class="hover:text-maesRed transition-all">Departamentos</a>
+                <a href="#como-unirse" class="hover:text-maesRed transition-all">Unirse</a>
+                <a href="#" onclick="handlePoliciaClick(event)" class="hover:text-maesRed transition-all">Plataforma Policial</a>
+                <a href="#staff" class="hover:text-maesRed transition-all">Equipo Administrativo</a>
+            </div>
+
+            <!-- Área de usuario/Login -->
+            <div id="user-area" class="relative">
+                <!-- Esto se llenará dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-maesRed/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+            <div class="scanline"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-4">
+            <!-- Esta sección se llenará dinámicamente -->
+            <div id="hero-content">
+                <!-- Contenido por defecto (sin login) -->
+                <div class="overflow-visible mb-2">
+                    <h1 class="hero-title font-title font-bold select-none uppercase tracking-tighter">MAESRP</h1>
+                </div>
+                
+                <div class="max-w-3xl mx-auto">
+                    <p class="text-3xl md:text-5xl font-bold italic uppercase tracking-tighter mb-8 leading-relaxed">
+                        <span class="prevent-clip">Aquí no jugamos, <span class="gradient-text">vivimos el rol</span></span>
+                    </p>
+                    <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+                        La experiencia definitiva de ER:LC diseñada para maes que buscan realismo táctico, cultura tica auténtica y un sistema de leyes estricto.
+                    </p>
+                    
+                    <div class="flex flex-wrap justify-center gap-6">
+                        <a href="#como-unirse" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                            Forjar mi Historia
+                            <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="https://discord.gg/maesrp" target="_blank" class="btn-premium btn-discord px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                            <i class="fa-brands fa-discord text-xl"></i>
+                            Discord Oficial
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secciones restantes se mantienen igual... -->
+    <section id="departamentos" class="py-32 relative px-6 bg-[#080808]">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-20">
+                <h2 class="text-6xl md:text-8xl font-title font-bold uppercase italic leading-none opacity-5 absolute -top-10 left-0 select-none">INSTITUCIONES</h2>
+                <div class="relative z-10">
+                    <p class="text-maesRed font-bold uppercase tracking-[0.5em] text-xs mb-4">¿De qué lado de la ley estás?</p>
+                    <h3 class="text-4xl md:text-6xl font-title font-bold uppercase italic">Departamentos <span class="text-maesRed">Oficiales</span></h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Fuerza Pública -->
+                <div class="md:col-span-8 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[500px]" style="background-image: url('https://anep.cr/wp-content/uploads/2019/09/Fuerza-Publica-Costa-Rica-1024x499.jpg');">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-12 w-full z-10">
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="px-4 py-1 bg-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg shadow-blue-600/40">COLUMNA VERTEBRAL</span>
+                            <span class="text-blue-400 text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-circle text-[8px] mr-2 animate-pulse"></i> PATRULLAJE ACTIVO</span>
+                        </div>
+                        <h4 class="text-4xl md:text-5xl font-title font-bold uppercase italic mb-4">Fuerza Pública</h4>
+                        <p class="text-gray-300 max-w-lg font-light leading-relaxed mb-6">No es solo patrullar, es imponer respeto. Únete a la mayor fuerza del país y mantén las calles de Liberty County libres de delincuencia.</p>
+                        <a href="https://discord.gg/maesrp" target="_blank" class="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-white group-hover:text-maesRed transition-colors">
+                            RECLUTAMIENTO ABIERTO <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- OIJ -->
+                <div class="md:col-span-4 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[500px]" style="background-image: url('https://www.nacion.com/resizer/v2/ELSRYPRCRRALNNB77LLU77BQDA.JPG?smart=true&amp;auth=a536c88c6cfdc949b56d498a2e40819f040e8dc4e10ba9a3dd7d04acf4495803&amp;width=2816&amp;height=1800');">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-10 z-10">
+                        <div class="mb-6">
+                            <i class="fa-solid fa-crosshairs text-3xl text-gray-400 group-hover:text-white transition-colors"></i>
+                        </div>
+                        <h4 class="text-2xl font-title font-bold uppercase italic mb-3">OIJ / SERT</h4>
+                        <p class="text-sm text-gray-400 font-light leading-relaxed">Para los que operan en las sombras. Inteligencia, balística y asaltos tácticos. Aquí solo entran los mejores del servidor.</p>
+                    </div>
+                </div>
+
+                <!-- Cruz Roja -->
+                <div class="md:col-span-4 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[450px]" style="background-image: url('https://cruzroja.or.cr/wp-content/uploads/2024/03/JPH_1068.jpg');">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-10 z-10">
+                        <div class="w-12 h-12 bg-red-600/20 rounded-xl flex items-center justify-center mb-6 border border-red-600/30 group-hover:bg-red-600 transition-colors">
+                            <i class="fa-solid fa-heart-pulse text-red-500 group-hover:text-white"></i>
+                        </div>
+                        <h4 class="text-2xl font-title font-bold uppercase italic mb-3">Cruz Roja</h4>
+                        <p class="text-sm text-gray-400 font-light leading-relaxed">Cada segundo cuenta. Sé el héroe que estabiliza la situación cuando todo se sale de control.</p>
+                    </div>
+                </div>
+
+                <!-- Bomberos -->
+                <div class="md:col-span-8 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[450px]" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiLhMhK0OTFcCzy7CEiIwUk5PO1XVQBkKoiA&amp;s');">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-12 w-full z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                        <div>
+                            <h4 class="text-4xl font-title font-bold uppercase italic mb-4">Bomberos CR</h4>
+                            <p class="text-gray-300 max-w-sm font-light leading-relaxed">Valor bajo fuego. Desde accidentes de tránsito masivos hasta incendios estructurales. La abnegación es nuestra ley.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="glass p-5 rounded-2xl text-center min-w-[100px] border-white/5 hover:border-maesRed/30 transition-all">
+                                <p class="text-maesRed font-bold text-2xl leading-none">Vigilancia</p>
+                                <p class="text-[8px] uppercase font-bold text-gray-500 tracking-widest mt-2">Aérea</p>
+                            </div>
+                            <div class="glass p-5 rounded-2xl text-center min-w-[100px] border-white/5 hover:border-maesRed/30 transition-all">
+                                <p class="text-white font-bold text-2xl leading-none">POL</p>
+                                <p class="text-[8px] uppercase font-bold text-gray-500 tracking-widest mt-2">Tránsito</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Acceso Section -->
+    <section id="como-unirse" class="py-32 bg-white text-black px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div>
+                    <h2 class="text-6xl font-title font-bold uppercase italic tracking-tighter mb-8 leading-none">Tu Nueva Vida <br><span class="text-maesRed">Comienza Aquí</span></h2>
+                    <div class="space-y-10 font-sans">
+                        <div class="flex gap-6 group">
+                            <span class="text-5xl font-title font-bold text-gray-100 group-hover:text-maesRed transition-colors">01</span>
+                            <div>
+                                <h5 class="font-bold uppercase italic text-sm mb-2 tracking-widest">Inicia la Plataforma</h5>
+                                <p class="text-gray-500 text-sm leading-relaxed">Entra a Roblox y busca el servidor de "Police Roleplay Community" (ER:LC).</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 group">
+                            <span class="text-5xl font-title font-bold text-gray-100 group-hover:text-maesRed transition-colors">02</span>
+                            <div>
+                                <h5 class="font-bold uppercase italic text-sm mb-2 tracking-widest">Zona Privada</h5>
+                                <p class="text-gray-500 text-sm leading-relaxed">Navega a la pestaña de servidores privados y selecciona "Join Private Server".</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 group">
+                            <span class="text-5xl font-title font-bold text-gray-100 group-hover:text-maesRed transition-colors">03</span>
+                            <div>
+                                <h5 class="font-bold uppercase italic text-sm mb-2 tracking-widest">Identidad Verificada</h5>
+                                <p class="text-gray-500 text-sm leading-relaxed">Introduce el código oficial de acceso. Asegúrate de escribirlo tal cual aparece.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-maesRed/20 blur-3xl rounded-[40px]"></div>
+                    <div class="relative bg-maesDeep rounded-[40px] p-8 md:p-12 text-white border border-white/10 red-glow shadow-2xl">
+                        <p class="text-[10px] uppercase tracking-[0.5em] font-bold text-maesRed mb-8 text-center">CREDENCIAL DE ACCESO MAESRP</p>
+                        
+                        <div class="bg-white/5 border border-white/10 rounded-3xl p-8 mb-10 relative overflow-visible">
+                            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-maesDeep px-4 border border-white/10 rounded-full">
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500 italic">Código Único</span>
+                            </div>
+                            <input type="text" value="MaesRP" id="serverCode" readonly class="bg-transparent w-full text-center text-5xl md:text-7xl font-title font-bold tracking-tight outline-none overflow-visible px-4 prevent-clip text-white cursor-default">
+                        </div>
+                        
+                        <button onclick="copyCode()" class="w-full bg-maesRed py-6 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-maesRed/40 flex items-center justify-center gap-4">
+                            <i class="fa-solid fa-copy text-lg"></i> RECLAMAR MI LUGAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Staff Section -->
+    <section id="staff" class="py-32 px-6">
+        <div class="max-w-7xl mx-auto text-center mb-24">
+            <p class="text-maesRed font-bold uppercase tracking-[0.4em] text-[10px] mb-4">Los Arquitectos del Caos</p>
+            <h2 class="text-4xl font-title font-bold uppercase italic text-white">Equipo<span class="text-maesRed">Administrativo</span></h2>
+            <div class="w-20 h-1 bg-maesRed mx-auto mt-6"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+            <!-- Skarr -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-b from-maesRed to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-sm"></div>
+                <div class="glass p-10 rounded-3xl text-center relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Skarr&amp;backgroundColor=b6e3f4" class="w-32 h-32 rounded-2xl mx-auto mb-8 grayscale group-hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
+                    <h4 class="text-2xl font-title font-bold text-white uppercase italic">Skarr</h4>
+                    <p class="text-maesRed text-[9px] font-bold uppercase tracking-[0.3em] mt-3">FUNDADOR • DIRECTOR GENERAL</p>
+                </div>
+            </div>
+
+            <!-- Denzell -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-b from-maesRed to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-sm"></div>
+                <div class="glass p-10 rounded-3xl text-center relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Denzell&amp;backgroundColor=ffdfbf" class="w-32 h-32 rounded-2xl mx-auto mb-8 grayscale group-hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
+                    <h4 class="text-2xl font-title font-bold text-white uppercase italic">Denzell</h4>
+                    <p class="text-maesRed text-[9px] font-bold uppercase tracking-[0.3em] mt-3">CO-FUNDADOR • GESTIÓN ESTRATÉGICA</p>
+                </div>
+            </div>
+
+            <!-- epeelgrillo -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-b from-maesRed to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-sm"></div>
+                <div class="glass p-10 rounded-3xl text-center relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Adamsitoo&amp;backgroundColor=c0aede" class="w-32 h-32 rounded-2xl mx-auto mb-8 grayscale group-hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
+                    <h4 class="text-2xl font-title font-bold text-white uppercase italic">Pepeelgrillo</h4>
+                    <p class="text-maesRed text-[9px] font-bold uppercase tracking-[0.3em] mt-3">DEVELOPER • DESARROLLO GENERAL </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 bg-black border-t border-white/5 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+            <div class="text-center md:text-left">
+                <span class="font-title font-bold text-3xl italic">MAES<span class="text-maesRed">RP</span></span>
+                <p class="text-gray-600 text-[10px] mt-4 uppercase tracking-[0.4em] font-bold italic">Donde el Respeto se Gana con Rol</p>
+            </div>
+            
+            <div class="flex gap-8 text-gray-500">
+                <a href="https://discord.gg/maesrp" target="_blank" class="hover:text-discordBlue transition-colors text-2xl"><i class="fa-brands fa-discord"></i></a>
+                <a href="#" class="hover:text-maesRed transition-colors text-2xl"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="#" class="hover:text-maesRed transition-colors text-2xl"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+
+            <div class="text-center md:text-right">
+                <p class="text-[9px] text-gray-700 uppercase tracking-widest leading-loose font-bold">
+                    © 2026 MaesRP Elite <br>
+                    Nacidos para el Realismo.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Template del Dropdown del Perfil (oculto por defecto) -->
+    <template id="profile-dropdown-template">
+        <div class="profile-dropdown">
+            <div class="profile-menu-header">
+                <img src="" class="profile-avatar" id="dropdown-avatar" alt="Avatar">
+                <div class="profile-info">
+                    <div class="profile-username" id="dropdown-username">Cargando...</div>
+                    <div class="profile-userid" id="dropdown-userid">ID: ID_POR_CONFIGURAR</div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Enlazados</div>
+                <div id="connections-list">
+                    <!-- Se llenará dinámicamente con JavaScript -->
+                </div>
+            </div>
+
+            <div class="menu-actions">
+                <button class="update-btn" onclick="updateRobloxInfo()">
+                    <i class="fa-solid fa-rotate mr-2"></i>Actualizar Información
+                </button>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i>Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para un elemento de conexión Roblox -->
+    <template id="roblox-connection-template">
+        <div class="connection-item">
+            <img src="" class="connection-avatar" alt="Roblox Avatar">
+            <div class="connection-info">
+                <div class="connection-platform">Roblox</div>
+                <div class="connection-username">Usuario</div>
+            </div>
+            <div class="connection-status">
+                <i class="fa-solid fa-check text-green-500"></i>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para botón de conectar Roblox -->
+    <template id="connect-roblox-template">
+        <button class="connect-btn" onclick="connectRoblox()">
+            <div class="icon">+</div>
+            <div>Conectar con Roblox</div>
+        </button>
+    </template>
+
+    <!-- Template para Hero Section con usuario logeado -->
+    <template id="user-hero-template">
+        <div class="text-center">
+            <div class="mb-6 inline-flex items-center gap-2 bg-maesRed/10 border border-maesRed/20 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.4em] text-maesRed">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-maesRed opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-maesRed"></span>
+                </span>
+                BIENVENIDO DE VUELTA
+            </div>
+            
+            <img src="" class="user-hero-avatar mx-auto mb-6" id="hero-avatar" alt="Avatar">
+            <h1 class="user-hero-name font-title" id="hero-name">Cargando...</h1>
+            <p class="user-hero-role" id="hero-role">Ciudadano</p>
+            <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+                Accede a todas las funcionalidades de tu personaje en Maes Roleplay.
+            </p>
+            
+            <div class="flex flex-wrap justify-center gap-6">
+                <a href="#" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group" onclick="handleCiudadanoClick(event)">
+                    <i class="fa-solid fa-user"></i>
+                    Panel de Ciudadano
+                    <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                <a href="https://discord.gg/maesrp" target="_blank" class="btn-premium btn-discord px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                    <i class="fa-brands fa-discord text-xl"></i>
+                    Comunidad Discord
+                </a>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let profileDropdown = null;
+        let robloxModalShown = sessionStorage.getItem('robloxModalShown') === 'true';
+
+        // Toast system
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'error' ? 'circle-xmark' : type === 'success' ? 'circle-check' : 'circle-info';
+            toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-${icon}" style="font-size:1.2rem; color: ${type === 'error' ? '#FF1E1E' : type === 'success' ? '#00FF00' : '#5865F2'}"></i><span style="font-weight:600; font-size:0.9rem;">${msg}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { if(toast.parentElement) toast.remove(); }, 6000);
+        }
+
+        // Copy server code function
+        function copyCode() {
+            const copyText = document.getElementById("serverCode");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            
+            const btn = document.querySelector('button[onclick="copyCode()"]');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-lg"></i> CÓDIGO CAPTURADO';
+            btn.style.backgroundColor = '#10b981';
+            
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.style.backgroundColor = '#FF1E1E';
+            }, 3000);
+        }
+
+        // Funciones de autenticación
+        async function checkAuth() {
+            const token = "VALOR_RETIRADO";
+            
+            if (!token) {
+                renderUnauthenticatedUI();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        localStorage.removeItem('judicial_token');
+                        renderUnauthenticatedUI();
+                        return;
+                    }
+                    throw new Error('Error en la respuesta del servidor');
+                }
+
+                const data = await response.json();
+                
+                if (data.success && data.user) {
+                    currentUser = data.user;
+                    renderAuthenticatedUI();
+                    
+                    // Mostrar modal de Roblox si no está vinculado y no se ha mostrado en esta sesión
+                    if (!currentUser.robloxLinked && !robloxModalShown) {
+                        setTimeout(() => {
+                            showRobloxModal();
+                        }, 1000);
+                    }
+                } else {
+                    localStorage.removeItem('judicial_token');
+                    renderUnauthenticatedUI();
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+                localStorage.removeItem('judicial_token');
+                renderUnauthenticatedUI();
+            }
+        }
+
+        // Render UI para usuario NO autenticado
+        function renderUnauthenticatedUI() {
+            // Navbar
+            const userArea = document.getElementById('user-area');
+            userArea.innerHTML = `
+                <a href="#" id="login-btn" class="bg-maesRed px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-maesRed/40 flex items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket text-base"></i> INICIAR SESIÓN
+                </a>
+            `;
+
+            // Hero section (ya tiene el contenido por defecto en el HTML)
+            const heroContent = document.getElementById('hero-content');
+            if (!heroContent.querySelector('.hero-title')) {
+                heroContent.innerHTML = `
+                    <div class="overflow-visible mb-2">
+                        <h1 class="hero-title font-title font-bold select-none uppercase tracking-tighter">MAESRP</h1>
+                    </div>
+                    
+                    <div class="max-w-3xl mx-auto">
+                        <p class="text-3xl md:text-5xl font-bold italic uppercase tracking-tighter mb-8 leading-relaxed">
+                            <span class="prevent-clip">Aquí no jugamos, <span class="gradient-text">vivimos el rol</span></span>
+                        </p>
+                        <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+                            La experiencia definitiva de ER:LC diseñada para maes que buscan realismo táctico, cultura tica auténtica y un sistema de leyes estricto.
+                        </p>
+                        
+                        <div class="flex flex-wrap justify-center gap-6">
+                            <a href="#como-unirse" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                                Forjar mi Historia
+                                <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                            <a href="https://discord.gg/maesrp" target="_blank" class="btn-premium btn-discord px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                                <i class="fa-brands fa-discord text-xl"></i>
+                                Discord Oficial
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Agregar event listener al botón de login
+            document.getElementById('login-btn')?.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = '/auth/discord';
+            });
+        }
+
+        // Determinar el trabajo basado en roles
+        function determinarTrabajo(roles) {
+            if (!roles || !Array.isArray(roles)) return 'Ciudadano';
+            
+            // Mapeo de roles a trabajos (en orden de prioridad)
+            const roleHierarchy = [
+                { id: 'ID_POR_CONFIGURAR', name: 'Organismo Investigación Judicial' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Fuerza Pública' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Policía de Tránsito' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Policía Municipal de Escazú' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Bombero de Costa Rica' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Voluntario Bomberos de CR' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Cruz Roja Costarricense' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Voluntario Cruz Roja' },
+                { id: 'ID_POR_CONFIGURAR', name: 'Ciudadano' }
+            ];
+            
+            // Buscar el rol más alto que tenga el usuario
+            for (const role of roleHierarchy) {
+                if (roles.includes(role.id)) {
+                    return role.name;
+                }
+            }
+            
+            return 'Ciudadano';
+        }
+
+        // Obtener nombre del personaje
+        function getPersonajeNombre(user) {
+            if (user.nombreCompleto && user.nombreCompleto.trim() !== '') {
+                return user.nombreCompleto;
+            } else if (user.nombre && user.apellidos) {
+                return `${user.nombre} ${user.apellidos}`;
+            } else if (user.nombre) {
+                return user.nombre;
+            } else {
+                return user.discordUsername || user.username || 'Usuario';
+            }
+        }
+
+        // Render UI para usuario autenticado
+        function renderAuthenticatedUI() {
+            if (!currentUser) return;
+
+            const trabajo = determinarTrabajo(currentUser.roles);
+            const nombrePersonaje = getPersonajeNombre(currentUser);
+            const avatarUrl = currentUser.discordAvatar || `https://cdn.discordapp.com/embed/avatars/${parseInt(currentUser.discordId || '0') % 5}.png`;
+
+            // Navbar
+            const userArea = document.getElementById('user-area');
+            userArea.innerHTML = `
+                <div class="profile-trigger" id="profile-trigger">
+                    <img src="${avatarUrl}" class="profile-trigger-avatar" alt="Avatar">
+                    <div class="profile-trigger-info">
+                        <div class="profile-trigger-username">${currentUser.discordUsername || 'Usuario'}</div>
+                        <div class="profile-trigger-role">${trabajo}</div>
+                    </div>
+                    <div class="profile-trigger-arrow">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            `;
+
+            // Crear dropdown del perfil
+            createProfileDropdown();
+
+            // Hero section
+            const heroContent = document.getElementById('hero-content');
+            const template = document.getElementById('user-hero-template');
+            const clone = template.content.cloneNode(true);
+            
+            // Actualizar datos en el hero
+            clone.getElementById('hero-avatar').src = avatarUrl;
+            clone.getElementById('hero-name').textContent = nombrePersonaje;
+            clone.getElementById('hero-role').textContent = trabajo;
+            
+            heroContent.innerHTML = '';
+            heroContent.appendChild(clone);
+
+            // Agregar event listener al trigger del perfil
+            document.getElementById('profile-trigger').addEventListener('click', toggleProfileDropdown);
+        }
+
+        // Crear dropdown del perfil
+        function createProfileDropdown() {
+            if (!currentUser) return;
+
+            const trabajo = determinarTrabajo(currentUser.roles);
+            const nombrePersonaje = getPersonajeNombre(currentUser);
+            const avatarUrl = currentUser.discordAvatar || `https://cdn.discordapp.com/embed/avatars/${parseInt(currentUser.discordId || '0') % 5}.png`;
+
+            // Crear el dropdown
+            const template = document.getElementById('profile-dropdown-template');
+            const dropdown = template.content.cloneNode(true).querySelector('.profile-dropdown');
+            
+            // Actualizar datos básicos
+            dropdown.querySelector('#dropdown-avatar').src = avatarUrl;
+            dropdown.querySelector('#dropdown-username').textContent = nombrePersonaje;
+            dropdown.querySelector('#dropdown-userid').textContent = `ID: ${currentUser.discordId || 'N/A'}`;
+
+            // Manejar conexiones
+            const connectionsList = dropdown.querySelector('#connections-list');
+            
+            if (currentUser.roblox && currentUser.roblox.username) {
+                // Tiene cuenta de Roblox vinculada
+                const robloxTemplate = document.getElementById('roblox-connection-template');
+                const robloxConnection = robloxTemplate.content.cloneNode(true).querySelector('.connection-item');
+                
+                robloxConnection.querySelector('.connection-avatar').src = currentUser.roblox.avatarUrl || 'https://tr.rbxcdn.com/56885563943362145719904229562725/150/150/AvatarHeadshot/Png';
+                robloxConnection.querySelector('.connection-username').textContent = currentUser.roblox.username;
+                
+                connectionsList.appendChild(robloxConnection);
+            } else {
+                // No tiene Roblox vinculado
+                const connectTemplate = document.getElementById('connect-roblox-template');
+                const connectBtn = connectTemplate.content.cloneNode(true);
+                connectionsList.appendChild(connectBtn);
+            }
+
+            // Agregar al DOM
+            document.getElementById('user-area').appendChild(dropdown);
+            profileDropdown = dropdown;
+
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', closeDropdownOnClickOutside);
+        }
+
+        // Alternar visibilidad del dropdown
+        function toggleProfileDropdown(e) {
+            e.stopPropagation();
+            
+            const trigger = document.getElementById('profile-trigger');
+            if (!trigger || !profileDropdown) return;
+
+            trigger.classList.toggle('active');
+            profileDropdown.classList.toggle('show');
+        }
+
+        // Cerrar dropdown al hacer clic fuera
+        function closeDropdownOnClickOutside(e) {
+            const trigger = document.getElementById('profile-trigger');
+            if (!trigger || !profileDropdown) return;
+
+            if (!trigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+                trigger.classList.remove('active');
+                profileDropdown.classList.remove('show');
+            }
+        }
+
+        // Conectar con Roblox
+        function connectRoblox() {
+            const token = "VALOR_RETIRADO";
+            if (!token) {
+                showToast('Debes iniciar sesión primero', 'error');
+                return;
+            }
+            
+            // Redirigir a la autenticación de Roblox con el token de Discord
+            window.location.href = `/auth/roblox?discord_token="VALOR_RETIRADO";
+        }
+
+        // Iniciar login con Roblox desde modal
+        function initiateRobloxLogin() {
+            closeRobloxModal();
+            connectRoblox();
+        }
+
+        // Actualizar información de Roblox
+        function updateRobloxInfo() {
+            showToast('Esta función está en desarrollo. Próximamente podrás actualizar tu información.', 'info');
+            
+            // Cerrar el dropdown
+            const trigger = document.getElementById('profile-trigger');
+            if (trigger && profileDropdown) {
+                trigger.classList.remove('active');
+                profileDropdown.classList.remove('show');
+            }
+        }
+
+        // Mostrar mensaje de "próximamente"
+        function showComingSoon() {
+            showToast('Esta funcionalidad está en desarrollo y estará disponible próximamente.', 'info');
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('judicial_token');
+            sessionStorage.removeItem('robloxModalShown');
+            currentUser = null;
+            
+            // Cerrar dropdown si está abierto
+            const trigger = document.getElementById('profile-trigger');
+            if (trigger && profileDropdown) {
+                trigger.classList.remove('active');
+                profileDropdown.classList.remove('show');
+            }
+            
+            // Remover event listener
+            document.removeEventListener('click', closeDropdownOnClickOutside);
+            
+            // Recargar UI
+            renderUnauthenticatedUI();
+            showToast('Sesión cerrada correctamente', 'success');
+            
+            // Limpiar parámetros de URL
+            window.history.replaceState({}, document.title, '/');
+        }
+
+        // Manejar token de URL (si viene del callback de Discord)
+        function handleUrlToken() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = "VALOR_RETIRADO";
+            const message = urlParams.get('message');
+            const redirect = urlParams.get('redirect');
+            const error = urlParams.get('error');
+            
+            if (token) {
+                localStorage.setItem('judicial_token', token);
+                
+                // Mostrar mensaje apropiado
+                if (message === 'discord_logged_in') {
+                    showToast('¡Sesión iniciada con Discord correctamente!', 'success');
+                }
+                
+                // Limpiar URL
+                window.history.replaceState({}, document.title, '/');
+                
+                // Recargar autenticación
+                checkAuth();
+            } else if (redirect === 'policia' && message === 'login_required') {
+                showToast('Debes iniciar sesión para acceder a la Plataforma Policial', 'info');
+                // Limpiar URL
+                window.history.replaceState({}, document.title, '/');
+            } else if (error) {
+                const errorMessages = {
+                    'no_code': 'No se recibió código de autorización',
+                    'auth_failed': 'Error al autenticar. Por favor intenta nuevamente.',
+                    'no_permission': 'No tienes permisos para acceder'
+                };
+                const errorMsg = urlParams.get('message') || errorMessages[error] || 'Ocurrió un error';
+                showToast(decodeURIComponent(errorMsg), 'error');
+                // Limpiar URL
+                window.history.replaceState({}, document.title, '/');
+            }
+        }
+
+        // Manejar clic en Plataforma Policial
+        function handlePoliciaClick(e) {
+            e.preventDefault();
+            
+            const token = "VALOR_RETIRADO";
+            
+            if (!token) {
+                showToast('Debes iniciar sesión con Discord para acceder a la Plataforma Policial', 'info');
+                return;
+            }
+            
+            // Si tiene token, verificar si tiene acceso policial
+            if (currentUser && currentUser.hasPoliceAccess) {
+                window.location.href = '/v2/police/dashboard?token="VALOR_RETIRADO";
+            } else {
+                showToast('No tienes los roles necesarios para acceder a la Plataforma Policial', 'error');
+            }
+        }
+
+        // Manejar clic en Panel Ciudadano
+        function handleCiudadanoClick(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                showToast('Debes iniciar sesión primero', 'error');
+                return;
+            }
+            
+            // Verificar si tiene Roblox vinculado
+            if (!currentUser.robloxLinked) {
+                showRobloxModal();
+                return;
+            }
+            
+            // Si tiene Roblox vinculado, ir al panel
+            const token = "VALOR_RETIRADO";
+            window.location.href = '/ciudadano?token="VALOR_RETIRADO";
+        }
+
+        // Mostrar modal de Roblox
+        function showRobloxModal() {
+            document.getElementById('roblox-modal').classList.add('show');
+            sessionStorage.setItem('robloxModalShown', 'true');
+            robloxModalShown = true;
+        }
+
+        // Cerrar modal de Roblox
+        function closeRobloxModal() {
+            document.getElementById('roblox-modal').classList.remove('show');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('roblox-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRobloxModal();
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            handleUrlToken();
+            checkAuth();
+        });
+    </script>
+</body>
+</html>

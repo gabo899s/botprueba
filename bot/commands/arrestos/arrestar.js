@@ -1,0 +1,47 @@
+const { v2Payload } = require("./../../presentation");
+module.exports = async function execute(context) {
+const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseUrl, store, domain, settings, operations, prc, commands, economy, respond, rows, safe, embed, member, log, examMessage, createTicket, whitelistApply, syncLicenseRoles, hierarchy, buildMessage, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, client } = context;
+{
+      const r = await operations.record(c, "arresto", user, {
+        articulos: str("articulos"),
+        tiempo: integer("tiempo"),
+      });
+      return respond(i, "Arresto registrado", r.id, [
+        new AttachmentBuilder(path.join(root, "public/pdfs", r.pdfFileName)),
+      ]);
+    }
+};
+
+module.exports.metadata = {
+  "name": "arrestar",
+  "scope": "police",
+  "schema": {
+    "options": [
+      {
+        "name": "usuario",
+        "description": "usuario",
+        "required": true,
+        "type": 6
+      },
+      {
+        "type": 3,
+        "name": "articulos",
+        "description": "articulos",
+        "required": true,
+        "max_length": 1500
+      },
+      {
+        "max_value": 1000000,
+        "min_value": 1,
+        "type": 4,
+        "name": "tiempo",
+        "description": "tiempo",
+        "required": true
+      }
+    ],
+    "name": "arrestar",
+    "description": "Registra un arresto y genera PDF",
+    "dm_permission": false,
+    "type": 1
+  }
+};

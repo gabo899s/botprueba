@@ -1,0 +1,60 @@
+{
+  "staffRoleIds": [],
+  "moderatorRoleIds": [],
+  "adminRoleIds": [],
+  "policeRoleIds": [],
+  "verifiedRoleId": "",
+  "pendingRoleId": "",
+  "licenseRoles": {
+    "A1": "",
+    "A2": "",
+    "A3": "",
+    "B1": "",
+    "B2": "",
+    "B3": "",
+    "C1": "",
+    "C2": "",
+    "C3": "",
+    "D1": "",
+    "D2": "",
+    "D3": ""
+  },
+  "sanctionRoles": {
+    "1": "",
+    "2": "",
+    "3": "",
+    "4": "",
+    "5": ""
+  },
+  "banRoles": {
+    "1": "",
+    "2": "",
+    "3": ""
+  },
+  "channels": {
+    "logs": "",
+    "tickets": "",
+    "ticketCategory": "",
+    "ticketArchive": "",
+    "whitelist": "",
+    "openings": "",
+    "hierarchy": "",
+    "voiceActivity": "",
+    "activity": ""
+  },
+  "hierarchy": [],
+  "voiceRequired": true,
+  "minimumShiftMinutes": 5,
+  "sanctionCooldownSeconds": 20,
+  "licensePassingPercent": 80,
+  "whitelistPassingPercent": 80,
+  "ticketInactivityHours": 48,
+  "ticketHighVolume": false,
+  "nicknamePrefix": "CIV | ",
+  "serverCode": "MaesRP",
+  "automaticFineCollection": false,
+  "acceptedRoleIds": [],
+  "voiceExemptRoleIds": [],
+  "activityPanelEnabled": false,
+  "maximumShiftHours": 5
+}

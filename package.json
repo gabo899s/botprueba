@@ -1,0 +1,32 @@
+{
+  "name": "infinitedev-maesrp",
+  "version": "3.2.0",
+  "private": true,
+  "description": "Panel policial local con PDF y bot Discord",
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "start": "node scripts/start.js",
+    "web": "node server.js",
+    "bot": "node bot/index.js",
+    "test": "node --test test/*.test.js",
+    "data": "node scripts/data-tools.js"
+  },
+  "dependencies": {
+    "@discordjs/voice": "0.19.2",
+    "compression": "1.8.2",
+    "cookie-parser": "1.4.7",
+    "discord.js": "14.27.0",
+    "dotenv": "16.6.1",
+    "express": "4.22.3",
+    "jsonwebtoken": "9.0.3",
+    "multer": "2.4.0",
+    "opusscript": "0.1.1",
+    "pdfkit": "0.17.2"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

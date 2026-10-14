@@ -1,0 +1,261 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m012_b001_whitelist.js
+
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, AttachmentBuilder } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
+const aceptarWl = {
+    data: new SlashCommandBuilder()
+        .setName('aceptar-wl')
+        .setDescription('Acepta una whitelist de un usuario')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Usuario de Discord a aceptar')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('roblox')
+                .setDescription('Nombre de usuario de Roblox')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
+
+    async execute(interaction) {
+        // Verificar rol requerido
+        const requiredRoleId = 'ID_POR_CONFIGURAR';
+        if (!interaction.member.roles.cache.has(requiredRoleId)) {
+            return interaction.reply({
+                content: '❌ No tienes permiso para usar este comando.',
+                ephemeral: true
+            });
+        }
+
+        const targetUser = interaction.options.getUser('usuario');
+        const robloxUsername = interaction.options.getString('roblox');
+        const targetMember = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+
+        if (!targetMember) {
+            return interaction.reply({
+                content: '❌ No se pudo encontrar al usuario en el servidor.',
+                ephemeral: true
+            });
+        }
+
+        try {
+            // Cambiar apodo
+            await targetMember.setNickname(`CIV | ${robloxUsername}`).catch(() => {});
+
+            // Dar y quitar roles
+            const rolesToAdd = ['ID_POR_CONFIGURAR', 'ID_POR_CONFIGURAR'];
+            const roleToRemove = 'ID_POR_CONFIGURAR';
+
+            // Añadir roles
+            for (const roleId of rolesToAdd) {
+                const role = interaction.guild.roles.cache.get(roleId);
+                if (role) {
+                    await targetMember.roles.add(role).catch(() => {});
+                }
+            }
+
+            // Quitar rol
+            const roleRemove = interaction.guild.roles.cache.get(roleToRemove);
+            if (roleRemove && targetMember.roles.cache.has(roleToRemove)) {
+                await targetMember.roles.remove(roleRemove).catch(() => {});
+            }
+
+            // Crear embed para el mensaje
+            const embed = new EmbedBuilder()
+                .setColor(0x57F287)
+                .setTitle('✅ Whitelist Aceptada – Escazú Roleplay🇨🇷')
+                .setDescription(`🎉 ¡Felicidades!\n\nTu solicitud ha sido aceptada.\nYa formas parte de la **whitelist de Escazú Roleplay.**\nEstás autorizado para ingresar al servidor y comenzar tu experiencia de rol.\n\n📝 **Recuerda seguir todas las normas y mantener un rol serio y respetuoso.\n¡Te esperamos en la ciudad!** 🏙️`)
+                .setTimestamp()
+                .setFooter({ text: 'Escazú Roleplay' });
+
+            // Cargar imagen - RUTA ABSOLUTA para VPS
+            const imagePath = '/root/web/public/images/wlaceptada.png';
+            let attachment = null;
+            
+            if (fs.existsSync(imagePath)) {
+                try {
+                    attachment = new AttachmentBuilder(imagePath, { name: 'wlaceptada.png' });
+                    embed.setImage('attachment://wlaceptada.png');
+                } catch (error) {
+                    console.log('No se pudo cargar la imagen:', error);
+                }
+            } else {
+                console.log(`❌ Imagen no encontrada en: ${imagePath}`);
+                console.log('Buscando en otras ubicaciones...');
+                
+                // Intentar rutas alternativas
+                const alternativePaths = [
+                    '/root/web/public/images/wlaceptada.png',
+                    '/home/user/web/public/images/wlaceptada.png',
+                    '/var/www/web/public/images/wlaceptada.png',
+                    path.join(process.cwd(), '../web/public/images/wlaceptada.png'),
+                    path.join(__dirname, '../../web/public/images/wlaceptada.png'),
+                    path.join(__dirname, '../../../web/public/images/wlaceptada.png')
+                ];
+                
+                for (const altPath of alternativePaths) {
+                    if (fs.existsSync(altPath)) {
+                        console.log(`✅ Imagen encontrada en: ${altPath}`);
+                        try {
+                            attachment = new AttachmentBuilder(altPath, { name: 'wlaceptada.png' });
+                            embed.setImage('attachment://wlaceptada.png');
+                            break;
+                        } catch (error) {
+                            console.log(`Error cargando imagen de ${altPath}:`, error);
+                        }
+                    }
+                }
+            }
+
+            // Enviar mensaje al canal especificado CON PING
+            const channelId = 'ID_POR_CONFIGURAR';
+            const channel = interaction.guild.channels.cache.get(channelId);
+            
+            if (channel) {
+                // Mensaje con ping al usuario Y embed con imagen
+                const messageContent = {
+                    content: `🎉 ¡Felicidades! <@${targetUser.id}>`,
+                    embeds: [embed]
+                };
+                
+                if (attachment) {
+                    messageContent.files = [attachment];
+                }
+                
+                await channel.send(messageContent);
+            }
+
+            // Responder al usuario que ejecutó el comando
+            await interaction.reply({
+                content: `✅ Whitelist aceptada para ${targetUser.tag} (Roblox: ${robloxUsername})`,
+                ephemeral: true
+            });
+
+        } catch (error) {
+            console.error('Error en aceptar-wl:', error);
+            await interaction.reply({
+                content: '❌ Ocurrió un error al procesar la whitelist.',
+                ephemeral: true
+            });
+        }
+    }
+};
+
+const rechazarWl = {
+    data: new SlashCommandBuilder()
+        .setName('rechazar-wl')
+        .setDescription('Rechaza una whitelist de un usuario')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Usuario de Discord a rechazar')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
+
+    async execute(interaction) {
+        // Verificar rol requerido
+        const requiredRoleId = 'ID_POR_CONFIGURAR';
+        if (!interaction.member.roles.cache.has(requiredRoleId)) {
+            return interaction.reply({
+                content: '❌ No tienes permiso para usar este comando.',
+                ephemeral: true
+            });
+        }
+
+        const targetUser = interaction.options.getUser('usuario');
+        const targetMember = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+
+        if (!targetMember) {
+            return interaction.reply({
+                content: '❌ No se pudo encontrar al usuario en el servidor.',
+                ephemeral: true
+            });
+        }
+
+        try {
+            // Crear embed para el mensaje de rechazo
+            const embed = new EmbedBuilder()
+                .setColor(0xED4245)
+                .setTitle('❌ Whitelist Denegada – Escazú Roleplay🇨🇷')
+                .setDescription(`Lamentablemente, tu solicitud ha sido denegada.\n\n🔁 Puedes volver a intentarlo en 2 horas.\nTe recomendamos leer bien las normas del servidor y mejorar tus respuestas para la próxima vez.\n\n**Gracias por tu interés en Escazú Roleplay. 🌴**`)
+                .setTimestamp()
+                .setFooter({ text: 'Escazú Roleplay' });
+
+            // Cargar imagen - RUTA ABSOLUTA para VPS
+            const imagePath = '/root/web/public/images/wlrechazada.png';
+            let attachment = null;
+            
+            if (fs.existsSync(imagePath)) {
+                try {
+                    attachment = new AttachmentBuilder(imagePath, { name: 'wlrechazada.png' });
+                    embed.setImage('attachment://wlrechazada.png');
+                } catch (error) {
+                    console.log('No se pudo cargar la imagen:', error);
+                }
+            } else {
+                console.log(`❌ Imagen no encontrada en: ${imagePath}`);
+                console.log('Buscando en otras ubicaciones...');
+                
+                // Intentar rutas alternativas
+                const alternativePaths = [
+                    '/root/web/public/images/wlrechazada.png',
+                    '/home/user/web/public/images/wlrechazada.png',
+                    '/var/www/web/public/images/wlrechazada.png',
+                    path.join(process.cwd(), '../web/public/images/wlrechazada.png'),
+                    path.join(__dirname, '../../web/public/images/wlrechazada.png'),
+                    path.join(__dirname, '../../../web/public/images/wlrechazada.png')
+                ];
+                
+                for (const altPath of alternativePaths) {
+                    if (fs.existsSync(altPath)) {
+                        console.log(`✅ Imagen encontrada en: ${altPath}`);
+                        try {
+                            attachment = new AttachmentBuilder(altPath, { name: 'wlrechazada.png' });
+                            embed.setImage('attachment://wlrechazada.png');
+                            break;
+                        } catch (error) {
+                            console.log(`Error cargando imagen de ${altPath}:`, error);
+                        }
+                    }
+                }
+            }
+
+            // Enviar mensaje al canal especificado CON PING
+            const channelId = 'ID_POR_CONFIGURAR';
+            const channel = interaction.guild.channels.cache.get(channelId);
+            
+            if (channel) {
+                // Mensaje con ping al usuario Y embed con imagen
+                const messageContent = {
+                    content: `<@${targetUser.id}>`,
+                    embeds: [embed]
+                };
+                
+                if (attachment) {
+                    messageContent.files = [attachment];
+                }
+                
+                await channel.send(messageContent);
+            }
+
+            // Responder al usuario que ejecutó el comando
+            await interaction.reply({
+                content: `❌ Whitelist rechazada para ${targetUser.tag}`,
+                ephemeral: true
+            });
+
+        } catch (error) {
+            console.error('Error en rechazar-wl:', error);
+            await interaction.reply({
+                content: '❌ Ocurrió un error al procesar la whitelist.',
+                ephemeral: true
+            });
+        }
+    }
+};
+
+// Exportar como objeto con propiedad "commands" para que tu index.js lo reconozca
+module.exports = {
+    commands: [aceptarWl, rechazarWl]
+};

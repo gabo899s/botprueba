@@ -1,0 +1,134 @@
+[
+  {
+    "component": "licencias",
+    "source": "DeepSeek/codigo_generado/095_Analisis_y_mejora_de_bot_Discord/m004_b002_licencias.js",
+    "sourceSHA256": "7a368ac6286cc1748ba5d4a6716cf7ae4fbba7537b0bbb29b62f2a247f2f3cb8",
+    "reason": "Banco completo de 12 licencias; el índice 095 no prueba fecha global. Se corrigió una respuesta imposible."
+  },
+  {
+    "component": "whitelist_examen",
+    "source": "DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_01_whitelist.js",
+    "sourceSHA256": "4a8d63f16ec9310460faac62fcab810c5df25e965418eb266930b6a171b325f6",
+    "reason": "Dos fases y banco de 11 preguntas; se reemplazaron sesiones temporales por persistencia."
+  },
+  {
+    "component": "whitelist_revision",
+    "source": "DeepSeek/codigo_generado/059_necesito_hacer_comandos_para_mi/m012_b001_whitelist.js",
+    "sourceSHA256": "a48f282842b0187aa50a664df4eec266d28ff1fe20abc450198936ab5812a766",
+    "reason": "Revisión completa del mensaje posterior dentro de este chat; roles y rutas absolutos retirados."
+  },
+  {
+    "component": "cedulas",
+    "source": "DeepSeek/codigo_generado/048_Guia_Completa_de_Components_V2_en_Discord.js/m010_b002_cedulas.js",
+    "sourceSHA256": "5e9490135e705ad9d12c0e89c265910a904bee9b32461da05f3f649660192826",
+    "reason": "Mayor cobertura que b001 y mensajes previos del mismo chat. Registro, consulta y eliminación; PDF sustituye canvas porque faltan recursos gráficos."
+  },
+  {
+    "component": "vehiculos",
+    "source": "codigo/Licencias_js_adaptado_CR/vehicular_v001.js",
+    "sourceSHA256": "6d72feb31612dbf7f947126339733defd505d7f02fa9406a8254fdf92b4937d1",
+    "reason": "Única versión completa de registro/consulta/eliminación en esta recuperación."
+  },
+  {
+    "component": "multas",
+    "source": "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m004_b001_multas.js",
+    "sourceSHA256": "3402401923e66f24912ee271c376a4ea73089fa74d049275d709045d6b17c80e",
+    "reason": "Versión completa con catálogo de 34 artículos, pagos y vencimientos. Se corrigió el uso de PUT de saldo con valores ambiguos."
+  },
+  {
+    "component": "multas_revision",
+    "source": "DeepSeek/codigo_generado/031_este_es_mi_index.js/m004_b001_multas.js",
+    "sourceSHA256": "27ed621a7fa62366158993aeb2c2406c9b0445faf790183158c71bbc836b5b51",
+    "reason": "Complementa revisar-multas y preserva la separación de comandos."
+  },
+  {
+    "component": "arrestos",
+    "source": "DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m006_b002_arrestos.js",
+    "sourceSHA256": "61ec24dcaab5277b9063219920f1540b220ba93c4d15c3e1e4ae7706b19fb923",
+    "reason": "Módulo completo de registro y consulta; unificado con PDFs de la web."
+  },
+  {
+    "component": "sanciones",
+    "source": "DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js",
+    "sourceSHA256": "87808048f729f884ab8252a0564dbfbb3f7f8686c7f3fd408f38593ff66615b4",
+    "reason": "Incluye advertencias, sanciones, estadísticas, apelación y aprobación de castigos. Más completo que variantes anteriores de ese chat."
+  },
+  {
+    "component": "baneos",
+    "source": "DeepSeek/codigo_generado/032_Analisis_de_migracion_a_Components_V2/m016_b001_baneos.js",
+    "sourceSHA256": "d9d216de4346dde51c7d2dada8afd3b18947c44bd0699f00987667c8d978517d",
+    "reason": "Versión completa del mensaje 16, con expiración. Estado real de ejecución sustituye éxito presumido."
+  },
+  {
+    "component": "shifts",
+    "source": "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m006_b010_shifts.js",
+    "sourceSHA256": "bed7911cf8c5043e4374bcbaf24c4377f0bed58cf7693b1af533b0059fedf23d",
+    "reason": "Incluye pausas, anti-farming y ranking; mayor cobertura que b001 del mismo mensaje."
+  },
+  {
+    "component": "aperturas",
+    "source": "DeepSeek/codigo_generado/076_Discord_Bot_Voting_System_Code_Fix/m002_b001_aperturas.js",
+    "sourceSHA256": "4723c69137ab454a9d559f966c6de16aaf75370b70765a0ad701caa11536460e",
+    "reason": "Corrección posterior de votación del módulo anterior; persistencia reconstruida."
+  },
+  {
+    "component": "aperturas_shifts",
+    "source": "DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m010_b001_aperturas.js",
+    "sourceSHA256": "a775dbea6b1e4c1bb3ffbc7944eabda0a2d46ae217eb04f1058711638cc41767",
+    "reason": "Cierre de turnos cuando se cierra la apertura."
+  },
+  {
+    "component": "mensajes",
+    "source": "DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b005_crear-mensaje.js",
+    "sourceSHA256": "cf8a18a2efe6100da9c453f4187cac7b53a3969019fe03a46d828eb1fec165e7",
+    "reason": "Texto, separadores y galerías. Se reparó el uso de content incompatible con Components V2."
+  },
+  {
+    "component": "prc",
+    "source": "DeepSeek/codigo_generado/034_Integracion_de_API_de_PRC_en_bot_Discord/m018_b001_prcClient.js",
+    "sourceSHA256": "eee5a8305fe64ffb1ed11b184ce5c82aea1c62bb08a2d10978b1711503529e8a",
+    "reason": "Versión completa de cola PRC con /v1; se corrigió el prefijo, la autenticación, la serialización y los reintentos ambiguos."
+  },
+  {
+    "component": "jerarquia",
+    "source": "DeepSeek/codigo_generado/061_Actualizacion_de_jerarquia_administrativa_en_Discord/m004_b001_hierarchyAdmin.js",
+    "sourceSHA256": "f69fbaa581f71d7ed200508c500faf4f2048f490d525f4bd45be82089ad28474",
+    "reason": "Jerarquía por roles. Roles configurables, sin IDs personales."
+  },
+  {
+    "component": "staff_registros",
+    "source": "DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m010_b001_registrarplacas.js",
+    "sourceSHA256": "ab9a6249324eb75b57ecbae1a51baff92b4546e92ed5fdb0e2816cad9b220fe9",
+    "reason": "Registro de staff y actualización de nombres. JSON/SQLite sustituye require de un archivo JS de datos."
+  },
+  {
+    "component": "inicio",
+    "source": "recuperacion_inicial/adjuntos/pruebas_1.html",
+    "sourceSHA256": "db70db7824bc67f62e2f6c55461d1b22fe8950cc451ea2c45f54fe5fbd075fd0",
+    "reason": "Portada nativa MaesRP. Diseño preservado y autenticación local reconstruida."
+  },
+  {
+    "component": "police",
+    "source": "DeepSeek/codigo_pegado/001_Analisis_de_sistema_policial_MaesRP/m001_03_police.html",
+    "sourceSHA256": "d68acd310d24857713cc974f88afebc7571a3a7a84023769ec431bd6d3fd533e",
+    "reason": "HTML MaesRP policial más completo, con estilos y dashboard recuperados. Script inseguro sustituido; herramientas de registro quedan en /police-tools."
+  },
+  {
+    "component": "admin",
+    "source": "DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m004_b024_admin.html",
+    "sourceSHA256": "2fa6e212b9c0e8ffbea2481f23271eae6d94e09f862b3aa3a7044ad6bf624d08",
+    "reason": "Más cobertura que b015 del mismo mensaje. Interfaz operativa reconstruida con sus funciones."
+  },
+  {
+    "component": "staff",
+    "source": "DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b003_staff.html",
+    "sourceSHA256": "34691407c79a3e55d7973078663ef9d40ee6abe96b89a9741303844e608a4c35",
+    "reason": "Mayor HTML staff, pero con acciones ficticias y estadísticas aleatorias; se recuperaron las funciones y se reimplementaron con datos reales."
+  },
+  {
+    "component": "tickets",
+    "source": "DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m028_b001_tickets.js",
+    "sourceSHA256": "6408d428682dc4a714b548535d163f7efed83543e735d47bfb38c973d55260c3",
+    "reason": "Versión completa del mensaje 28 del chat. Se combinan reclamación, transcripción, evaluación e inactividad de las versiones previas."
+  }
+]

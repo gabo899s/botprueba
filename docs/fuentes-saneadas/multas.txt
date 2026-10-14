@@ -1,0 +1,1051 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/030_Error_en_pago_de_multas_corregido/m004_b001_multas.js
+
+const { 
+    SlashCommandBuilder, 
+    ButtonBuilder, 
+    ButtonStyle, 
+    StringSelectMenuBuilder, 
+    ActionRowBuilder,
+    MessageFlags,
+    TextDisplayBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    ContainerBuilder
+} = require('discord.js');
+const fs = require('fs').promises;
+const path = require('path');
+const axios = require('axios');
+
+// Configuración de rutas
+const CEDULAS_PATH = path.resolve(__dirname, '../data/cedulas.json');
+const MULTAS_PATH = path.resolve(__dirname, '../data/multas.json');
+const DIRECTOR_TRANSITO_ID = 'ID_POR_CONFIGURAR';
+const CANAL_MULTAS_ID = 'ID_POR_CONFIGURAR';
+
+// ROLES PERMITIDOS PARA /MULTAR
+const ROLES_PERMITIDOS = ['ID_POR_CONFIGURAR', 'ID_POR_CONFIGURAR'];
+
+// Mapa temporal para selección de multas
+const seleccionesTemporales = new Map();
+
+// ARTÍCULOS DE TRÁNSITO Y ORDEN PÚBLICO
+const ARTICULOS = [
+    { numero: 1, descripcion: 'Exceso de velocidad', monto: 150 },
+    { numero: 2, descripcion: 'Pasarse semáforo en rojo', monto: 250 },
+    { numero: 3, descripcion: 'No respetar STOP', monto: 200 },
+    { numero: 4, descripcion: 'Conducción temeraria', monto: 500 },
+    { numero: 5, descripcion: 'Carrera ilegal', monto: 1000 },
+    { numero: 6, descripcion: 'Derrapes / donuts en vía pública', monto: 600 },
+    { numero: 7, descripcion: 'Uso del celular conduciendo', monto: 150 },
+    { numero: 8, descripcion: 'Vehículo sin luces', monto: 100 },
+    { numero: 9, descripcion: 'Vidrios polarizados ilegales', monto: 200 },
+    { numero: 10, descripcion: 'Escape ruidoso ilegal', monto: 250 },
+    { numero: 11, descripcion: 'Circular sin placas', monto: 500 },
+    { numero: 12, descripcion: 'Placas alteradas u ocultas', monto: 400 },
+    { numero: 13, descripcion: 'Estacionar en doble fila', monto: 100 },
+    { numero: 14, descripcion: 'Bloquear intersección', monto: 200 },
+    { numero: 15, descripcion: 'No ceder el paso', monto: 150 },
+    { numero: 16, descripcion: 'Escándalo público', monto: 300 },
+    { numero: 17, descripcion: 'Lenguaje ofensivo en público', monto: 150 },
+    { numero: 18, descripcion: 'Beber alcohol en vía pública', monto: 200 },
+    { numero: 19, descripcion: 'Orinar en vía pública', monto: 250 },
+    { numero: 20, descripcion: 'Obstrucción de la vía', monto: 200 },
+    { numero: 21, descripcion: 'Merodeo sospechoso', monto: 150 },
+    { numero: 22, descripcion: 'Negarse a dispersarse', monto: 300 },
+    { numero: 23, descripcion: 'Incitar disturbios', monto: 400 },
+    { numero: 24, descripcion: 'Dormir en zonas no permitidas', monto: 100 },
+    { numero: 25, descripcion: 'Falsa alarma', monto: 500 },
+    { numero: 26, descripcion: 'Reunión que altera el orden público', monto: 400 },
+    { numero: 28, descripcion: 'Negarse a seguir instrucciones de la autoridad', monto: 300 },
+    { numero: 29, descripcion: 'Provocar a otros ciudadanos en vía pública', monto: 250 },
+    { numero: 30, descripcion: 'Actitud agresiva sin llegar a violencia', monto: 350 },
+    { numero: 31, descripcion: 'Uso indebido de megáfonos o altavoces', monto: 200 },
+    { numero: 32, descripcion: 'Obstruir accesos a edificios públicos', monto: 300 },
+    { numero: 33, descripcion: 'Interferir en arresto o detención', monto: 500 },
+    { numero: 34, descripcion: 'Generar pánico o alarma pública', monto: 600 },
+    { numero: 35, descripcion: 'Permanecer en vía pública bajo efectos de alcohol/drogas', monto: 350 }
+];
+
+// ==================== FUNCIONES AUXILIARES ====================
+
+async function cargarCedulas() {
+    try {
+        const data = await fs.readFile(CEDULAS_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error cargando cédulas:', error);
+        return {};
+    }
+}
+
+async function cargarMultas() {
+    try {
+        // Verificar si el archivo existe
+        try {
+            await fs.access(MULTAS_PATH);
+        } catch {
+            // Si no existe, crearlo con un objeto vacío
+            console.log(`[DEPURACIÓN] Archivo multas.json no existe, creando...`);
+            await fs.writeFile(MULTAS_PATH, JSON.stringify({}, null, 2));
+            return {};
+        }
+        
+        const data = await fs.readFile(MULTAS_PATH, 'utf8');
+        console.log(`[DEPURACIÓN] Archivo multas.json leído, tamaño: ${data.length} bytes`);
+        
+        // Verificar si el archivo está vacío o tiene contenido inválido
+        if (!data.trim()) {
+            console.log(`[DEPURACIÓN] Archivo multas.json está vacío`);
+            return {};
+        }
+        
+        const parsed = JSON.parse(data);
+        console.log(`[DEPURACIÓN] Multas cargadas: ${Object.keys(parsed).length}`);
+        return parsed;
+    } catch (error) {
+        console.error('Error cargando multas:', error);
+        console.error('Detalles del error:', error.stack);
+        return {};
+    }
+}
+
+async function guardarMultas(multas) {
+    try {
+        await fs.writeFile(MULTAS_PATH, JSON.stringify(multas, null, 2));
+        console.log(`[DEPURACIÓN] Multas guardadas exitosamente: ${Object.keys(multas).length} multas`);
+    } catch (error) {
+        console.error('Error guardando multas:', error);
+    }
+}
+
+function generarIdMulta() {
+    return `MULTA_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function calcularFechaVencimiento() {
+    const ahora = new Date();
+    const horaCR = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Costa_Rica' }));
+    
+    let diasHabiles = 0;
+    let fecha = new Date(horaCR);
+    
+    while (diasHabiles < 3) {
+        fecha.setDate(fecha.getDate() + 1);
+        const dia = fecha.getDay();
+        if (dia !== 0 && dia !== 6) { // No es domingo (0) ni sábado (6)
+            diasHabiles++;
+        }
+    }
+    
+    return fecha.toISOString();
+}
+
+function obtenerTimestampDiscord(fechaISO) {
+    const fecha = new Date(fechaISO);
+    return Math.floor(fecha.getTime() / 1000);
+}
+
+async function obtenerBalanceUnbelievabot(userId) {
+    try {
+        const token = "VALOR_RETIRADO";
+        const guildId = process.env.GUILD_ID;
+        
+        if (!token) {
+            console.error('UNBELIEVABOT_TOKEN no configurado');
+            return 0;
+        }
+        
+        const response = await axios.get(
+            `https://unbelievaboat.com/api/v1/guilds/${guildId}/users/${userId}`,
+            { headers: { Authorization: token } }
+        );
+        
+        return response.data.cash || 0;
+    } catch (error) {
+        console.error('Error obteniendo balance:', error);
+        return 0;
+    }
+}
+
+async function modificarBalanceUnbelievabot(userId, cantidad) {
+    try {
+        const token = "VALOR_RETIRADO";
+        const guildId = process.env.GUILD_ID;
+        
+        if (!token) {
+            console.error('UNBELIEVABOT_TOKEN no configurado');
+            return false;
+        }
+        
+        await axios.put(
+            `https://unbelievaboat.com/api/v1/guilds/${guildId}/users/${userId}`,
+            { cash: cantidad },
+            { headers: { Authorization: token } }
+        );
+        
+        return true;
+    } catch (error) {
+        console.error('Error modificando balance:', error);
+        return false;
+    }
+}
+
+function formatoError(mensajeEspecifico) {
+    return new ContainerBuilder()
+        .addTextDisplayComponents(
+            new TextDisplayBuilder()
+                .setContent('✅ **Error general**')
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder()
+                .setDivider(true)
+                .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder()
+                .setContent(`> ${mensajeEspecifico}`)
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder()
+                .setDivider(true)
+                .setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder()
+                .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+        );
+}
+
+// Función para calcular el monto automático basado en los artículos seleccionados
+function calcularMontoAutomatico(articulosTexto) {
+    let montoTotal = 0;
+    
+    // Buscar todos los números de artículos en el texto
+    // Formato esperado: "Art.1 (...)" o solo el número del artículo
+    const matches = articulosTexto.match(/Art\.(\d+)/gi);
+    
+    if (matches) {
+        matches.forEach(match => {
+            const numeroArticulo = parseInt(match.replace(/Art\./i, ''));
+            const articulo = ARTICULOS.find(art => art.numero === numeroArticulo);
+            if (articulo) {
+                montoTotal += articulo.monto;
+            }
+        });
+    }
+    
+    return montoTotal;
+}
+
+// ==================== FUNCIÓN DE DEPURACIÓN ====================
+async function verificarIntegridadMultas() {
+    try {
+        const multas = await cargarMultas();
+        const ids = Object.keys(multas);
+        
+        console.log(`=== INTEGRIDAD DE MULTAS ===`);
+        console.log(`Total multas: ${ids.length}`);
+        
+        for (const id of ids) {
+            const multa = multas[id];
+            console.log(`ID: ${id}`);
+            console.log(`  Usuario: ${multa.usuarioId}`);
+            console.log(`  Monto: $${multa.monto}`);
+            console.log(`  Estado: ${multa.estado || 'sin estado'}`);
+            console.log(`  Expiro: ${multa.fechaVencimiento ? new Date(multa.fechaVencimiento) : 'sin fecha'}`);
+            console.log(`---`);
+        }
+        
+        return ids.length;
+    } catch (error) {
+        console.error('Error en verificación de integridad:', error);
+        return 0;
+    }
+}
+
+// ==================== COMANDO /MULTAR ====================
+
+const comandoMultar = {
+    data: new SlashCommandBuilder()
+        .setName('multar')
+        .setDescription('Registra una multa a un usuario')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Usuario a multar')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('articulos')
+                .setDescription('Artículos infringidos')
+                .setRequired(true)
+                .setAutocomplete(true))
+        .addIntegerOption(option =>
+            option.setName('monto')
+                .setDescription('Monto de la multa (opcional, se calcula automáticamente)')
+                .setRequired(false)
+                .setMinValue(1)),
+    
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused().toLowerCase();
+        
+        const choices = ARTICULOS.map(art => ({
+            name: `Art.${art.numero} (${art.descripcion}) ($${art.monto})`,
+            value: `Art.${art.numero} (${art.descripcion}) ($${art.monto})`
+        }));
+        
+        const filtered = choices.filter(choice =>
+            choice.name.toLowerCase().includes(focusedValue)
+        );
+        
+        await interaction.respond(filtered.slice(0, 25));
+    },
+    
+    async execute(interaction) {
+        // Verificar roles
+        const tieneRol = ROLES_PERMITIDOS.some(rol => 
+            interaction.member.roles.cache.has(rol)
+        );
+        
+        if (!tieneRol) {
+            await interaction.reply({
+                components: [formatoError('No tienes permisos para usar este comando.')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        const usuario = interaction.options.getUser('usuario');
+        const articulos = interaction.options.getString('articulos');
+        let monto = interaction.options.getInteger('monto');
+        
+        // Si no se especificó monto, calcularlo automáticamente
+        if (!monto) {
+            monto = calcularMontoAutomatico(articulos);
+            
+            // Si aún así es 0, significa que no se usó el autocompletado y no hay monto
+            if (monto === 0) {
+                await interaction.reply({
+                    components: [formatoError('Debes especificar un monto o seleccionar artículos del autocompletado.')],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+                return;
+            }
+        }
+        
+        // Verificar que el monto sea entero (sin decimales)
+        if (!Number.isInteger(monto)) {
+            await interaction.reply({
+                components: [formatoError('El monto debe ser un número entero sin decimales.')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        // Cargar cédulas
+        const cedulas = await cargarCedulas();
+        const cedulaUsuario = cedulas[usuario.id];
+        const cedulaOficial = cedulas[interaction.user.id];
+        
+        if (!cedulaUsuario) {
+            await interaction.reply({
+                components: [formatoError('El usuario no tiene cédula registrada.')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        if (!cedulaOficial) {
+            await interaction.reply({
+                components: [formatoError('Tú no tienes cédula registrada.')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        // Generar ID y fecha de vencimiento
+        const idMulta = generarIdMulta();
+        const fechaVencimiento = calcularFechaVencimiento();
+        const timestampVencimiento = obtenerTimestampDiscord(fechaVencimiento);
+        
+        // Crear objeto de multa
+        const multa = {
+            id: idMulta,
+            usuarioId: usuario.id,
+            oficialId: interaction.user.id,
+            monto: monto,
+            articulos: articulos,
+            fechaCreacion: new Date().toISOString(),
+            fechaVencimiento: fechaVencimiento,
+            estado: 'pendiente',
+            recordatoriosEnviados: [],
+            pagadoEn: null,
+            metodoPago: null
+        };
+        
+        // Guardar multa
+        const multas = await cargarMultas();
+        multas[idMulta] = multa;
+        await guardarMultas(multas);
+        
+        // Verificar que se guardó correctamente
+        console.log(`[MULTAR] Multa creada: ID=${idMulta}, Usuario=${usuario.id}, Monto=$${monto}`);
+        
+        // Crear mensaje de confirmación
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('✅ **Nueva Multa Registrada**')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`Estimado/a ${cedulaUsuario.apellido1} ${cedulaUsuario.apellido2 || ''} ${cedulaUsuario.apellido3 || ''} ${cedulaUsuario.nombre} (<@${usuario.id}>), de parte de la División de Administración de Citaciones (CAD) se le informa que ha obtenido una multa:`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`\`🗒\` Articulos: \`${articulos}\``),
+                new TextDisplayBuilder()
+                    .setContent(`\`🚔\` Oficial: ${cedulaOficial.nombre} ${cedulaOficial.apellido1} ${cedulaOficial.apellido2 || ''} (<@${interaction.user.id}>)`),
+                new TextDisplayBuilder()
+                    .setContent(`\`💵\` Monto: \`$${monto}\``)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`✅ Tiene **3 dias habiles** (<t:${timestampVencimiento}:F>) para pagar la multa o de lo contrario se le cobrará automaticamente con un **recargo del 10%** (comando /pagar-multa)`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+            );
+        
+        // Responder al comando (PÚBLICO - SIN EPHEMERAL)
+        await interaction.reply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2
+        });
+    }
+};
+
+// ==================== COMANDO /PAGAR-MULTA ====================
+
+const comandoPagarMulta = {
+    data: new SlashCommandBuilder()
+        .setName('pagar-multa')
+        .setDescription('Paga tus multas pendientes'),
+    
+    async execute(interaction) {
+        const usuarioId = interaction.user.id;
+        
+        console.log('=== DEPURACIÓN: VERIFICANDO INTEGRIDAD DE MULTAS ===');
+        await verificarIntegridadMultas();
+        
+        const multas = await cargarMultas();
+        
+        console.log(`[DEPURACIÓN] Usuario ${usuarioId} (${interaction.user.tag}) intentando pagar multas.`);
+        console.log(`[DEPURACIÓN] Total multas en sistema: ${Object.values(multas).length}`);
+        
+        // Filtrar multas pendientes del usuario
+        const multasPendientes = Object.values(multas).filter(multa => {
+            const mismoUsuario = multa.usuarioId === usuarioId;
+            const estadoPendiente = multa.estado && multa.estado.toLowerCase() === 'pendiente';
+            return mismoUsuario && estadoPendiente;
+        });
+        
+        console.log(`[DEPURACIÓN] Multas pendientes para este usuario: ${multasPendientes.length}`);
+        
+        if (multasPendientes.length > 0) {
+            console.log(`[DEPURACIÓN] IDs de multas encontradas:`, multasPendientes.map(m => m.id));
+        }
+        
+        if (multasPendientes.length === 0) {
+            const multasUsuario = Object.values(multas).filter(m => m.usuarioId === usuarioId);
+            console.log(`[DEPURACIÓN] Total multas para este usuario (todos estados): ${multasUsuario.length}`);
+            
+            if (multasUsuario.length > 0) {
+                const estados = multasUsuario.map(m => m.estado || 'sin estado').join(', ');
+                console.log(`[DEPURACIÓN] Estados de las multas: ${estados}`);
+                
+                await interaction.reply({
+                    components: [formatoError(`No tienes multas pendientes. Tus multas tienen los siguientes estados: ${estados}`)],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            } else {
+                await interaction.reply({
+                    components: [formatoError('No tienes multas pendientes a tu nombre.')],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            return;
+        }
+        
+        // Crear select menu con multas
+        const opciones = multasPendientes.map((multa, index) => ({
+            label: `Multa #${index + 1} - $${multa.monto}`,
+            description: `Artículos: ${multa.articulos.substring(0, 50)}...`,
+            value: multa.id,
+            emoji: '💰'
+        }));
+        
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId('seleccionar_multas_pagar')
+            .setPlaceholder('Selecciona las multas a pagar')
+            .setMinValues(1)
+            .setMaxValues(multasPendientes.length)
+            .addOptions(opciones);
+        
+        const botonSiguiente = new ButtonBuilder()
+            .setCustomId('pagar_multas_siguiente')
+            .setLabel('Siguiente')
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('➡️');
+        
+        const actionRowSelect = new ActionRowBuilder().addComponents(selectMenu);
+        const actionRowBoton = new ActionRowBuilder().addComponents(botonSiguiente);
+        
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('✅ **Multas Pendientes:**')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`Tienes **${multasPendientes.length}** multa(s) pendiente(s). Selecciona las que deseas pagar:`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+            );
+        
+        await interaction.reply({
+            components: [container, actionRowSelect, actionRowBoton],
+            flags: MessageFlags.IsComponentsV2,
+            ephemeral: true
+        });
+    },
+    
+    componentHandlers: {
+        'seleccionar_multas_pagar': async (interaction) => {
+            seleccionesTemporales.set(interaction.user.id, interaction.values);
+            console.log(`[DEPURACIÓN] Usuario ${interaction.user.id} seleccionó multas:`, interaction.values);
+            await interaction.deferUpdate();
+        },
+        
+        'pagar_multas_siguiente': async (interaction) => {
+            const usuarioId = interaction.user.id;
+            const multasSeleccionadasIds = seleccionesTemporales.get(usuarioId);
+            
+            console.log(`[DEPURACIÓN] Usuario ${usuarioId} intentando pagar multas seleccionadas:`, multasSeleccionadasIds);
+            
+            if (!multasSeleccionadasIds || multasSeleccionadasIds.length === 0) {
+                await interaction.reply({
+                    components: [formatoError('No has seleccionado ninguna multa.')],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+                return;
+            }
+            
+            // Cargar multas ACTUALES del archivo JSON
+            const multas = await cargarMultas();
+            
+            // Verificar que todas las multas seleccionadas existan y estén pendientes
+            const multasAPagar = [];
+            const multasNoEncontradas = [];
+            const multasYaPagadas = [];
+            
+            for (const id of multasSeleccionadasIds) {
+                const multa = multas[id];
+                
+                if (!multa) {
+                    multasNoEncontradas.push(id);
+                    console.log(`[DEPURACIÓN] Multa ${id} no encontrada en archivo JSON`);
+                    continue;
+                }
+                
+                if (multa.estado.toLowerCase() !== 'pendiente') {
+                    multasYaPagadas.push({
+                        id: id,
+                        estado: multa.estado
+                    });
+                    console.log(`[DEPURACIÓN] Multa ${id} ya no está pendiente (estado: ${multa.estado})`);
+                    continue;
+                }
+                
+                if (multa.usuarioId !== usuarioId) {
+                    console.log(`[DEPURACIÓN] Multa ${id} pertenece a otro usuario`);
+                    continue;
+                }
+                
+                multasAPagar.push(multa);
+            }
+            
+            console.log(`[DEPURACIÓN] Multas a pagar después de verificar: ${multasAPagar.length}`);
+            console.log(`[DEPURACIÓN] Multas no encontradas: ${multasNoEncontradas.length}`);
+            console.log(`[DEPURACIÓN] Multas ya pagadas: ${multasYaPagadas.length}`);
+            
+            if (multasAPagar.length === 0) {
+                let mensajeError = 'No se pueden pagar las multas seleccionadas:\n';
+                
+                if (multasNoEncontradas.length > 0) {
+                    mensajeError += `• ${multasNoEncontradas.length} multa(s) no existen\n`;
+                }
+                
+                if (multasYaPagadas.length > 0) {
+                    mensajeError += `• ${multasYaPagadas.length} multa(s) ya fueron pagadas\n`;
+                }
+                
+                await interaction.reply({
+                    components: [formatoError(mensajeError)],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+                return;
+            }
+            
+            const total = multasAPagar.reduce((sum, multa) => sum + multa.monto, 0);
+            console.log(`[DEPURACIÓN] Total a pagar: $${total}`);
+            
+            const balance = await obtenerBalanceUnbelievabot(usuarioId);
+            console.log(`[DEPURACIÓN] Balance del usuario: $${balance}`);
+            
+            if (balance < total) {
+                await interaction.reply({
+                    components: [formatoError(`No tienes suficiente dinero. Necesitas $${total}, tienes $${balance}.`)],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+                return;
+            }
+            
+            console.log(`[DEPURACIÓN] Intentando cobrar $${total} al usuario ${usuarioId}...`);
+            const exito = await modificarBalanceUnbelievabot(usuarioId, -total);
+            
+            if (!exito) {
+                await interaction.reply({
+                    components: [formatoError('Error al procesar el pago. Intenta más tarde.')],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+                return;
+            }
+            
+            console.log(`[DEPURACIÓN] Pago exitoso. Actualizando estado de multas...`);
+            
+            const fechaPago = new Date().toISOString();
+            for (const multa of multasAPagar) {
+                multa.estado = 'pagada';
+                multa.pagadoEn = fechaPago;
+                multa.metodoPago = 'manual';
+                multas[multa.id] = multa;
+                console.log(`[DEPURACIÓN] Multa ${multa.id} marcada como pagada.`);
+            }
+            
+            await guardarMultas(multas);
+            
+            seleccionesTemporales.delete(usuarioId);
+            
+            // Enviar al canal de multas cuando se PAGA
+            const canalMultas = interaction.client.channels.cache.get(CANAL_MULTAS_ID);
+            if (canalMultas) {
+                const cedulas = await cargarCedulas();
+                const cedulaUsuario = cedulas[usuarioId] || {};
+                
+                const containerCanal = new ContainerBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ **Multa(s) Pagada(s)**')
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                            .setDivider(true)
+                            .setSpacing(SeparatorSpacingSize.Small)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent(`${cedulaUsuario.nombre || 'Usuario'} ${cedulaUsuario.apellido1 || ''} (<@${usuarioId}>) ha pagado **${multasAPagar.length}** multa(s) por un total de **$${total}**.`)
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                            .setDivider(true)
+                            .setSpacing(SeparatorSpacingSize.Small)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+                    );
+                
+                await canalMultas.send({
+                    components: [containerCanal],
+                    flags: MessageFlags.IsComponentsV2
+                });
+            }
+            
+            const confirmacionContainer = new ContainerBuilder()
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('✅ **Pago Exitoso**')
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`✅ Has pagado **${multasAPagar.length}** multa(s) por un total de **$${total}**.`)
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+                );
+            
+            await interaction.reply({
+                components: [confirmacionContainer],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+        }
+    }
+};
+
+// ==================== COMANDO /VER-MULTAS ====================
+
+const comandoVerMultas = {
+    data: new SlashCommandBuilder()
+        .setName('ver-multas')
+        .setDescription('Muestra todas las multas registradas')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Filtrar por usuario (opcional)')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('id_multa')
+                .setDescription('Buscar por ID de multa (opcional)')
+                .setRequired(false)
+                .setAutocomplete(true)),
+    
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused().toLowerCase();
+        const multas = await cargarMultas();
+        const cedulas = await cargarCedulas();
+        
+        const choices = Object.values(multas).map(multa => {
+            const cedulaUsuario = cedulas[multa.usuarioId] || {};
+            const cedulaOficial = cedulas[multa.oficialId] || {};
+            const nombreUsuario = cedulaUsuario.nombre || 'Desconocido';
+            const nombreOficial = cedulaOficial.nombre || 'Desconocido';
+            
+            return {
+                name: `Multa - ${nombreOficial} ${nombreUsuario} $${multa.monto}`,
+                value: multa.id
+            };
+        });
+        
+        const filtered = choices.filter(choice =>
+            choice.name.toLowerCase().includes(focusedValue) ||
+            choice.value.toLowerCase().includes(focusedValue)
+        );
+        
+        await interaction.respond(filtered.slice(0, 25));
+    },
+    
+    async execute(interaction) {
+        console.log('=== DEPURACIÓN: VERIFICANDO INTEGRIDAD DE MULTAS ===');
+        await verificarIntegridadMultas();
+        
+        const multas = await cargarMultas();
+        const cedulas = await cargarCedulas();
+        const usuarioFiltro = interaction.options.getUser('usuario');
+        const idMultaFiltro = interaction.options.getString('id_multa');
+        
+        console.log(`[DEPURACIÓN] Total multas en sistema para /ver-multas: ${Object.keys(multas).length}`);
+        
+        let multasFiltradas = Object.values(multas);
+        
+        // Filtrar por usuario si se especificó
+        if (usuarioFiltro) {
+            multasFiltradas = multasFiltradas.filter(m => m.usuarioId === usuarioFiltro.id);
+        }
+        
+        // Filtrar por ID de multa si se especificó
+        if (idMultaFiltro) {
+            multasFiltradas = multasFiltradas.filter(m => m.id === idMultaFiltro);
+        }
+        
+        if (multasFiltradas.length === 0) {
+            await interaction.reply({
+                components: [formatoError('No se encontraron multas con los filtros especificados.')],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            });
+            return;
+        }
+        
+        // Formatear lista de multas
+        let textoMultas = '';
+        multasFiltradas.forEach((multa, index) => {
+            const cedulaUsuario = cedulas[multa.usuarioId] || {};
+            const cedulaOficial = cedulas[multa.oficialId] || {};
+            
+            textoMultas += `**Multa #${index + 1}**\n`;
+            textoMultas += `ID: \`${multa.id}\`\n`;
+            textoMultas += `Usuario: ${cedulaUsuario.nombre || 'Desconocido'} ${cedulaUsuario.apellido1 || ''}\n`;
+            textoMultas += `Oficial: ${cedulaOficial.nombre || 'Desconocido'} ${cedulaOficial.apellido1 || ''}\n`;
+            textoMultas += `Monto: $${multa.monto}\n`;
+            textoMultas += `Estado: ${multa.estado ? multa.estado.toUpperCase() : 'SIN ESTADO'}\n`;
+            textoMultas += `Fecha: <t:${obtenerTimestampDiscord(multa.fechaCreacion)}:R>\n`;
+            textoMultas += `---\n\n`;
+        });
+        
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('✅ **Todas las Multas**')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(textoMultas)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+            );
+        
+        await interaction.reply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2
+        });
+    }
+};
+
+// ==================== SISTEMA DE RECORDATORIOS Y COBRO AUTOMÁTICO ====================
+
+async function revisarMultasPendientes(client) {
+    console.log('🔍 Revisando multas pendientes...');
+    
+    const multas = await cargarMultas();
+    const cedulas = await cargarCedulas();
+    const ahora = new Date();
+    
+    console.log(`[REVISIÓN] Total multas a revisar: ${Object.keys(multas).length}`);
+    
+    for (const [id, multa] of Object.entries(multas)) {
+        if (!multa.estado || multa.estado.toLowerCase() !== 'pendiente') {
+            console.log(`[REVISIÓN] Multa ${id} no está pendiente (estado: ${multa.estado}), saltando...`);
+            continue;
+        }
+        
+        console.log(`[REVISIÓN] Procesando multa ${id} para usuario ${multa.usuarioId}`);
+        
+        const fechaVencimiento = new Date(multa.fechaVencimiento);
+        const horasRestantes = (fechaVencimiento - ahora) / (1000 * 60 * 60);
+        
+        console.log(`[REVISIÓN] Horas restantes: ${horasRestantes.toFixed(2)}`);
+        
+        // Enviar recordatorios diarios
+        if (horasRestantes > 0 && horasRestantes < 24) {
+            const diasRestantes = Math.ceil(horasRestantes / 24);
+            
+            if (!multa.recordatoriosEnviados || !multa.recordatoriosEnviados.includes(diasRestantes)) {
+                const usuario = await client.users.fetch(multa.usuarioId).catch(() => {
+                    console.log(`[REVISIÓN] No se pudo obtener usuario ${multa.usuarioId}`);
+                    return null;
+                });
+                
+                if (usuario) {
+                    console.log(`[REVISIÓN] Enviando recordatorio a ${usuario.tag} (${diasRestantes} día(s) restantes)`);
+                    
+                    const recordatorioContainer = new ContainerBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ **Recordatorio de Multa**')
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`Te quedan **${diasRestantes} día(s)** para pagar la multa.`)
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`Monto: $${multa.monto}\nArtículos: ${multa.articulos}`)
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+                        );
+                    
+                    await usuario.send({
+                        components: [recordatorioContainer],
+                        flags: MessageFlags.IsComponentsV2
+                    }).catch(error => {
+                        console.log(`[REVISIÓN] Error enviando DM a ${usuario.tag}:`, error.message);
+                    });
+                    
+                    if (!multa.recordatoriosEnviados) {
+                        multa.recordatoriosEnviados = [];
+                    }
+                    multa.recordatoriosEnviados.push(diasRestantes);
+                    multas[id] = multa;
+                }
+            }
+        }
+        
+        // Cobro automático si ya venció
+        if (horasRestantes <= 0) {
+            console.log(`⚡ Cobrando multa automáticamente: ${id}`);
+            
+            const montoRecargo = Math.floor(multa.monto * 0.1);
+            const montoTotal = multa.monto + montoRecargo;
+            
+            const balanceUsuario = await obtenerBalanceUnbelievabot(multa.usuarioId);
+            console.log(`[COBRO AUTOMÁTICO] Balance usuario ${multa.usuarioId}: ${balanceUsuario}, Total a cobrar: ${montoTotal}`);
+            
+            if (balanceUsuario >= montoTotal) {
+                const cobroExitoso = await modificarBalanceUnbelievabot(multa.usuarioId, -montoTotal);
+                
+                if (cobroExitoso) {
+                    console.log(`[COBRO AUTOMÁTICO] Cobro exitoso de ${montoTotal} a ${multa.usuarioId}`);
+                    
+                    const montoOficial = Math.floor(multa.monto * 0.25);
+                    const montoDirector = Math.floor(multa.monto * 0.5);
+                    
+                    console.log(`[COBRO AUTOMÁTICO] Distribuyendo: ${montoOficial} al oficial, ${montoDirector} al director`);
+                    
+                    await modificarBalanceUnbelievabot(multa.oficialId, montoOficial);
+                    await modificarBalanceUnbelievabot(DIRECTOR_TRANSITO_ID, montoDirector);
+                    
+                    multa.estado = 'cobrada_auto';
+                    multa.pagadoEn = new Date().toISOString();
+                    multa.metodoPago = 'automatico';
+                    multas[id] = multa;
+                    
+                    // Enviar al canal cuando se cobra automáticamente
+                    const canalMultas = client.channels.cache.get(CANAL_MULTAS_ID);
+                    if (canalMultas) {
+                        const cedulaUsuario = cedulas[multa.usuarioId] || {};
+                        
+                        const containerCobro = new ContainerBuilder()
+                            .addTextDisplayComponents(
+                                new TextDisplayBuilder()
+                                    .setContent('✅ **Multa Cobrada Automáticamente**')
+                            )
+                            .addSeparatorComponents(
+                                new SeparatorBuilder()
+                                    .setDivider(true)
+                                    .setSpacing(SeparatorSpacingSize.Small)
+                            )
+                            .addTextDisplayComponents(
+                                new TextDisplayBuilder()
+                                    .setContent(`Estimado/a ${cedulaUsuario.apellido1 || ''} ${cedulaUsuario.apellido2 || ''} ${cedulaUsuario.apellido3 || ''} ${cedulaUsuario.nombre || 'Usuario'} (<@${multa.usuarioId}>), de parte de la División de Administración de Citaciones (CAD) se le informa que se le ha cobrado la multa con el ID (\`${id}\`) automáticamente.`)
+                            )
+                            .addSeparatorComponents(
+                                new SeparatorBuilder()
+                                    .setDivider(true)
+                                    .setSpacing(SeparatorSpacingSize.Small)
+                            )
+                            .addTextDisplayComponents(
+                                new TextDisplayBuilder()
+                                    .setContent(`Monto Original: $${multa.monto}`),
+                                new TextDisplayBuilder()
+                                    .setContent(`Monto de Recargo: $${montoRecargo}`),
+                                new TextDisplayBuilder()
+                                    .setContent(`Monto Total: $${montoTotal}`)
+                            )
+                            .addSeparatorComponents(
+                                new SeparatorBuilder()
+                                    .setDivider(true)
+                                    .setSpacing(SeparatorSpacingSize.Small)
+                            )
+                            .addTextDisplayComponents(
+                                new TextDisplayBuilder()
+                                    .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+                            );
+                        
+                        await canalMultas.send({
+                            components: [containerCobro],
+                            flags: MessageFlags.IsComponentsV2
+                        });
+                    }
+                } else {
+                    console.log(`[COBRO AUTOMÁTICO] Error cobrando al usuario ${multa.usuarioId}`);
+                }
+            } else {
+                console.log(`⚠️ Usuario ${multa.usuarioId} no tiene saldo para cobro automático (tiene ${balanceUsuario}, necesita ${montoTotal})`);
+            }
+        }
+    }
+    
+    await guardarMultas(multas);
+    console.log('[REVISIÓN] Revisión completada.');
+}
+
+// ==================== EXPORTACIÓN ====================
+
+module.exports = [comandoMultar, comandoPagarMulta, comandoVerMultas];
+module.exports.revisarMultas = revisarMultasPendientes;
+module.exports.verificarIntegridadMultas = verificarIntegridadMultas; // Para depuración

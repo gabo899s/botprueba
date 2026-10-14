@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaesRP - La Élite del Rol en Costa Rica</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <!-- Tailwind CSS -->
+    
+    <!-- FontAwesome Icons -->
+    
+    <!-- Google Fonts -->
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/home-tailwind.css">
+<link rel="stylesheet" href="/css/fontawesome.css">
+<link rel="stylesheet" href="/css/home.css">
+<script src="/js/home.js" defer></script>
+</head>
+<body class="antialiased selection:bg-maesRed selection:text-white font-sans">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+    <!-- Modal de anuncio Roblox -->
+    <div id="roblox-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" data-action="closeRobloxModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="home-inline-1">
+                <div class="modal-icon">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <h2 class="modal-title">Vincula tu cuenta de <span class="gradient-text">Roblox</span></h2>
+                <p class="modal-text">
+                    La vinculación de Roblox es opcional. Requiere iniciar sesión con Discord y configurar el proveedor.
+                </p>
+                <button class="modal-button" data-action="connectRoblox">
+                    <i class="home-inline-2 fa-brands fa-roblox"></i>
+                    Iniciar Sesión con Roblox
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-[100] px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-8 py-3">
+            <div class="flex items-center gap-2">
+                <img src="/images/logo.png" alt="MaesRP Logo" class="w-8 h-8 rounded-lg object-cover border-2 border-maesRed">
+                <span class="font-title font-bold text-xl tracking-tighter">MAES<span class="text-maesRed">RP</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8 font-medium text-sm uppercase tracking-widest">
+                <a href="#inicio" class="hover:text-maesRed transition-all">Inicio</a>
+                <a href="#departamentos" class="hover:text-maesRed transition-all">Departamentos</a>
+                <a href="#como-unirse" class="hover:text-maesRed transition-all">Unirse</a>
+                <a href="#" data-action="police" class="hover:text-maesRed transition-all">Plataforma Policial</a>
+                <a href="/staff" class="hover:text-maesRed transition-all">Staff</a>
+                <a href="/admin" class="hover:text-maesRed transition-all">Administración</a>
+                <a href="#staff" class="hover:text-maesRed transition-all">Equipo Administrativo</a>
+            </div>
+
+            <!-- Área de usuario/Login -->
+            <div id="user-area" class="relative">
+                <!-- Esto se llenará dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-maesRed/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+            <div class="scanline"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-4">
+            <!-- Esta sección se llenará dinámicamente -->
+            <div id="hero-content">
+                <!-- Contenido por defecto (sin login) -->
+                <div class="overflow-visible mb-2">
+                    <h1 class="hero-title font-title font-bold select-none uppercase tracking-tighter">MAESRP</h1>
+                </div>
+                
+                <div class="max-w-3xl mx-auto">
+                    <p class="text-3xl md:text-5xl font-bold italic uppercase tracking-tighter mb-8 leading-relaxed">
+                        <span class="prevent-clip">Aquí no jugamos, <span class="gradient-text">vivimos el rol</span></span>
+                    </p>
+                    <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+                        La experiencia definitiva de ER:LC diseñada para maes que buscan realismo táctico, cultura tica auténtica y un sistema de leyes estricto.
+                    </p>
+                    
+                    <div class="flex flex-wrap justify-center gap-6">
+                        <a href="#como-unirse" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                            Forjar mi Historia
+                            <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="https://discord.gg/maesrp" target="_blank" class="btn-premium btn-discord px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group" rel="noopener noreferrer">
+                            <i class="fa-brands fa-discord text-xl"></i>
+                            Discord Oficial
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secciones restantes se mantienen igual... -->
+    <section id="departamentos" class="py-32 relative px-6 bg-[#080808]">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-20">
+                <h2 class="text-6xl md:text-8xl font-title font-bold uppercase italic leading-none opacity-5 absolute -top-10 left-0 select-none">INSTITUCIONES</h2>
+                <div class="relative z-10">
+                    <p class="text-maesRed font-bold uppercase tracking-[0.5em] text-xs mb-4">¿De qué lado de la ley estás?</p>
+                    <h3 class="text-4xl md:text-6xl font-title font-bold uppercase italic">Departamentos <span class="text-maesRed">Oficiales</span></h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Fuerza Pública -->
+                <div class="home-inline-3 md:col-span-8 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[500px]">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-12 w-full z-10">
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="px-4 py-1 bg-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg shadow-blue-600/40">COLUMNA VERTEBRAL</span>
+                            <span class="text-blue-400 text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-circle text-[8px] mr-2 animate-pulse"></i> PATRULLAJE ACTIVO</span>
+                        </div>
+                        <h4 class="text-4xl md:text-5xl font-title font-bold uppercase italic mb-4">Fuerza Pública</h4>
+                        <p class="text-gray-300 max-w-lg font-light leading-relaxed mb-6">No es solo patrullar, es imponer respeto. Únete a la mayor fuerza del país y mantén las calles de Liberty County libres de delincuencia.</p>
+                        <a href="https://discord.gg/maesrp" target="_blank" class="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-white group-hover:text-maesRed transition-colors" rel="noopener noreferrer">
+                            RECLUTAMIENTO ABIERTO <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- OIJ -->
+                <div class="home-inline-4 md:col-span-4 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[500px]">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-10 z-10">
+                        <div class="mb-6">
+                            <i class="fa-solid fa-crosshairs text-3xl text-gray-400 group-hover:text-white transition-colors"></i>
+                        </div>
+                        <h4 class="text-2xl font-title font-bold uppercase italic mb-3">OIJ / SERT</h4>
+                        <p class="text-sm text-gray-400 font-light leading-relaxed">Para los que operan en las sombras. Inteligencia, balística y asaltos tácticos. Aquí solo entran los mejores del servidor.</p>
+                    </div>
+                </div>
+
+                <!-- Cruz Roja -->
+                <div class="home-inline-5 md:col-span-4 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[450px]">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-10 z-10">
+                        <div class="w-12 h-12 bg-red-600/20 rounded-xl flex items-center justify-center mb-6 border border-red-600/30 group-hover:bg-red-600 transition-colors">
+                            <i class="fa-solid fa-heart-pulse text-red-500 group-hover:text-white"></i>
+                        </div>
+                        <h4 class="text-2xl font-title font-bold uppercase italic mb-3">Cruz Roja</h4>
+                        <p class="text-sm text-gray-400 font-light leading-relaxed">Cada segundo cuenta. Sé el héroe que estabiliza la situación cuando todo se sale de control.</p>
+                    </div>
+                </div>
+
+                <!-- Bomberos -->
+                <div class="home-inline-6 md:col-span-8 group overflow-hidden rounded-3xl border border-white/10 dept-card h-[450px]">
+                    <div class="absolute inset-0 dept-overlay"></div>
+                    <div class="absolute bottom-0 left-0 p-8 md:p-12 w-full z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                        <div>
+                            <h4 class="text-4xl font-title font-bold uppercase italic mb-4">Bomberos CR</h4>
+                            <p class="text-gray-300 max-w-sm font-light leading-relaxed">Valor bajo fuego. Desde accidentes de tránsito masivos hasta incendios estructurales. La abnegación es nuestra ley.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="glass p-5 rounded-2xl text-center min-w-[100px] border-white/5 hover:border-maesRed/30 transition-all">
+                                <p class="text-maesRed font-bold text-2xl leading-none">Vigilancia</p>
+                                <p class="text-[8px] uppercase font-bold text-gray-500 tracking-widest mt-2">Aérea</p>
+                            </div>
+                            <div class="glass p-5 rounded-2xl text-center min-w-[100px] border-white/5 hover:border-maesRed/30 transition-all">
+                                <p class="text-white font-bold text-2xl leading-none">POL</p>
+                                <p class="text-[8px] uppercase font-bold text-gray-500 tracking-widest mt-2">Tránsito</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Acceso Section -->
+    <section id="como-unirse" class="py-32 bg-white text-black px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div>
+                    <h2 class="text-6xl font-title font-bold uppercase italic tracking-tighter mb-8 leading-none">Tu Nueva Vida <br><span class="text-maesRed">Comienza Aquí</span></h2>
+                    <div class="space-y-10 font-sans">
+                        <div class="flex gap-6 group">
+                            <span class="text-5xl font-title font-bold text-gray-100 group-hover:text-maesRed transition-colors">01</span>
+                            <div>
+                                <h5 class="font-bold uppercase italic text-sm mb-2 tracking-widest">Inicia la Plataforma</h5>
+                                <p class="text-gray-500 text-sm leading-relaxed">Entra a Roblox y busca el servidor de "Police Roleplay Community" (ER:LC).</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 group">
+                            <span class="text-5xl font-title font-bold text-gray-100 group-hover:text-maesRed transition-colors">02</span>
+                            <div>
+                                <h5 class="font-bold uppercase italic text-sm mb-2 tracking-widest">Zona Privada</h5>
+                                <p class="text-gray-500 text-sm leading-relaxed">Navega a la pestaña de servidores privados y selecciona "Join Private Server".</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 group">
+                            <span class="text-5xl font-title font-bold text-gray-100 group-hover:text-maesRed transition-colors">03</span>
+                            <div>
+                                <h5 class="font-bold uppercase italic text-sm mb-2 tracking-widest">Identidad Verificada</h5>
+                                <p class="text-gray-500 text-sm leading-relaxed">Introduce el código oficial de acceso. Asegúrate de escribirlo tal cual aparece.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-maesRed/20 blur-3xl rounded-[40px]"></div>
+                    <div class="relative bg-maesDeep rounded-[40px] p-8 md:p-12 text-white border border-white/10 red-glow shadow-2xl">
+                        <p class="text-[10px] uppercase tracking-[0.5em] font-bold text-maesRed mb-8 text-center">CREDENCIAL DE ACCESO MAESRP</p>
+                        
+                        <div class="bg-white/5 border border-white/10 rounded-3xl p-8 mb-10 relative overflow-visible">
+                            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-maesDeep px-4 border border-white/10 rounded-full">
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500 italic">Código Único</span>
+                            </div>
+                            <input type="text" value="MaesRP" id="serverCode" readonly class="bg-transparent w-full text-center text-5xl md:text-7xl font-title font-bold tracking-tight outline-none overflow-visible px-4 prevent-clip text-white cursor-default">
+                        </div>
+                        
+                        <button data-action="copy" class="w-full bg-maesRed py-6 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-maesRed/40 flex items-center justify-center gap-4">
+                            <i class="fa-solid fa-copy text-lg"></i> RECLAMAR MI LUGAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Staff Section -->
+    <section id="staff" class="py-32 px-6">
+        <div class="max-w-7xl mx-auto text-center mb-24">
+            <p class="text-maesRed font-bold uppercase tracking-[0.4em] text-[10px] mb-4">Los Arquitectos del Caos</p>
+            <h2 class="text-4xl font-title font-bold uppercase italic text-white">Equipo<span class="text-maesRed">Administrativo</span></h2>
+            <div class="w-20 h-1 bg-maesRed mx-auto mt-6"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+            <!-- Skarr -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-b from-maesRed to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-sm"></div>
+                <div class="glass p-10 rounded-3xl text-center relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Skarr&amp;backgroundColor=b6e3f4" class="w-32 h-32 rounded-2xl mx-auto mb-8 grayscale group-hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
+                    <h4 class="text-2xl font-title font-bold text-white uppercase italic">Skarr</h4>
+                    <p class="text-maesRed text-[9px] font-bold uppercase tracking-[0.3em] mt-3">FUNDADOR • DIRECTOR GENERAL</p>
+                </div>
+            </div>
+
+            <!-- Denzell -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-b from-maesRed to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-sm"></div>
+                <div class="glass p-10 rounded-3xl text-center relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Denzell&amp;backgroundColor=ffdfbf" class="w-32 h-32 rounded-2xl mx-auto mb-8 grayscale group-hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
+                    <h4 class="text-2xl font-title font-bold text-white uppercase italic">Denzell</h4>
+                    <p class="text-maesRed text-[9px] font-bold uppercase tracking-[0.3em] mt-3">CO-FUNDADOR • GESTIÓN ESTRATÉGICA</p>
+                </div>
+            </div>
+
+            <!-- epeelgrillo -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-b from-maesRed to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-sm"></div>
+                <div class="glass p-10 rounded-3xl text-center relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Adamsitoo&amp;backgroundColor=c0aede" class="w-32 h-32 rounded-2xl mx-auto mb-8 grayscale group-hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
+                    <h4 class="text-2xl font-title font-bold text-white uppercase italic">Pepeelgrillo</h4>
+                    <p class="text-maesRed text-[9px] font-bold uppercase tracking-[0.3em] mt-3">DEVELOPER • DESARROLLO GENERAL </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 bg-black border-t border-white/5 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+            <div class="text-center md:text-left">
+                <span class="font-title font-bold text-3xl italic">MAES<span class="text-maesRed">RP</span></span>
+                <p class="text-gray-600 text-[10px] mt-4 uppercase tracking-[0.4em] font-bold italic">Donde el Respeto se Gana con Rol</p>
+            </div>
+            
+            <div class="flex gap-8 text-gray-500">
+                <a href="https://discord.gg/maesrp" target="_blank" class="hover:text-discordBlue transition-colors text-2xl" rel="noopener noreferrer"><i class="fa-brands fa-discord"></i></a>
+                <a href="#" data-action="unconfiguredSocial" class="hover:text-maesRed transition-colors text-2xl"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="#" data-action="unconfiguredSocial" class="hover:text-maesRed transition-colors text-2xl"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+
+            <div class="text-center md:text-right">
+                <p class="text-[9px] text-gray-700 uppercase tracking-widest leading-loose font-bold">
+                    © 2026 MaesRP Elite <br>
+                    Nacidos para el Realismo.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Template del Dropdown del Perfil (oculto por defecto) -->
+    <template id="profile-dropdown-template">
+        <div class="profile-dropdown">
+            <div class="profile-menu-header">
+                <img src="" class="profile-avatar" id="dropdown-avatar" alt="Avatar">
+                <div class="profile-info">
+                    <div class="profile-username" id="dropdown-username">Cargando...</div>
+                    <div class="profile-userid" id="dropdown-userid">Sesión local</div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Enlazados</div>
+                <div id="connections-list">
+                    <!-- Se llenará dinámicamente con JavaScript -->
+                </div>
+            </div>
+
+            <div class="menu-actions">
+                <button class="update-btn" data-action="refreshProfile">
+                    <i class="fa-solid fa-rotate mr-2"></i>Actualizar Información
+                </button>
+                <button class="logout-btn" data-action="logout">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i>Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para un elemento de conexión Roblox -->
+    <template id="roblox-connection-template">
+        <div class="connection-item">
+            <img src="" class="connection-avatar" alt="Roblox Avatar">
+            <div class="connection-info">
+                <div class="connection-platform">Roblox</div>
+                <div class="connection-username">Usuario</div>
+            </div>
+            <div class="connection-status">
+                <i class="fa-solid fa-check text-green-500"></i>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para botón de conectar Roblox -->
+    <template id="connect-roblox-template">
+        <button class="connect-btn" data-action="connectRoblox">
+            <div class="icon">+</div>
+            <div>Conectar con Roblox</div>
+        </button>
+    </template>
+
+    <!-- Template para Hero Section con usuario logeado -->
+    <template id="user-hero-template">
+        <div class="text-center">
+            <div class="mb-6 inline-flex items-center gap-2 bg-maesRed/10 border border-maesRed/20 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.4em] text-maesRed">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-maesRed opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-maesRed"></span>
+                </span>
+                BIENVENIDO DE VUELTA
+            </div>
+            
+            <img src="" class="user-hero-avatar mx-auto mb-6" id="hero-avatar" alt="Avatar">
+            <h1 class="user-hero-name font-title" id="hero-name">Cargando...</h1>
+            <p class="user-hero-role" id="hero-role">Ciudadano</p>
+            <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+                Accede a todas las funcionalidades de tu personaje en Maes Roleplay.
+            </p>
+            
+            <div class="flex flex-wrap justify-center gap-6">
+                <a href="#" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group" data-action="citizen">
+                    <i class="fa-solid fa-user"></i>
+                    Panel de Ciudadano
+                    <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                <a href="https://discord.gg/maesrp" target="_blank" class="btn-premium btn-discord px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group" rel="noopener noreferrer">
+                    <i class="fa-brands fa-discord text-xl"></i>
+                    Comunidad Discord
+                </a>
+            </div>
+        </div>
+    </template>
+
+    
+
+<template id="guest-hero-template">
+                <!-- Contenido por defecto (sin login) -->
+                <div class="overflow-visible mb-2">
+                    <h1 class="hero-title font-title font-bold select-none uppercase tracking-tighter">MAESRP</h1>
+                </div>
+                
+                <div class="max-w-3xl mx-auto">
+                    <p class="text-3xl md:text-5xl font-bold italic uppercase tracking-tighter mb-8 leading-relaxed">
+                        <span class="prevent-clip">Aquí no jugamos, <span class="gradient-text">vivimos el rol</span></span>
+                    </p>
+                    <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+                        La experiencia definitiva de ER:LC diseñada para maes que buscan realismo táctico, cultura tica auténtica y un sistema de leyes estricto.
+                    </p>
+                    
+                    <div class="flex flex-wrap justify-center gap-6">
+                        <a href="#como-unirse" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
+                            Forjar mi Historia
+                            <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="https://discord.gg/maesrp" target="_blank" class="btn-premium btn-discord px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group" rel="noopener noreferrer">
+                            <i class="fa-brands fa-discord text-xl"></i>
+                            Discord Oficial
+                        </a>
+                    </div>
+                </div></template>
+<dialog id="loginDialog" class="local-dialog" aria-labelledby="loginTitle">
+ <button class="local-close" type="button" data-action="closeLogin" aria-label="Cerrar">×</button>
+ <h2 id="loginTitle" class="font-title font-bold">INICIAR SESIÓN</h2>
+ <p class="text-gray-400 mt-4">Usa el administrador que configuraste en tu equipo.</p>
+ <form id="localLogin">
+  <label for="localUsername">Usuario</label><input id="localUsername" name="username" autocomplete="username" required maxlength="40">
+  <label for="localPassword">Contraseña</label><input id="localPassword" name="password" type="password" autocomplete="current-password" required maxlength="256">
+  <p id="loginError" role="alert" class="text-red-400 mt-4" hidden></p>
+  <button class="modal-button mt-6" type="submit">Entrar</button>
+ </form>
+ <a id="discordLogin" href="/auth/discord" class="connect-btn justify-center mt-4" hidden><i class="fa-brands fa-discord"></i> Entrar con Discord</a>
+</dialog>
+<dialog id="citizenDialog" class="local-dialog" aria-labelledby="citizenTitle">
+ <button class="local-close" type="button" data-action="closeCitizen" aria-label="Cerrar">×</button>
+ <h2 id="citizenTitle" class="font-title font-bold">MI PERSONAJE</h2>
+ <div id="citizenProfile" class="mt-6"></div>
+</dialog>
+
+<div class="demo-shortcuts"><a href="/">← InfiniteDev</a><a href="/ciudadano">Explorar panel ciudadano →</a></div>
+</body>
+</html>

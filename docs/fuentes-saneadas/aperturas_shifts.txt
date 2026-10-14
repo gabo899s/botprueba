@@ -1,0 +1,757 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/058_Sistema_anti-farming_y_ranking_de_moderadores/m010_b001_aperturas.js
+
+// commands/aperturas.js
+
+const {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
+  ContainerBuilder,
+  MediaGalleryBuilder,
+  SeparatorSpacingSize,
+  EmbedBuilder
+} = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
+const STAFF_ROLE_ID = 'ID_POR_CONFIGURAR';
+const APERTURAS_LOG_CHANNEL_ID = 'ID_POR_CONFIGURAR';
+const DATA_FILE = path.join(__dirname, '..', 'data', 'aperturas.json');
+
+// ================== VARIABLES DE INTEGRACIÓN SHIFTS ==================
+const GUILD_PRINCIPAL_ID = process.env.GUILD_ID;
+const CANAL_VOZ_SHIFTS = 'ID_POR_CONFIGURAR';
+const MAXIMO_HORAS_SHIFT = 5;
+
+// Asegurar que el directorio data existe
+if (!fs.existsSync(path.dirname(DATA_FILE))) {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+}
+
+// ================== VARIABLES EN MEMORIA (RAM) ==================
+let ultimaEncuesta = cargarEncuesta();
+const userCooldowns = new Map();
+let isUpdatingMessage = false;
+let pendingUpdate = false;
+let updateTimer = null;
+
+// ================== PERSISTENCIA OPTIMIZADA ==================
+function cargarEncuesta() {
+  if (!fs.existsSync(DATA_FILE)) {
+    return null;
+  }
+  try {
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (data) {
+      data.votosCiviles = new Set(data.votosCiviles || []);
+      data.votosMods = new Set(data.votosMods || []);
+    }
+    return data;
+  } catch (err) {
+    console.error('❌ Error cargando encuesta:', err);
+    return null;
+  }
+}
+
+function guardarEncuestaAsync() {
+  if (!ultimaEncuesta) {
+    fs.writeFile(DATA_FILE, JSON.stringify(null), (err) => {
+      if (err) console.error('Error borrando archivo data:', err);
+    });
+    return;
+  }
+
+  const dataToSave = {
+    ...ultimaEncuesta,
+    votosCiviles: Array.from(ultimaEncuesta.votosCiviles),
+    votosMods: Array.from(ultimaEncuesta.votosMods),
+  };
+
+  fs.writeFile(DATA_FILE, JSON.stringify(dataToSave, null, 2), (err) => {
+    if (err) console.error('❌ Error guardando encuesta en background:', err);
+  });
+}
+
+// ================== INTEGRACIÓN CON SHIFTS ==================
+async function verificarShiftActivo(userId) {
+  try {
+    // Intentar cargar el módulo de shifts dinámicamente
+    const shiftsModule = require('./shifts');
+    if (!shiftsModule || !shiftsModule.shiftsActivos) return false;
+    
+    const shiftsActivos = shiftsModule.shiftsActivos();
+    return shiftsActivos && shiftsActivos.has(userId);
+  } catch (error) {
+    // Si no existe el módulo, retornar false
+    return false;
+  }
+}
+
+async function cerrarShiftsPorEstadoServidor(client, estado) {
+  if (estado === 'cerrado') {
+    try {
+      const shiftsModule = require('./shifts');
+      if (shiftsModule && typeof shiftsModule.cerrarTodosShiftsPorApertura === 'function') {
+        console.log('🔄 Cerrando todos los shifts por cambio de estado del servidor...');
+        await shiftsModule.cerrarTodosShiftsPorApertura(client);
+        
+        // Crear embed de notificación
+        const embed = new EmbedBuilder()
+          .setColor(0xff0000)
+          .setTitle('⏹️ Shifts Finalizados')
+          .setDescription('Todos los shifts han sido finalizados automáticamente debido al cierre del servidor.')
+          .addFields(
+            { name: 'Motivo', value: 'Servidor cerrado', inline: true },
+            { name: 'Acción', value: 'Shifts finalizados', inline: true },
+            { name: 'Fecha', value: `<t:${Math.floor(Date.now()/1000)}:F>`, inline: true }
+          )
+          .setFooter({ text: 'Sistema de Aperturas - Escazú RP' });
+        
+        // Enviar notificación al canal de logs si existe
+        const logChannel = client.channels.cache.get(APERTURAS_LOG_CHANNEL_ID);
+        if (logChannel) {
+          await logChannel.send({ embeds: [embed] }).catch(() => {});
+        }
+        
+        return true;
+      }
+    } catch (error) {
+      console.error('❌ Error cerrando shifts desde aperturas:', error);
+    }
+  }
+  return false;
+}
+
+// ================== HELPERS VISUALES ==================
+const ERROR_ICON = '✅';
+const CHECK_ICON = '✅';
+const IMAGEN_APERTURA = 'https://media.discordapp.net/attachments/ID_POR_CONFIGURAR/ID_POR_CONFIGURAR/image.png?format=webp&quality=lossless&width=150&height=89';
+const IMAGEN_ABIERTO = 'https://media.discordapp.net/attachments/ID_POR_CONFIGURAR/ID_POR_CONFIGURAR/image.png?format=webp&quality=lossless&width=150&height=89';
+const IMAGEN_CERRADO = 'https://media.discordapp.net/attachments/ID_POR_CONFIGURAR/ID_POR_CONFIGURAR/image.png?format=webp&quality=lossless&width=150&height=89';
+
+function crearContainerMensaje({ tipo = 'info', titulo, descripcion }) {
+  const color = tipo === 'error' ? 0xe53935 : tipo === 'success' ? 0x00c853 : 0x5865f2;
+  const container = new ContainerBuilder().setAccentColor(color);
+  
+  container.addTextDisplayComponents((text) =>
+    text.setContent(`${tipo === 'error' ? ERROR_ICON : CHECK_ICON} **${titulo}**`)
+  );
+  container.addSeparatorComponents((sep) => sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+  if (descripcion) {
+    container.addTextDisplayComponents((text) => text.setContent(descripcion));
+  }
+  return container;
+}
+
+function construirBotonesVotacion(deshabilitados = false) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('apertura_civil')
+      .setLabel('Civil listo')
+      .setEmoji('🟢')
+      .setStyle(ButtonStyle.Success)
+      .setDisabled(deshabilitados),
+    new ButtonBuilder()
+      .setCustomId('apertura_mod')
+      .setLabel('Moderador listo')
+      .setEmoji('🛡️')
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(deshabilitados),
+    new ButtonBuilder()
+      .setCustomId('apertura_quitar')
+      .setLabel('Retirar voto')
+      .setEmoji('🗑️')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(deshabilitados),
+  );
+}
+
+function crearContainerApertura({ organizador, hora, minCiviles, minMods, votosCiviles, votosMods, incluirBotones = true, botonesDeshabilitados = false }) {
+  const container = new ContainerBuilder().setAccentColor(0x00a86b);
+
+  container.addTextDisplayComponents((text) =>
+    text.setContent('## 📊 Votación de Apertura — 🥂 Escazú Roleplay I ER:LC')
+  );
+
+  container.addTextDisplayComponents((text) =>
+    text.setContent(
+      [
+        '¡Se ha programado una nueva encuesta de apertura!',
+        '',
+        '✅ **Pulsa algún botón para votar y así poder abrir**',
+        '• 🟢 **Civil**.',
+        '• 🔵 **Moderador**.',
+        '',
+        '⚠️ Si votas, tendrás 15 minutos para unirte o serás sancionado.',
+        '',
+        '🚨 **NOTA:** Si tienes un shift activo, termínalo antes de votar.',
+      ].join('\n')
+    )
+  );
+
+  container.addSeparatorComponents((sep) => sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+
+  container.addTextDisplayComponents((text) =>
+    text.setContent(`**👤 Organizador:** ${organizador}`)
+  );
+  container.addTextDisplayComponents((text) =>
+    text.setContent(`**🕒 Hora estimada:** ${hora}`)
+  );
+  container.addTextDisplayComponents((text) =>
+    text.setContent(
+      `**👥 Civiles listos:** ${votosCiviles} / ${minCiviles}\n` +
+      `**🛡️ Moderadores listos:** ${votosMods} / ${minMods}`
+    )
+  );
+
+  if (incluirBotones) {
+    const botones = construirBotonesVotacion(botonesDeshabilitados);
+    container.addActionRowComponents(botones);
+  }
+
+  container.addSeparatorComponents((sep) => sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+  container.addMediaGalleryComponents(new MediaGalleryBuilder().addItems((item) => item.setURL(IMAGEN_APERTURA)));
+
+  return container;
+}
+
+// ================== LOGICA DE DEBOUNCE VISUAL ==================
+async function programarActualizacionVisual(client) {
+  if (updateTimer) {
+    pendingUpdate = true;
+    return;
+  }
+
+  const ejecutarEdicion = async () => {
+    if (!ultimaEncuesta) return;
+
+    try {
+      const channel = client.channels.cache.get(ultimaEncuesta.channelId);
+      if (!channel) return;
+      
+      const message = await channel.messages.fetch(ultimaEncuesta.messageId).catch(() => null);
+      if (!message) return;
+
+      const nuevoContainer = crearContainerApertura({
+        organizador: `<@${ultimaEncuesta.organizadorId}>`,
+        hora: ultimaEncuesta.hora,
+        minCiviles: ultimaEncuesta.minCiviles,
+        minMods: ultimaEncuesta.minMods,
+        votosCiviles: ultimaEncuesta.votosCiviles.size,
+        votosMods: ultimaEncuesta.votosMods.size,
+        incluirBotones: true,
+      });
+
+      await message.edit({
+        components: [nuevoContainer],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    } catch (err) {
+      console.error('❌ Error en actualización visual (debounce):', err.message);
+    }
+  };
+
+  updateTimer = setTimeout(async () => {
+    updateTimer = null;
+    
+    if (pendingUpdate) {
+      pendingUpdate = false;
+      await ejecutarEdicion();
+    }
+  }, 2000);
+
+  await ejecutarEdicion();
+}
+
+// ================== MANEJADOR DE INTERACCIONES ==================
+async function handleComponentInteraction(interaction) {
+  if (!interaction.isButton()) return false;
+
+  const customId = interaction.customId;
+
+  if (customId.startsWith('apertura_')) {
+    await handleAperturaInteraction(interaction);
+    return true;
+  }
+  return false;
+}
+
+async function handleAperturaInteraction(interaction) {
+  // 1. Anti-Spam Check
+  const userId = interaction.user.id;
+  const now = Date.now();
+  if (userCooldowns.has(userId)) {
+    const expirationTime = userCooldowns.get(userId) + 2000;
+    if (now < expirationTime) {
+      return interaction.reply({
+        content: '⏳ Por favor, espera unos segundos antes de votar de nuevo.',
+        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+  }
+  userCooldowns.set(userId, now);
+
+  // 2. Validación de Estado
+  if (!ultimaEncuesta) {
+    return interaction.reply({
+      components: [crearContainerMensaje({ tipo: 'error', titulo: 'Encuesta no encontrada', descripcion: 'No hay una encuesta activa.' })],
+      flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
+    });
+  }
+
+  // 3. Verificar si el usuario tiene un shift activo (INTEGRACIÓN CON SHIFTS)
+  const tieneShiftActivo = await verificarShiftActivo(userId);
+  if (tieneShiftActivo) {
+    return interaction.reply({
+      components: [crearContainerMensaje({ 
+        tipo: 'error', 
+        titulo: 'Shift activo detectado',
+        descripcion: 'Tienes un shift activo en el sistema de moderación.\n\n⏹️ **Termina tu shift antes de votar en aperturas.**\n\n📍 Ve al canal de shifts y usa el botón "Terminar Shift" o el comando correspondiente.' 
+      })],
+      flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
+    });
+  }
+
+  // 4. Proceso de Voto (EN RAM - INSTANTÁNEO)
+  const customId = interaction.customId;
+  const votosCiviles = ultimaEncuesta.votosCiviles;
+  const votosMods = ultimaEncuesta.votosMods;
+  let replyMsg = null;
+  let logText = null;
+
+  if (customId === 'apertura_civil') {
+    const eraMod = votosMods.has(userId);
+    votosMods.delete(userId);
+    votosCiviles.add(userId);
+    replyMsg = { tipo: 'success', titulo: 'Voto registrado', descripcion: 'Votaste como **Civil listo**.' };
+    logText = eraMod ? `🟢 <@${userId}> cambió a **Civil**.` : `🟢 <@${userId}> votó **Civil**.`;
+
+  } else if (customId === 'apertura_mod') {
+    // Check de rol
+    const member = interaction.member;
+    const isStaff = member && member.roles && member.roles.cache && member.roles.cache.has(STAFF_ROLE_ID);
+    if (!isStaff) {
+      return interaction.reply({
+        components: [crearContainerMensaje({ tipo: 'error', titulo: 'Solo staff', descripcion: 'Solo Staff puede votar Moderador.' })],
+        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
+      });
+    }
+    const eraCivil = votosCiviles.has(userId);
+    votosCiviles.delete(userId);
+    votosMods.add(userId);
+    replyMsg = { tipo: 'success', titulo: 'Voto registrado', descripcion: 'Votaste como **Moderador listo**.' };
+    logText = eraCivil ? `🛡️ <@${userId}> cambió a **Moderador**.` : `🛡️ <@${userId}> votó **Moderador**.`;
+
+  } else if (customId === 'apertura_quitar') {
+    votosCiviles.delete(userId);
+    votosMods.delete(userId);
+    replyMsg = { tipo: 'info', titulo: 'Voto retirado', descripcion: 'Has retirado tu voto.' };
+    logText = `🗑️ <@${userId}> retiró su voto.`;
+  }
+
+  // 5. Guardado en Disco (Background)
+  guardarEncuestaAsync();
+
+  // 6. Respuesta al Usuario (Inmediata)
+  await interaction.reply({
+    components: [crearContainerMensaje(replyMsg)],
+    flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
+  });
+
+  // 7. Actualización Visual (Debounced / Throttled)
+  programarActualizacionVisual(interaction.client);
+
+  // 8. Logs
+  const logChannel = interaction.client.channels.cache.get(APERTURAS_LOG_CHANNEL_ID);
+  if (logChannel) {
+    logChannel.send({
+      components: [crearContainerMensaje({ tipo: 'info', titulo: 'Registro de voto', descripcion: logText })],
+      flags: MessageFlags.IsComponentsV2,
+    }).catch(console.error);
+  }
+}
+
+// ================== COMANDOS SLASH ==================
+async function manejarEncuestaApertura(interaction) {
+  const minCiviles = interaction.options.getInteger('min-votos', true);
+  const minMods = interaction.options.getInteger('min-mods', true);
+  const hora = interaction.options.getString('hora', true);
+  const organizador = interaction.user;
+
+  // ==== LIMPIEZA DE ENCUESTA ANTERIOR ====
+  if (ultimaEncuesta) {
+    try {
+      const oldChannel = interaction.client.channels.cache.get(ultimaEncuesta.channelId);
+      if (oldChannel) {
+        const oldMsg = await oldChannel.messages.fetch(ultimaEncuesta.messageId).catch(() => null);
+        if (oldMsg) {
+            const containerDesactivado = crearContainerApertura({
+                organizador: `<@${ultimaEncuesta.organizadorId}>`,
+                hora: ultimaEncuesta.hora,
+                minCiviles: ultimaEncuesta.minCiviles,
+                minMods: ultimaEncuesta.minMods,
+                votosCiviles: ultimaEncuesta.votosCiviles.size,
+                votosMods: ultimaEncuesta.votosMods.size,
+                incluirBotones: true,
+                botonesDeshabilitados: true
+            });
+            
+            containerDesactivado.addTextDisplayComponents(t => t.setContent('🔴 **Esta encuesta ha finalizado.**'));
+            
+            await oldMsg.edit({ components: [containerDesactivado], flags: MessageFlags.IsComponentsV2 });
+        }
+      }
+    } catch (err) {
+      console.error('Error cerrando encuesta anterior:', err);
+    }
+  }
+
+  // ==== CREAR NUEVA ENCUESTA ====
+  const votosCiviles = new Set();
+  const votosMods = new Set();
+  
+  const container = crearContainerApertura({
+    organizador: `<@${organizador.id}>`,
+    hora,
+    minCiviles,
+    minMods,
+    votosCiviles: 0,
+    votosMods: 0,
+    incluirBotones: true,
+  });
+
+  await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
+  const message = await interaction.fetchReply();
+
+  ultimaEncuesta = {
+    organizadorId: organizador.id,
+    hora,
+    minCiviles,
+    minMods,
+    votosCiviles,
+    votosMods,
+    messageId: message.id,
+    channelId: message.channel.id,
+    guildId: message.guild.id,
+  };
+
+  guardarEncuestaAsync();
+
+  const logChannel = interaction.client.channels.cache.get(APERTURAS_LOG_CHANNEL_ID);
+  if (logChannel) {
+    const containerLog = crearContainerApertura({
+      organizador: `<@${organizador.id}>`,
+      hora,
+      minCiviles,
+      minMods,
+      votosCiviles: 0,
+      votosMods: 0,
+      incluirBotones: false,
+    });
+    await logChannel.send({ components: [containerLog], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
+  }
+}
+
+// ================== ESTADO SV (Con integración de shifts) ==================
+function crearContainerEstadoServidor({ estado, organizadorId, ahora }) {
+    const esAbierto = estado === 'abierto';
+    const color = esAbierto ? 0x00c853 : 0xe53935;
+    const imagen = esAbierto ? IMAGEN_ABIERTO : IMAGEN_CERRADO;
+  
+    const container = new ContainerBuilder().setAccentColor(color);
+  
+    const titulo = esAbierto ? '🟢 Servidor Abierto' : '🔴 Servidor Cerrado';
+    const descripcion = esAbierto
+      ? [
+          'El servidor ha sido **abierto**. Recuerda seguir todas las normas de rol.',
+          '',
+          '📌 **Código para unirse en ER:LC:** `EscazuRP`',
+          '',
+          'Para pedir ayuda dentro del juego usa `!mod` o el sistema de soporte del servidor de Discord.',
+        ].join('\n')
+      : [
+          'El servidor está **cerrado** por el momento.',
+          '',
+          '🚨 **NOTA:** Todos los shifts de moderación han sido finalizados automáticamente.',
+          '',
+          'Te recomendamos quedarte pendiente a los anuncios para la próxima apertura.',
+        ].join('\n');
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(`## ${titulo}`),
+    );
+    container.addTextDisplayComponents((text) =>
+      text.setContent(descripcion),
+    );
+  
+    container.addSeparatorComponents((sep) =>
+      sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(
+        [
+          `**👤 Staff responsable:** <@${organizadorId}>`,
+          esAbierto
+            ? `**📍 Estado:** 🟢 **Activo** — Servidor Abierto (<t:${ahora}:R>)`
+            : `**📍 Estado:** 🔴 **Cerrado** — Servidor Cerrado (<t:${ahora}:R>)`,
+          '**🎮 Jugadores:** 0 / 40 *(informativo)*',
+        ].join('\n'),
+      ),
+    );
+  
+    container.addSeparatorComponents((sep) =>
+      sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+    
+    container.addMediaGalleryComponents(
+      new MediaGalleryBuilder().addItems((item) => item.setURL(imagen)),
+    );
+  
+    return container;
+  }
+  
+  function crearContainerDmApertura(ultimaEncuesta, estado) {
+    const esAbierto = estado === 'abierto';
+    const color = esAbierto ? 0x00c853 : 0xe53935;
+  
+    const container = new ContainerBuilder().setAccentColor(color);
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(
+        esAbierto
+          ? '## 🟢 Servidor abierto — Aviso de apertura'
+          : '## 🔴 Estado del servidor',
+      ),
+    );
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(
+        [
+          'Has votado en la **encuesta de apertura** y el servidor ha sido **abierto**.',
+          '',
+          '⏰ **Tienes 15 minutos para unirte** al servidor.',
+          'Si no te conectas dentro de ese tiempo, podrías recibir una sanción según el reglamento de aperturas.',
+        ].join('\n'),
+      ),
+    );
+  
+    container.addSeparatorComponents((sep) =>
+      sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(
+        [
+          `**👤 Organizador:** <@${ultimaEncuesta.organizadorId}>`,
+          `**🕒 Hora estimada de apertura:** ${ultimaEncuesta.hora}`,
+        ].join('\n'),
+      ),
+    );
+  
+    return container;
+  }
+  
+  function crearContainerResumenApertura(ultimaEncuesta, estado, civIds, modIds) {
+    const esAbierto = estado === 'abierto';
+    const totalCiviles = civIds.length;
+    const totalMods = modIds.length;
+    const total = totalCiviles + totalMods;
+  
+    const civList =
+      civIds.length > 0
+        ? civIds.map((id) => `🟢 <@${id}>`).join('\n')
+        : 'Nadie votó como civil.';
+  
+    const modList =
+      modIds.length > 0
+        ? modIds.map((id) => `🛡️ <@${id}>`).join('\n')
+        : 'Nadie votó como moderador.';
+  
+    const container = new ContainerBuilder().setAccentColor(
+      esAbierto ? 0x00c853 : 0xe53935,
+    );
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent('## 🧮 Resumen final de votación de apertura'),
+    );
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(
+        [
+          `Estado final del servidor: **${esAbierto ? 'Abierto 🟢' : 'Cerrado 🔴'}**`,
+          '',
+          `👤 Organizador: <@${ultimaEncuesta.organizadorId}>`,
+          `🕒 Hora estimada: **${ultimaEncuesta.hora}**`,
+        ].join('\n'),
+      ),
+    );
+  
+    container.addSeparatorComponents((sep) =>
+      sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+  
+    container.addTextDisplayComponents((text) =>
+      text.setContent(
+        [
+          `**🟢 Civiles que votaron:** ${totalCiviles}`,
+          `**🛡️ Moderadores que votaron:** ${totalMods}`,
+          `**👥 Total de votos:** ${total}`,
+        ].join('\n'),
+      ),
+    );
+  
+    if (esAbierto) {
+      container.addSeparatorComponents((sep) =>
+        sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+      );
+  
+      container.addTextDisplayComponents((text) =>
+        text.setContent('### 🟢 Civiles (usuarios)'),
+      );
+      container.addTextDisplayComponents((text) =>
+        text.setContent(civList),
+      );
+  
+      container.addSeparatorComponents((sep) =>
+        sep.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+      );
+  
+      container.addTextDisplayComponents((text) =>
+        text.setContent('### 🛡️ Moderadores (usuarios)'),
+      );
+      container.addTextDisplayComponents((text) =>
+        text.setContent(modList),
+      );
+    }
+  
+    return container;
+  }
+
+async function manejarEstadoServidor(interaction) {
+    const estado = interaction.options.getString('estado', true);
+    const organizador = interaction.user;
+    const ahora = Math.floor(Date.now() / 1000);
+  
+    const containerEstado = crearContainerEstadoServidor({
+      estado,
+      organizadorId: organizador.id,
+      ahora,
+    });
+  
+    await interaction.reply({
+      components: [containerEstado],
+      flags: MessageFlags.IsComponentsV2,
+    });
+  
+    const logChannel = interaction.client.channels.cache.get(APERTURAS_LOG_CHANNEL_ID);
+  
+    // Enviar al log
+    if (logChannel) {
+      const containerLog = crearContainerEstadoServidor({
+        estado,
+        organizadorId: organizador.id,
+        ahora,
+      });
+  
+      await logChannel.send({
+        components: [containerLog],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    }
+  
+    // ================== INTEGRACIÓN CON SHIFTS ==================
+    // Cerrar todos los shifts cuando el servidor se cierra
+    const shiftsCerrados = await cerrarShiftsPorEstadoServidor(interaction.client, estado);
+    
+    // Si hay encuesta activa, manejar DMs y resumen
+    if (ultimaEncuesta) {
+      const civIds = Array.from(ultimaEncuesta.votosCiviles || []);
+      const modIds = Array.from(ultimaEncuesta.votosMods || []);
+  
+      if (estado === 'abierto') {
+        const todosIds = Array.from(new Set([...civIds, ...modIds]));
+  
+        for (const id of todosIds) {
+          interaction.client.users.fetch(id).then(user => {
+            const dmContainer = crearContainerDmApertura(ultimaEncuesta, estado);
+            user.send({
+                components: [dmContainer],
+                flags: MessageFlags.IsComponentsV2,
+            }).catch(() => {});
+          }).catch(() => {});
+        }
+      }
+  
+      if (logChannel) {
+        const resumenContainer = crearContainerResumenApertura(
+          ultimaEncuesta,
+          estado,
+          civIds,
+          modIds,
+        );
+  
+        await logChannel.send({
+          components: [resumenContainer],
+          flags: MessageFlags.IsComponentsV2,
+        });
+      }
+  
+      // Limpiar la encuesta después de cambiar el estado
+      ultimaEncuesta = null;
+      guardarEncuestaAsync();
+    }
+  }
+
+// ================== EXPORTS ==================
+const encuestaAperturaCommand = {
+  data: new SlashCommandBuilder()
+    .setName('encuesta-apertura')
+    .setDescription('Crea una encuesta para abrir el servidor.')
+    .addIntegerOption((opt) => opt.setName('min-votos').setDescription('Mínimo de votos de civiles necesarios.').setRequired(true))
+    .addIntegerOption((opt) => opt.setName('min-mods').setDescription('Mínimo de votos de moderadores necesarios.').setRequired(true))
+    .addStringOption((opt) => opt.setName('hora').setDescription('Hora estimada de inicio (ej: 5:30 pm).').setRequired(true))
+    .setDMPermission(false),
+  async execute(interaction) {
+    const member = interaction.member;
+    const hasRole = member && member.roles && member.roles.cache && member.roles.cache.has(STAFF_ROLE_ID);
+    if (!hasRole) {
+      return interaction.reply({
+        components: [crearContainerMensaje({ tipo: 'error', titulo: 'Sin permisos', descripcion: 'No tienes permiso para usar este comando.' })],
+        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
+      });
+    }
+    return manejarEncuestaApertura(interaction);
+  },
+};
+
+const estadoServidorCommand = {
+  data: new SlashCommandBuilder()
+    .setName('estado-sv')
+    .setDescription('Publica el estado del servidor (abierto o cerrado).')
+    .addStringOption((opt) =>
+      opt.setName('estado').setDescription('Nuevo estado del servidor.').setRequired(true)
+        .addChoices({ name: 'Abierto', value: 'abierto' }, { name: 'Cerrado', value: 'cerrado' }),
+    )
+    .setDMPermission(false),
+  async execute(interaction) {
+    const member = interaction.member;
+    const hasRole = member && member.roles && member.roles.cache && member.roles.cache.has(STAFF_ROLE_ID);
+    if (!hasRole) {
+      return interaction.reply({
+        components: [crearContainerMensaje({ tipo: 'error', titulo: 'Sin permisos', descripcion: 'No tienes permiso para usar este comando.' })],
+        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
+      });
+    }
+    return manejarEstadoServidor(interaction);
+  },
+};
+
+module.exports = {
+  commands: [encuestaAperturaCommand, estadoServidorCommand],
+  handleComponentInteraction,
+};

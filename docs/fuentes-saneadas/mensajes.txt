@@ -1,0 +1,377 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/028_Desarrollo_de_sistema_de_mensajes_avanzado/m004_b005_crear-mensaje.js
+
+const { 
+    SlashCommandBuilder, 
+    PermissionFlagsBits,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    MessageFlags
+} = require('discord.js');
+const mensajesStorage = require('../../utils/mensajesStorage');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('crear-mensaje')
+        .setDescription('Crea un mensaje personalizado con Components V2')
+        .addStringOption(option =>
+            option.setName('accent-color')
+                .setDescription('Color en hexadecimal (ej: FF5733) o nombre de color')
+                .setRequired(false))
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
+
+        // Verificar permisos
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+            return interaction.editReply({
+                content: '❌ Necesitas permisos de administrador para usar este comando.',
+                ephemeral: true
+            });
+        }
+
+        const accentColor = interaction.options.getString('accent-color');
+        let colorHex = null;
+
+        // Procesar color si se proporcionó
+        if (accentColor) {
+            colorHex = this.parseColor(accentColor);
+            if (!colorHex) {
+                return interaction.editReply({
+                    content: '❌ Color inválido. Usa formato hexadecimal (FF5733) o nombres básicos (red, blue, green).',
+                    ephemeral: true
+                });
+            }
+        }
+
+        // Guardar estado en el cliente
+        if (!interaction.client.mensajeCreators) {
+            interaction.client.mensajeCreators = new Map();
+        }
+
+        // Guardar información temporal
+        interaction.client.mensajeCreators.set(interaction.user.id, {
+            stage: 'waiting_message',
+            accentColor: colorHex,
+            channelId: interaction.channelId,
+            userId: interaction.user.id
+        });
+
+        // Crear embed instructivo
+        const embed = new EmbedBuilder()
+            .setTitle('📝 Crear Mensaje - Paso 1/2')
+            .setDescription('**Envía el mensaje que quieres guardar**\n\n' +
+                           'Puedes incluir:\n' +
+                           '• **Texto normal** con markdown\n' +
+                           '• **`[separador]`** para crear una división\n' +
+                           '• **Enlaces de imágenes** (se convertirán automáticamente)\n' +
+                           '• Múltiples líneas y formatos\n\n' +
+                           '**Ejemplo:**\n```\n¡Bienvenidos!\n[separador]\nAquí está nuestra imagen:\nhttps://media.discordapp.net/attachments/...\n[separador]\nReglas importantes...```')
+            .setColor(0x5865F2)
+            .setTimestamp();
+
+        const cancelButton = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`cancel-crear-${interaction.user.id}`)
+                    .setLabel('Cancelar')
+                    .setStyle(ButtonStyle.Danger)
+                    .setEmoji('❌')
+            );
+
+        await interaction.editReply({
+            embeds: [embed],
+            components: [cancelButton],
+            ephemeral: true
+        });
+
+        // Crear collector para capturar el mensaje del usuario
+        const filter = m => m.author.id === interaction.user.id && !m.content.startsWith('/');
+        const collector = interaction.channel.createMessageCollector({ 
+            filter, 
+            time: 300000, // 5 minutos
+            max: 1 
+        });
+
+        collector.on('collect', async (message) => {
+            try {
+                // Eliminar el mensaje del usuario
+                await message.delete().catch(() => {});
+
+                // Actualizar estado
+                const creatorData = interaction.client.mensajeCreators.get(interaction.user.id);
+                if (!creatorData) return;
+
+                creatorData.stage = 'waiting_name';
+                creatorData.messageContent = message.content;
+                creatorData.messageId = message.id;
+
+                // Pedir nombre del mensaje
+                const nameEmbed = new EmbedBuilder()
+                    .setTitle('📝 Crear Mensaje - Paso 2/2')
+                    .setDescription('**Ahora escribe el NOMBRE para guardar este mensaje**\n\n' +
+                                   'El nombre debe ser:\n' +
+                                   '• Único (no repetido)\n' +
+                                   '• Sin espacios o usar guiones bajos\n' +
+                                   '• Máximo 32 caracteres\n\n' +
+                                   '**Ejemplos:** `bienvenida`, `reglas_server`, `anuncio_importante`')
+                    .setColor(0x5865F2)
+                    .setTimestamp();
+
+                await interaction.followUp({
+                    embeds: [nameEmbed],
+                    ephemeral: true
+                });
+
+                // Collector para el nombre
+                const nameFilter = m => m.author.id === interaction.user.id;
+                const nameCollector = interaction.channel.createMessageCollector({
+                    filter: nameFilter,
+                    time: 180000, // 3 minutos
+                    max: 1
+                });
+
+                nameCollector.on('collect', async (nameMessage) => {
+                    try {
+                        await nameMessage.delete().catch(() => {});
+
+                        const nombre = nameMessage.content.trim();
+                        
+                        // Validar nombre
+                        if (nombre.length > 32) {
+                            await interaction.followUp({
+                                content: '❌ El nombre es muy largo (máximo 32 caracteres).',
+                                ephemeral: true
+                            });
+                            interaction.client.mensajeCreators.delete(interaction.user.id);
+                            return;
+                        }
+
+                        if (mensajesStorage.existeMensaje(nombre)) {
+                            await interaction.followUp({
+                                content: '❌ Ya existe un mensaje con ese nombre. Usa otro.',
+                                ephemeral: true
+                            });
+                            interaction.client.mensajeCreators.delete(interaction.user.id);
+                            return;
+                        }
+
+                        // Procesar el mensaje y construir componentes
+                        const componentes = this.procesarMensaje(creatorData.messageContent);
+
+                        // Guardar el mensaje
+                        const resultado = mensajesStorage.crearMensaje(nombre, {
+                            componentes: componentes,
+                            accentColor: creatorData.accentColor,
+                            rawContent: creatorData.messageContent,
+                            creadoPor: interaction.user.id,
+                            guildId: interaction.guildId
+                        });
+
+                        if (resultado.success) {
+                            // Limpiar estado
+                            interaction.client.mensajeCreators.delete(interaction.user.id);
+
+                            // Mostrar preview
+                            const previewEmbed = new EmbedBuilder()
+                                .setTitle('✅ Mensaje Creado Exitosamente')
+                                .setDescription(`**Nombre:** \`${nombre}\`\n**Componentes generados:** ${componentes.length}`)
+                                .addFields(
+                                    { name: 'Accent Color', value: creatorData.accentColor ? `\`${creatorData.accentColor.toString(16)}\`` : 'No aplicado', inline: true },
+                                    { name: 'Caracteres', value: `${creatorData.messageContent.length}`, inline: true },
+                                    { name: 'Imágenes detectadas', value: `${this.contarImagenes(creatorData.messageContent)}`, inline: true }
+                                )
+                                .setColor(0x57F287)
+                                .setTimestamp();
+
+                            await interaction.followUp({
+                                embeds: [previewEmbed],
+                                ephemeral: true
+                            });
+
+                            // Enviar preview real si hay menos de 10 componentes
+                            if (componentes.length <= 10) {
+                                try {
+                                    await interaction.followUp({
+                                        content: '**📋 Vista Previa:**',
+                                        flags: MessageFlags.IsComponentsV2,
+                                        components: this.construirContainer(componentes, creatorData.accentColor),
+                                        ephemeral: true
+                                    });
+                                } catch (previewError) {
+                                    console.error('Error en preview:', previewError);
+                                }
+                            }
+                        } else {
+                            await interaction.followUp({
+                                content: `❌ Error: ${resultado.error}`,
+                                ephemeral: true
+                            });
+                        }
+
+                    } catch (error) {
+                        console.error('Error en name collector:', error);
+                        await interaction.followUp({
+                            content: '❌ Ocurrió un error al procesar el nombre.',
+                            ephemeral: true
+                        });
+                        interaction.client.mensajeCreators.delete(interaction.user.id);
+                    }
+                });
+
+                nameCollector.on('end', (collected, reason) => {
+                    if (reason === 'time') {
+                        interaction.followUp({
+                            content: '⏰ Tiempo agotado. El proceso de creación ha sido cancelado.',
+                            ephemeral: true
+                        });
+                        interaction.client.mensajeCreators.delete(interaction.user.id);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error en message collector:', error);
+                await interaction.followUp({
+                    content: '❌ Ocurrió un error al procesar el mensaje.',
+                    ephemeral: true
+                });
+                interaction.client.mensajeCreators.delete(interaction.user.id);
+            }
+        });
+
+        collector.on('end', (collected, reason) => {
+            if (reason === 'time') {
+                interaction.followUp({
+                    content: '⏰ Tiempo agotado. No recibí ningún mensaje.',
+                    ephemeral: true
+                });
+                interaction.client.mensajeCreators.delete(interaction.user.id);
+            }
+        });
+    },
+
+    parseColor(color) {
+        // Colores predefinidos
+        const colorMap = {
+            'red': 0xFF0000, 'blue': 0x0000FF, 'green': 0x00FF00,
+            'yellow': 0xFFFF00, 'purple': 0x800080, 'orange': 0xFFA500,
+            'pink': 0xFFC0CB, 'cyan': 0x00FFFF, 'white': 0xFFFFFF,
+            'black': 0x000000, 'gray': 0x808080, 'discord': 0x5865F2
+        };
+
+        if (colorMap[color.toLowerCase()]) {
+            return colorMap[color.toLowerCase()];
+        }
+
+        // Probar hexadecimal
+        const hexMatch = color.match(/^#?([0-9A-Fa-f]{6})$/);
+        if (hexMatch) {
+            return parseInt(hexMatch[1], 16);
+        }
+
+        // Probar decimal
+        const num = parseInt(color);
+        if (!isNaN(num) && num >= 0 && num <= 0xFFFFFF) {
+            return num;
+        }
+
+        return null;
+    },
+
+    procesarMensaje(texto) {
+        const componentes = [];
+        
+        // Dividir por [separador] (case insensitive)
+        const partes = texto.split(/\[separador\]/gi);
+        
+        for (let i = 0; i < partes.length; i++) {
+            const parte = partes[i].trim();
+            if (!parte) continue;
+            
+            // Procesar esta parte
+            const parteComponentes = this.procesarParte(parte);
+            componentes.push(...parteComponentes);
+            
+            // Agregar separador después de cada parte (excepto la última)
+            if (i < partes.length - 1 && partes[i + 1].trim()) {
+                const { SeparatorBuilder, SeparatorSpacingSize } = require('discord.js');
+                const separador = new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small);
+                componentes.push(separador);
+            }
+        }
+        
+        return componentes;
+    },
+
+    procesarParte(parte) {
+        const componentes = [];
+        const { TextDisplayBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } = require('discord.js');
+        
+        // Detectar URLs de imágenes de Discord
+        const imageRegex = /(https?:\/\/(?:media\.|cdn\.)?discord(app)?\.(com|net)\/attachments\/\d+\/\d+\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|mp4|mov)(?:\?[^\s]*)?)/gi;
+        const imagenes = [];
+        let textoLimpio = parte;
+        
+        let match;
+        while ((match = imageRegex.exec(parte)) !== null) {
+            imagenes.push(match[0]);
+            // Remover la URL del texto
+            textoLimpio = textoLimpio.replace(match[0], '').trim();
+        }
+        
+        // Agregar texto si hay
+        if (textoLimpio) {
+            const textoComponente = new TextDisplayBuilder()
+                .setContent(textoLimpio);
+            componentes.push(textoComponente);
+        }
+        
+        // Agregar imágenes si hay
+        if (imagenes.length > 0) {
+            const galeria = new MediaGalleryBuilder();
+            imagenes.forEach(url => {
+                galeria.addItems(
+                    new MediaGalleryItemBuilder()
+                        .setURL(url)
+                        .setDescription('')
+                );
+            });
+            componentes.push(galeria);
+        }
+        
+        return componentes;
+    },
+
+    contarImagenes(texto) {
+        const imageRegex = /(https?:\/\/(?:media\.|cdn\.)?discord(app)?\.(com|net)\/attachments\/\d+\/\d+\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|mp4|mov)(?:\?[^\s]*)?)/gi;
+        const matches = texto.match(imageRegex);
+        return matches ? matches.length : 0;
+    },
+
+    construirContainer(componentes, accentColor) {
+        const { ContainerBuilder } = require('discord.js');
+        const container = new ContainerBuilder();
+        
+        if (accentColor) {
+            container.setAccentColor(accentColor);
+        }
+        
+        // Agregar todos los componentes al container
+        componentes.forEach(componente => {
+            if (componente.constructor.name === 'TextDisplayBuilder') {
+                container.addTextDisplayComponents(componente);
+            } else if (componente.constructor.name === 'MediaGalleryBuilder') {
+                container.addMediaGalleryComponents(componente);
+            } else if (componente.constructor.name === 'SeparatorBuilder') {
+                container.addSeparatorComponents(componente);
+            }
+        });
+        
+        return [container];
+    }
+};

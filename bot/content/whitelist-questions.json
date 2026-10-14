@@ -1,0 +1,233 @@
+[
+  {
+    "id": 1,
+    "pregunta": "1️⃣ ¿Qué significa Roleplay (RP)?",
+    "opciones": [
+      {
+        "label": "Interpretar un personaje como si fuera real",
+        "value": "A",
+        "correcta": true
+      },
+      {
+        "label": "Hablar sin sentido",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "Escribir en el chat OOC",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "pregunta": "2️⃣ ¿Qué es Metagaming (MG)?",
+    "opciones": [
+      {
+        "label": "Usar información IC dentro de IC",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Usar información OOC dentro del rol",
+        "value": "B",
+        "correcta": true
+      },
+      {
+        "label": "Interpretar bien tu personaje",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "pregunta": "3️⃣ ¿Qué es PowerGaming (PG)?",
+    "opciones": [
+      {
+        "label": "Rol realista",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Hablar por radio",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "Forzar acciones imposibles sin dar oportunidad al otro",
+        "value": "C",
+        "correcta": true
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "pregunta": "4️⃣ ¿Qué significa IC?",
+    "opciones": [
+      {
+        "label": "Información del servidor",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Dentro del rol",
+        "value": "B",
+        "correcta": true
+      },
+      {
+        "label": "Fuera del rol",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "pregunta": "5️⃣ ¿Qué significa OOC?",
+    "opciones": [
+      {
+        "label": "Chat de rol",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Fuera del rol",
+        "value": "B",
+        "correcta": true
+      },
+      {
+        "label": "Dentro del personaje",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "pregunta": "6️⃣ Si tu personaje muere, ¿qué debes hacer?",
+    "opciones": [
+      {
+        "label": "Recordar todo y vengarte",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Seguir jugando normal",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "Respetar el PK/CK según la situación",
+        "value": "C",
+        "correcta": true
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "pregunta": "7️⃣ ¿Qué es Fail RP?",
+    "opciones": [
+      {
+        "label": "No respetar el rol ni actuar de forma realista",
+        "value": "A",
+        "correcta": true
+      },
+      {
+        "label": "Rol divertivo",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "Usar comandos",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "pregunta": "8️⃣ ¿Cuál es un ejemplo de rol correcto?",
+    "opciones": [
+      {
+        "label": "Saltar de un edificio sin consecuencias",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Valorar la vida del personaje en todo momento",
+        "value": "B",
+        "correcta": true
+      },
+      {
+        "label": "Disparar sin motivo",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "pregunta": "9️⃣ ¿Qué debes hacer si tienes un problema con otro jugador?",
+    "opciones": [
+      {
+        "label": "Insultarlo",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Romper rol",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "Reportarlo por los medios correspondientes",
+        "value": "C",
+        "correcta": true
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "pregunta": "🔟 ¿Está permitido usar información de Discord dentro del juego?",
+    "opciones": [
+      {
+        "label": "Sí",
+        "value": "A",
+        "correcta": false
+      },
+      {
+        "label": "Solo con amigos",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "No, es MG",
+        "value": "C",
+        "correcta": true
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "pregunta": "1️⃣1️⃣ ¿Cuál es la prioridad principal en un servidor RP?",
+    "opciones": [
+      {
+        "label": "Mantener un rol serio y realista",
+        "value": "A",
+        "correcta": true
+      },
+      {
+        "label": "Hacer DM",
+        "value": "B",
+        "correcta": false
+      },
+      {
+        "label": "Ganar dinero rápido",
+        "value": "C",
+        "correcta": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,1189 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_pegado/021_Solucion_completa_para_cargar_comandos_en_Discord/m001_01_whitelist.js
+
+const { SlashCommandBuilder, StringSelectMenuBuilder, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } = require('discord.js');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+
+// Ruta del archivo de usuarios
+const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+
+// Asegurar que existe el directorio data
+const dataDir = path.dirname(USERS_FILE);
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Asegurar que existe el archivo users.json con contenido válido
+if (!fs.existsSync(USERS_FILE)) {
+    fs.writeFileSync(USERS_FILE, JSON.stringify({}, null, 2));
+}
+
+// Definir las preguntas de whitelist
+const preguntas = [
+    {
+        id: 1,
+        pregunta: "1️⃣ ¿Qué significa Roleplay (RP)?",
+        opciones: [
+            { label: "Interpretar un personaje como si fuera real", value: "A", correcta: true },
+            { label: "Hablar sin sentido", value: "B", correcta: false },
+            { label: "Escribir en el chat OOC", value: "C", correcta: false }
+        ]
+    },
+    {
+        id: 2,
+        pregunta: "2️⃣ ¿Qué es Metagaming (MG)?",
+        opciones: [
+            { label: "Usar información IC dentro de IC", value: "A", correcta: false },
+            { label: "Usar información OOC dentro del rol", value: "B", correcta: true },
+            { label: "Interpretar bien tu personaje", value: "C", correcta: false }
+        ]
+    },
+    {
+        id: 3,
+        pregunta: "3️⃣ ¿Qué es PowerGaming (PG)?",
+        opciones: [
+            { label: "Rol realista", value: "A", correcta: false },
+            { label: "Hablar por radio", value: "B", correcta: false },
+            { label: "Forzar acciones imposibles sin dar oportunidad al otro", value: "C", correcta: true }
+        ]
+    },
+    {
+        id: 4,
+        pregunta: "4️⃣ ¿Qué significa IC?",
+        opciones: [
+            { label: "Información del servidor", value: "A", correcta: false },
+            { label: "Dentro del rol", value: "B", correcta: true },
+            { label: "Fuera del rol", value: "C", correcta: false }
+        ]
+    },
+    {
+        id: 5,
+        pregunta: "5️⃣ ¿Qué significa OOC?",
+        opciones: [
+            { label: "Chat de rol", value: "A", correcta: false },
+            { label: "Fuera del rol", value: "B", correcta: true },
+            { label: "Dentro del personaje", value: "C", correcta: false }
+        ]
+    },
+    {
+        id: 6,
+        pregunta: "6️⃣ Si tu personaje muere, ¿qué debes hacer?",
+        opciones: [
+            { label: "Recordar todo y vengarte", value: "A", correcta: false },
+            { label: "Seguir jugando normal", value: "B", correcta: false },
+            { label: "Respetar el PK/CK según la situación", value: "C", correcta: true }
+        ]
+    },
+    {
+        id: 7,
+        pregunta: "7️⃣ ¿Qué es Fail RP?",
+        opciones: [
+            { label: "No respetar el rol ni actuar de forma realista", value: "A", correcta: true },
+            { label: "Rol divertivo", value: "B", correcta: false },
+            { label: "Usar comandos", value: "C", correcta: false }
+        ]
+    },
+    {
+        id: 8,
+        pregunta: "8️⃣ ¿Cuál es un ejemplo de rol correcto?",
+        opciones: [
+            { label: "Saltar de un edificio sin consecuencias", value: "A", correcta: false },
+            { label: "Valorar la vida del personaje en todo momento", value: "B", correcta: true },
+            { label: "Disparar sin motivo", value: "C", correcta: false }
+        ]
+    },
+    {
+        id: 9,
+        pregunta: "9️⃣ ¿Qué debes hacer si tienes un problema con otro jugador?",
+        opciones: [
+            { label: "Insultarlo", value: "A", correcta: false },
+            { label: "Romper rol", value: "B", correcta: false },
+            { label: "Reportarlo por los medios correspondientes", value: "C", correcta: true }
+        ]
+    },
+    {
+        id: 10,
+        pregunta: "🔟 ¿Está permitido usar información de Discord dentro del juego?",
+        opciones: [
+            { label: "Sí", value: "A", correcta: false },
+            { label: "Solo con amigos", value: "B", correcta: false },
+            { label: "No, es MG", value: "C", correcta: true }
+        ]
+    },
+    {
+        id: 11,
+        pregunta: "1️⃣1️⃣ ¿Cuál es la prioridad principal en un servidor RP?",
+        opciones: [
+            { label: "Mantener un rol serio y realista", value: "A", correcta: true },
+            { label: "Hacer DM", value: "B", correcta: false },
+            { label: "Ganar dinero rápido", value: "C", correcta: false }
+        ]
+    }
+];
+
+// Cache para búsquedas de usuarios
+const userSearchCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+// Almacenamiento temporal de sesiones de preguntas
+const sesionesPreguntas = new Map();
+// Mapa para guardar los timeouts de inactividad
+const timeouts = new Map();
+// Mapa para relacionar messageId con userId
+const messageToUser = new Map();
+
+// Función mejorada para buscar usuarios de Roblox
+async function buscarUsuariosRoblox(query) {
+    try {
+        if (!query || query.trim().length < 3) {
+            return [];
+        }
+
+        const cleanQuery = query.trim();
+        
+        // Verificar cache
+        const cacheKey = cleanQuery.toLowerCase();
+        const cached = userSearchCache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+            return cached.results;
+        }
+
+        // Intentar búsqueda directa por username
+        try {
+            const userResponse = await axios.post('https://users.roblox.com/v1/usernames/users', {
+                usernames: [cleanQuery],
+                excludeBannedUsers: false
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0'
+                },
+                timeout: 5000
+            });
+
+            if (userResponse.data && userResponse.data.data && userResponse.data.data.length > 0) {
+                const results = userResponse.data.data.map(user => ({
+                    name: user.name,
+                    value: user.name,
+                    id: user.id
+                }));
+                
+                userSearchCache.set(cacheKey, { results, timestamp: Date.now() });
+                return results;
+            }
+        } catch (directError) {
+            console.log('Búsqueda directa falló, intentando búsqueda por prefijo');
+        }
+
+        // Si la búsqueda directa falla, intentar generar variaciones
+        const variations = [
+            cleanQuery,
+            cleanQuery.charAt(0).toUpperCase() + cleanQuery.slice(1).toLowerCase(),
+            cleanQuery.toLowerCase(),
+            cleanQuery.toUpperCase()
+        ];
+
+        const uniqueVariations = [...new Set(variations)];
+        const results = [];
+
+        for (const variation of uniqueVariations) {
+            try {
+                const response = await axios.post('https://users.roblox.com/v1/usernames/users', {
+                    usernames: [variation],
+                    excludeBannedUsers: false
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Mozilla/5.0'
+                    },
+                    timeout: 3000
+                });
+
+                if (response.data && response.data.data && response.data.data.length > 0) {
+                    response.data.data.forEach(user => {
+                        if (!results.find(r => r.id === user.id)) {
+                            results.push({
+                                name: user.name,
+                                value: user.name,
+                                id: user.id
+                            });
+                        }
+                    });
+                }
+            } catch (err) {
+                // Continuar con la siguiente variación
+            }
+
+            if (results.length >= 5) break;
+        }
+
+        userSearchCache.set(cacheKey, { results, timestamp: Date.now() });
+        return results.slice(0, 25);
+
+    } catch (error) {
+        console.error('Error en búsqueda de usuarios Roblox:', error.message);
+        return [];
+    }
+}
+
+// Función mejorada para obtener información completa del usuario
+async function obtenerInfoRoblox(username) {
+    try {
+        const cleanUsername = username.trim();
+
+        // Primero, buscar el usuario exacto
+        const searchResponse = await axios.post('https://users.roblox.com/v1/usernames/users', {
+            usernames: [cleanUsername],
+            excludeBannedUsers: false
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0'
+            },
+            timeout: 10000
+        });
+
+        if (!searchResponse.data || !searchResponse.data.data || searchResponse.data.data.length === 0) {
+            console.error('Usuario no encontrado en búsqueda exacta:', cleanUsername);
+            return null;
+        }
+
+        const userData = searchResponse.data.data[0];
+        const userId = userData.id;
+
+        // Obtener avatar
+        let avatarUrl = null;
+        try {
+            const avatarResponse = await axios.get(
+                `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`,
+                {
+                    headers: { 'User-Agent': 'Mozilla/5.0' },
+                    timeout: 5000
+                }
+            );
+
+            if (avatarResponse.data && avatarResponse.data.data && avatarResponse.data.data.length > 0) {
+                avatarUrl = avatarResponse.data.data[0].imageUrl;
+            }
+        } catch (avatarError) {
+            console.error('Error obteniendo avatar:', avatarError.message);
+            avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=420&height=420&format=png`;
+        }
+
+        return {
+            id: userId,
+            username: userData.name,
+            displayName: userData.displayName || userData.name,
+            avatarUrl: avatarUrl
+        };
+
+    } catch (error) {
+        console.error('Error obteniendo información de Roblox:', error.message);
+        if (error.response) {
+            console.error('Respuesta del servidor:', error.response.status, error.response.data);
+        }
+        return null;
+    }
+}
+
+// Función para leer datos de usuarios (con manejo de errores mejorado)
+function leerUsuarios() {
+    try {
+        if (!fs.existsSync(USERS_FILE)) {
+            return {};
+        }
+        
+        const data = fs.readFileSync(USERS_FILE, 'utf8');
+        
+        // Si el archivo está vacío, retornar objeto vacío
+        if (!data || data.trim() === '') {
+            return {};
+        }
+        
+        const parsed = JSON.parse(data);
+        return parsed || {};
+    } catch (error) {
+        console.error('Error leyendo usuarios, devolviendo objeto vacío:', error.message);
+        // Si hay error, devolver objeto vacío
+        return {};
+    }
+}
+
+// Función para guardar datos de usuarios
+function guardarUsuarios(data) {
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
+    } catch (error) {
+        console.error('Error guardando usuarios:', error);
+    }
+}
+
+// Función para limpiar sesión de usuario
+function limpiarSesionUsuario(userId) {
+    // Limpiar timeout
+    const timeout = timeouts.get(userId);
+    if (timeout) {
+        clearTimeout(timeout);
+        timeouts.delete(userId);
+    }
+    
+    // Limpiar sesión
+    const sesion = sesionesPreguntas.get(userId);
+    if (sesion && sesion.messageId) {
+        messageToUser.delete(sesion.messageId);
+    }
+    sesionesPreguntas.delete(userId);
+    
+    // Limpiar datos del archivo si está en proceso
+    const usersData = leerUsuarios();
+    if (usersData[userId] && usersData[userId].fase === 'en_proceso') {
+        delete usersData[userId];
+        guardarUsuarios(usersData);
+    }
+}
+
+// Comando /verificarme
+const verificarme = {
+    data: new SlashCommandBuilder()
+        .setName('verificarme')
+        .setDescription('Inicia el proceso de whitelist (Fase 1)')
+        .addStringOption(option =>
+            option.setName('usuario_roblox')
+                .setDescription('Nombre de usuario de Roblox')
+                .setRequired(true)
+                .setAutocomplete(true)
+        ),
+    
+    async autocomplete(interaction) {
+        try {
+            const focusedValue = interaction.options.getFocused();
+            
+            if (focusedValue.length < 3) {
+                await interaction.respond([
+                    { name: 'Escribe al menos 3 caracteres...', value: 'min_length' }
+                ]);
+                return;
+            }
+            
+            const choices = await buscarUsuariosRoblox(focusedValue);
+            
+            if (choices.length === 0) {
+                await interaction.respond([
+                    { name: 'No se encontraron usuarios. Escribe el nombre exacto.', value: focusedValue }
+                ]);
+            } else {
+                await interaction.respond(choices.slice(0, 25));
+            }
+        } catch (error) {
+            console.error('Error en autocomplete:', error);
+            await interaction.respond([]).catch(() => {});
+        }
+    },
+    
+    async execute(interaction) {
+        try {
+            // Verificar rol requerido
+            const requiredRoleId = 'ID_POR_CONFIGURAR';
+            if (!interaction.member.roles.cache.has(requiredRoleId)) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ No puedes usar este comando')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            
+            // Verificar que no tenga el rol de fase 2
+            const fase2RoleId = 'ID_POR_CONFIGURAR';
+            if (interaction.member.roles.cache.has(fase2RoleId)) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ Ya has superado la fase 1, no puedes volver a hacer el test.')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            
+            const robloxUsername = interaction.options.getString('usuario_roblox');
+            
+            // Validar que no sea un valor de placeholder
+            if (robloxUsername === 'min_length' || robloxUsername.includes('Escribe al menos')) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ Debes seleccionar un usuario válido del autocompletado')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+
+            // Defer para dar tiempo a la API de Roblox
+            await interaction.deferReply({ ephemeral: true });
+            
+            // Verificar usuario de Roblox
+            const robloxInfo = await obtenerInfoRoblox(robloxUsername);
+            
+            if (!robloxInfo) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ Usuario de Roblox no encontrado o inválido. Asegúrate de escribir el nombre exacto.')
+                    );
+                
+                return interaction.editReply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2
+                });
+            }
+            
+            // Leer datos actuales
+            const usersData = leerUsuarios();
+            
+            // Verificar si ya está en proceso
+            if (usersData[interaction.user.id] && usersData[interaction.user.id].fase === 'en_proceso') {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ Ya tienes un proceso de whitelist en curso')
+                    );
+                
+                return interaction.editReply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2
+                });
+            }
+
+            // Verificar cooldown de 1 día si fue rechazado
+            if (usersData[interaction.user.id] && usersData[interaction.user.id].rechazadoEl) {
+                const rechazadoEl = new Date(usersData[interaction.user.id].rechazadoEl);
+                const ahora = new Date();
+                const diferencia = ahora - rechazadoEl;
+                const unDia = 24 * 60 * 60 * 1000;
+
+                if (diferencia < unDia) {
+                    const horasRestantes = Math.ceil((unDia - diferencia) / (60 * 60 * 1000));
+                    const errorContainer = new ContainerBuilder()
+                        .setAccentColor(0xff0000)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`✅ Fuiste rechazado recientemente. Debes esperar ${horasRestantes} horas antes de intentar nuevamente.`)
+                        );
+                    
+                    return interaction.editReply({
+                        components: [errorContainer],
+                        flags: MessageFlags.IsComponentsV2
+                    });
+                }
+            }
+            
+            // Guardar datos iniciales
+            usersData[interaction.user.id] = {
+                robloxId: robloxInfo.id,
+                robloxUsername: robloxInfo.username,
+                robloxDisplayName: robloxInfo.displayName,
+                robloxAvatar: robloxInfo.avatarUrl,
+                fase: 'en_proceso',
+                respuestas: [],
+                puntaje: 0,
+                timestamp: Date.now()
+            };
+            
+            guardarUsuarios(usersData);
+            
+            // Inicializar sesión de preguntas
+            sesionesPreguntas.set(interaction.user.id, {
+                preguntaActual: 0,
+                respuestas: [],
+                puntaje: 0,
+                messageId: null // Se actualizará cuando se envíe el mensaje
+            });
+            
+            // Iniciar preguntas
+            await mostrarPregunta(interaction, 0);
+            
+        } catch (error) {
+            console.error('Error en execute de verificarme:', error);
+            const errorContainer = new ContainerBuilder()
+                .setAccentColor(0xff0000)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('✅ Ocurrió un error inesperado. Intenta nuevamente.')
+                );
+            
+            if (interaction.deferred) {
+                await interaction.editReply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2
+                }).catch(() => {});
+            } else {
+                await interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                }).catch(() => {});
+            }
+        }
+    }
+};
+
+// Función para mostrar preguntas
+async function mostrarPregunta(interaction, preguntaIndex) {
+    try {
+        const pregunta = preguntas[preguntaIndex];
+        
+        // Crear select menu incrustado en el container
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId(`pregunta_${pregunta.id}_${interaction.user.id}`)
+            .setPlaceholder('Selecciona una respuesta')
+            .addOptions(
+                pregunta.opciones.map(opcion => ({
+                    label: opcion.label.substring(0, 100),
+                    value: opcion.value
+                }))
+            );
+        
+        const actionRow = new ActionRowBuilder()
+            .addComponents(selectMenu);
+        
+        // Crear container con el formato especificado
+        const container = new ContainerBuilder()
+            .setAccentColor(0x1485f6)
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`✅ ${pregunta.pregunta}`)
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            );
+        
+        let message;
+        if (preguntaIndex === 0) {
+            // Primera pregunta
+            message = await interaction.editReply({
+                components: [container, actionRow],
+                flags: MessageFlags.IsComponentsV2
+            });
+        } else {
+            // Editar mensaje para siguientes preguntas
+            message = await interaction.editReply({
+                components: [container, actionRow],
+                flags: MessageFlags.IsComponentsV2
+            });
+        }
+
+        // Guardar el ID del mensaje en la sesión y en el mapa
+        if (message.id) {
+            const sesion = sesionesPreguntas.get(interaction.user.id);
+            if (sesion) {
+                sesion.messageId = message.id;
+                messageToUser.set(message.id, interaction.user.id);
+            }
+
+            // Establecer timeout de 2 minutos para esta pregunta
+            const timeout = setTimeout(() => {
+                // Si después de 2 minutos no hay respuesta, limpiar la sesión
+                const currentSesion = sesionesPreguntas.get(interaction.user.id);
+                if (currentSesion && currentSesion.preguntaActual === preguntaIndex) {
+                    // Limpiar la sesión
+                    limpiarSesionUsuario(interaction.user.id);
+                    
+                    // Marcar como rechazado por tiempo
+                    const usersData = leerUsuarios();
+                    if (usersData[interaction.user.id]) {
+                        usersData[interaction.user.id].rechazadoEl = new Date().toISOString();
+                        usersData[interaction.user.id].fase = 'rechazado_tiempo';
+                        guardarUsuarios(usersData);
+                    }
+
+                    // Enviar mensaje al usuario
+                    const timeoutContainer = new ContainerBuilder()
+                        .setAccentColor(0xff0000)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ Se ha agotado el tiempo para responder. Tu whitelist ha sido rechazada. Puedes intentar de nuevo después de 1 día.')
+                        );
+                    
+                    interaction.editReply({
+                        components: [timeoutContainer],
+                        flags: MessageFlags.IsComponentsV2
+                    }).catch(() => {});
+                }
+            }, 2 * 60 * 1000); // 2 minutos
+
+            // Guardar el timeout
+            timeouts.set(interaction.user.id, timeout);
+        }
+        
+    } catch (error) {
+        console.error('Error mostrando pregunta:', error);
+        // Si hay error al mostrar pregunta, limpiar sesión
+        limpiarSesionUsuario(interaction.user.id);
+    }
+}
+
+// Manejador de interacciones para las preguntas (para ser usado desde index.js)
+async function manejarRespuestaPregunta(interaction) {
+    try {
+        if (!interaction.isStringSelectMenu()) return;
+        if (!interaction.customId.startsWith('pregunta_')) return;
+        
+        const parts = interaction.customId.split('_');
+        const preguntaId = parseInt(parts[1]);
+        const userId = parts[2];
+        
+        // Verificar que sea el usuario correcto
+        if (userId !== interaction.user.id) {
+            return interaction.reply({
+                content: 'Esta pregunta no es para ti.',
+                ephemeral: true
+            });
+        }
+        
+        await interaction.deferUpdate();
+        
+        // Limpiar el timeout porque respondió
+        const timeout = timeouts.get(interaction.user.id);
+        if (timeout) {
+            clearTimeout(timeout);
+            timeouts.delete(interaction.user.id);
+        }
+        
+        // Obtener la pregunta
+        const pregunta = preguntas.find(p => p.id === preguntaId);
+        if (!pregunta) return;
+        
+        // Obtener sesión
+        const sesion = sesionesPreguntas.get(interaction.user.id);
+        if (!sesion) {
+            // Si no hay sesión, el usuario probablemente eliminó el mensaje
+            await interaction.followUp({
+                content: 'Tu sesión ha expirado. Por favor, usa `/verificarme` nuevamente.',
+                ephemeral: true
+            }).catch(() => {});
+            return;
+        }
+        
+        // Verificar respuesta
+        const respuestaSeleccionada = interaction.values[0];
+        const opcionCorrecta = pregunta.opciones.find(op => op.correcta);
+        const esCorrecta = respuestaSeleccionada === opcionCorrecta.value;
+        
+        // Guardar respuesta en sesión
+        sesion.respuestas.push({
+            preguntaId: pregunta.id,
+            respuesta: respuestaSeleccionada,
+            correcta: esCorrecta
+        });
+        
+        if (esCorrecta) {
+            sesion.puntaje++;
+        }
+        
+        // Actualizar archivo
+        const usersData = leerUsuarios();
+        if (usersData[interaction.user.id]) {
+            usersData[interaction.user.id].respuestas = sesion.respuestas;
+            usersData[interaction.user.id].puntaje = sesion.puntaje;
+            guardarUsuarios(usersData);
+        }
+        
+        // Mostrar siguiente pregunta o finalizar
+        const siguienteIndex = sesion.preguntaActual + 1;
+        sesion.preguntaActual = siguienteIndex;
+        
+        if (siguienteIndex < preguntas.length) {
+            await mostrarPregunta(interaction, siguienteIndex);
+        } else {
+            await finalizarTest(interaction, sesion);
+            // Limpiar la sesión después de finalizar
+            limpiarSesionUsuario(interaction.user.id);
+        }
+        
+    } catch (error) {
+        console.error('Error manejando respuesta:', error);
+        // Limpiar sesión en caso de error
+        const parts = interaction.customId.split('_');
+        const userId = parts[2];
+        limpiarSesionUsuario(userId);
+    }
+}
+
+// Función para finalizar el test
+async function finalizarTest(interaction, sesion) {
+    try {
+        const usersData = leerUsuarios();
+        const userData = usersData[interaction.user.id];
+        
+        if (!userData) return;
+        
+        const puntaje = sesion.puntaje;
+        const aprobado = puntaje >= 8;
+        
+        // Mensaje final al usuario
+        const resultadoContainer = new ContainerBuilder()
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`✅ Tus resultados han sido enviados a <#ID_POR_CONFIGURAR>`)
+            );
+        
+        await interaction.editReply({
+            components: [resultadoContainer],
+            flags: MessageFlags.IsComponentsV2
+        });
+        
+        // Canal de solicitudes
+        const solicitudesChannel = interaction.client.channels.cache.get('ID_POR_CONFIGURAR');
+        if (!solicitudesChannel) {
+            console.error('Canal de solicitudes no encontrado');
+            return;
+        }
+        
+        if (aprobado) {
+            // Actualizar datos
+            userData.fase = 'fase1_aprobada';
+            userData.fase1_aprobada = true;
+            userData.fechaAprobacionFase1 = new Date().toISOString();
+            // Limpiar rechazadoEl si existe
+            if (userData.rechazadoEl) {
+                delete userData.rechazadoEl;
+            }
+            guardarUsuarios(usersData);
+            
+            // Dar rol de fase 2
+            try {
+                const rolFase2Id = 'ID_POR_CONFIGURAR';
+                const member = await interaction.guild.members.fetch(interaction.user.id);
+                await member.roles.add(rolFase2Id);
+            } catch (error) {
+                console.error('Error al dar rol:', error);
+            }
+            
+            // Enviar mensaje de aprobación
+            const mensajeAprobado = new ContainerBuilder()
+                .setAccentColor(0x89d886)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`<@${interaction.user.id}>`),
+                    new TextDisplayBuilder()
+                        .setContent('## ✅ Fase 1 de Whitelist Aceptada')
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('**¡Felicidades!**'),
+                    new TextDisplayBuilder()
+                        .setContent('> ✅ Tu solicitud de whitelist (1era fase) ha sido aprobada automáticamente.')
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('✅ **¿Que sigue?**'),
+                    new TextDisplayBuilder()
+                        .setContent('> ✅ Debes esperar a que un moderador te realice la segunda fase de la whitelist para poder entrar a rolear. Se te notificará cuando haya moderadores disponibles para iniciar la entrevista oral.')
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('> ✅ Cuando se te avise, debes unirte al canal <#ID_POR_CONFIGURAR> para poder iniciar la entrevista.'),
+                    new TextDisplayBuilder()
+                        .setContent('\n🚀 ¡Mucha suerte!')
+                );
+            
+            await solicitudesChannel.send({
+                components: [mensajeAprobado],
+                flags: MessageFlags.IsComponentsV2
+            });
+            
+        } else {
+            // Rechazado - marcar como rechazado con fecha
+            userData.fase = 'rechazado';
+            userData.rechazadoEl = new Date().toISOString();
+            guardarUsuarios(usersData);
+            
+            // Enviar mensaje de rechazo
+            const mensajeRechazado = new ContainerBuilder()
+                .setAccentColor(0xff0000)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`<@${interaction.user.id}>`),
+                    new TextDisplayBuilder()
+                        .setContent('## ✅ Fase 1 de Whitelist Rechazada')
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('**No te desanimes!**'),
+                    new TextDisplayBuilder()
+                        .setContent('> ✅ Tu solicitud de whitelist (1era fase) ha sido rechazada automaticamente. Puedes volver a intentarlo después de 1 día.')
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('> ✅ Agradecemos tu intención de querer entrar a rolear a nuestro servidor, sin embargo debes mejorar tus respuestas. Buscamos personas con conocimientos basicos en rol.'),
+                    new TextDisplayBuilder()
+                        .setContent('\n🚀 ¡Mucha suerte!')
+                );
+            
+            await solicitudesChannel.send({
+                components: [mensajeRechazado],
+                flags: MessageFlags.IsComponentsV2
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error finalizando test:', error);
+    }
+}
+
+// Comando /revisar-2fase
+const revisar2fase = {
+    data: new SlashCommandBuilder()
+        .setName('revisar-2fase')
+        .setDescription('*Revisa la fase 2 de whitelist de un usuario')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Usuario de Discord')
+                .setRequired(true)
+        )
+        .addStringOption(option =>
+            option.setName('estado')
+                .setDescription('Estado de la fase 2')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'Aprobado', value: 'aprobado' },
+                    { name: 'Rechazado', value: 'rechazado' }
+                )
+        ),
+    
+    async execute(interaction) {
+        try {
+            // Verificar rol de moderador
+            const requiredRoleId = 'ID_POR_CONFIGURAR';
+            if (!interaction.member.roles.cache.has(requiredRoleId)) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ No tienes permisos para usar este comando')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            
+            const usuario = interaction.options.getUser('usuario');
+            const estado = interaction.options.getString('estado');
+            
+            // Leer datos
+            const usersData = leerUsuarios();
+            const userData = usersData[usuario.id];
+            
+            // Verificar si tiene el rol de fase 2
+            const member = await interaction.guild.members.fetch(usuario.id);
+            const rolFase2Id = 'ID_POR_CONFIGURAR';
+            
+            if (!member.roles.cache.has(rolFase2Id)) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ El usuario no está en la fase 2 de whitelist')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            
+            if (!userData || !userData.fase1_aprobada) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ No se encontraron datos de whitelist para este usuario')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            
+            // Canal de resultados
+            const canalResultados = interaction.client.channels.cache.get('ID_POR_CONFIGURAR');
+            if (!canalResultados) {
+                const errorContainer = new ContainerBuilder()
+                    .setAccentColor(0xff0000)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent('✅ No se encontró el canal de resultados')
+                    );
+                
+                return interaction.reply({
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2,
+                    ephemeral: true
+                });
+            }
+            
+            if (estado === 'aprobado') {
+                // APROBADO
+                try {
+                    // Dar roles
+                    const rol1Id = 'ID_POR_CONFIGURAR';
+                    const rol2Id = 'ID_POR_CONFIGURAR';
+                    
+                    await member.roles.add([rol1Id, rol2Id]);
+                    await member.roles.remove(rolFase2Id);
+                    
+                    // Cambiar apodo
+                    try {
+                        await member.setNickname(`CIV | ${userData.robloxUsername}`);
+                    } catch (nickError) {
+                        console.error('Error cambiando apodo:', nickError);
+                    }
+                    
+                    // Enviar mensaje al canal de whitelist aprobadas
+                    const mensajeAprobado = new ContainerBuilder()
+                        .setAccentColor(0x89d886)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`<@${usuario.id}>`),
+                            new TextDisplayBuilder()
+                                .setContent('## ✅ Proceso de Whitelist Aceptado')
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('**¡Felicidades!**'),
+                            new TextDisplayBuilder()
+                                .setContent('> ✅ Ahora puedes entrar a rolear en Costa Rica RP V2. Agradecemos tu tiempo de querer verificarte.')
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ **¿Que sigue?**'),
+                            new TextDisplayBuilder()
+                                .setContent('> ✅ Usa el comando /registrar_cedula para crear tu cedula y poder ser identificado al momento de rolear.')
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('🚀 ¡Bienvenido a Costa Rica RP!')
+                        );
+                    
+                    await canalResultados.send({
+                        components: [mensajeAprobado],
+                        flags: MessageFlags.IsComponentsV2
+                    });
+                    
+                    // Eliminar datos (ya no son necesarios)
+                    delete usersData[usuario.id];
+                    guardarUsuarios(usersData);
+                    
+                    // Confirmación al moderador
+                    const successContainer = new ContainerBuilder()
+                        .setAccentColor(0x89d886)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ Whitelist aprobada correctamente')
+                        );
+                    
+                    await interaction.reply({
+                        components: [successContainer],
+                        flags: MessageFlags.IsComponentsV2,
+                        ephemeral: true
+                    });
+                    
+                } catch (error) {
+                    console.error('Error al aprobar whitelist:', error);
+                    const errorContainer = new ContainerBuilder()
+                        .setAccentColor(0xff0000)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ Error al procesar la aprobación')
+                        );
+                    
+                    await interaction.reply({
+                        components: [errorContainer],
+                        flags: MessageFlags.IsComponentsV2,
+                        ephemeral: true
+                    });
+                }
+            } else {
+                // RECHAZADO
+                try {
+                    // Enviar mensaje al canal de whitelist rechazadas
+                    const mensajeRechazado = new ContainerBuilder()
+                        .setAccentColor(0xff0000)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`<@${usuario.id}>`),
+                            new TextDisplayBuilder()
+                                .setContent('## ✅ Proceso de Whitelist Rechazado')
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('**No te desanimes!**'),
+                            new TextDisplayBuilder()
+                                .setContent('> ✅ Tu solicitud de whitelist (2da fase) ha sido rechazada. Puedes volver a intentarlo después de 1 día.')
+                        )
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setDivider(true)
+                                .setSpacing(SeparatorSpacingSize.Small)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('> ✅ Agradecemos tu intención de querer entrar a rolear a nuestro servidor, sin embargo debes mejorar tus respuestas. Buscamos personas con conocimientos basicos en rol.'),
+                            new TextDisplayBuilder()
+                                .setContent('\n🚀 ¡Mucha suerte!')
+                        );
+                    
+                    await canalResultados.send({
+                        components: [mensajeRechazado],
+                        flags: MessageFlags.IsComponentsV2
+                    });
+                    
+                    // Quitar rol de fase 2
+                    await member.roles.remove(rolFase2Id);
+                    
+                    // Marcar como rechazado y agregar fecha
+                    userData.fase = 'rechazado_fase2';
+                    userData.rechazadoEl = new Date().toISOString();
+                    guardarUsuarios(usersData);
+                    
+                    // Confirmación al moderador
+                    const successContainer = new ContainerBuilder()
+                        .setAccentColor(0x89d886)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ Whitelist rechazada correctamente')
+                        );
+                    
+                    await interaction.reply({
+                        components: [successContainer],
+                        flags: MessageFlags.IsComponentsV2,
+                        ephemeral: true
+                    });
+                    
+                } catch (error) {
+                    console.error('Error al rechazar whitelist:', error);
+                    const errorContainer = new ContainerBuilder()
+                        .setAccentColor(0xff0000)
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent('✅ Error al procesar el rechazo')
+                        );
+                    
+                    await interaction.reply({
+                        components: [errorContainer],
+                        flags: MessageFlags.IsComponentsV2,
+                        ephemeral: true
+                    });
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error en execute de revisar-2fase:', error);
+            const errorContainer = new ContainerBuilder()
+                .setAccentColor(0xff0000)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent('✅ Ocurrió un error inesperado')
+                );
+            
+            await interaction.reply({
+                components: [errorContainer],
+                flags: MessageFlags.IsComponentsV2,
+                ephemeral: true
+            }).catch(() => {});
+        }
+    }
+};
+
+// Manejador de interacciones para las preguntas
+const whitelistHandler = {
+    customId: 'pregunta_',
+    handleComponent: manejarRespuestaPregunta
+};
+
+// Exportar ambos comandos y el manejador
+module.exports = {
+    commands: [verificarme, revisar2fase],
+    handler: whitelistHandler,
+    // Exportar para manejo de eliminación de mensajes
+    sesionesPreguntas,
+    messageToUser,
+    limpiarSesionUsuario,
+    timeouts
+};
+
+

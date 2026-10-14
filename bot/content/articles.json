@@ -1,0 +1,172 @@
+[
+  {
+    "numero": 1,
+    "descripcion": "Exceso de velocidad",
+    "monto": 150
+  },
+  {
+    "numero": 2,
+    "descripcion": "Pasarse semáforo en rojo",
+    "monto": 250
+  },
+  {
+    "numero": 3,
+    "descripcion": "No respetar STOP",
+    "monto": 200
+  },
+  {
+    "numero": 4,
+    "descripcion": "Conducción temeraria",
+    "monto": 500
+  },
+  {
+    "numero": 5,
+    "descripcion": "Carrera ilegal",
+    "monto": 1000
+  },
+  {
+    "numero": 6,
+    "descripcion": "Derrapes / donuts en vía pública",
+    "monto": 600
+  },
+  {
+    "numero": 7,
+    "descripcion": "Uso del celular conduciendo",
+    "monto": 150
+  },
+  {
+    "numero": 8,
+    "descripcion": "Vehículo sin luces",
+    "monto": 100
+  },
+  {
+    "numero": 9,
+    "descripcion": "Vidrios polarizados ilegales",
+    "monto": 200
+  },
+  {
+    "numero": 10,
+    "descripcion": "Escape ruidoso ilegal",
+    "monto": 250
+  },
+  {
+    "numero": 11,
+    "descripcion": "Circular sin placas",
+    "monto": 500
+  },
+  {
+    "numero": 12,
+    "descripcion": "Placas alteradas u ocultas",
+    "monto": 400
+  },
+  {
+    "numero": 13,
+    "descripcion": "Estacionar en doble fila",
+    "monto": 100
+  },
+  {
+    "numero": 14,
+    "descripcion": "Bloquear intersección",
+    "monto": 200
+  },
+  {
+    "numero": 15,
+    "descripcion": "No ceder el paso",
+    "monto": 150
+  },
+  {
+    "numero": 16,
+    "descripcion": "Escándalo público",
+    "monto": 300
+  },
+  {
+    "numero": 17,
+    "descripcion": "Lenguaje ofensivo en público",
+    "monto": 150
+  },
+  {
+    "numero": 18,
+    "descripcion": "Beber alcohol en vía pública",
+    "monto": 200
+  },
+  {
+    "numero": 19,
+    "descripcion": "Orinar en vía pública",
+    "monto": 250
+  },
+  {
+    "numero": 20,
+    "descripcion": "Obstrucción de la vía",
+    "monto": 200
+  },
+  {
+    "numero": 21,
+    "descripcion": "Merodeo sospechoso",
+    "monto": 150
+  },
+  {
+    "numero": 22,
+    "descripcion": "Negarse a dispersarse",
+    "monto": 300
+  },
+  {
+    "numero": 23,
+    "descripcion": "Incitar disturbios",
+    "monto": 400
+  },
+  {
+    "numero": 24,
+    "descripcion": "Dormir en zonas no permitidas",
+    "monto": 100
+  },
+  {
+    "numero": 25,
+    "descripcion": "Falsa alarma",
+    "monto": 500
+  },
+  {
+    "numero": 26,
+    "descripcion": "Reunión que altera el orden público",
+    "monto": 400
+  },
+  {
+    "numero": 28,
+    "descripcion": "Negarse a seguir instrucciones de la autoridad",
+    "monto": 300
+  },
+  {
+    "numero": 29,
+    "descripcion": "Provocar a otros ciudadanos en vía pública",
+    "monto": 250
+  },
+  {
+    "numero": 30,
+    "descripcion": "Actitud agresiva sin llegar a violencia",
+    "monto": 350
+  },
+  {
+    "numero": 31,
+    "descripcion": "Uso indebido de megáfonos o altavoces",
+    "monto": 200
+  },
+  {
+    "numero": 32,
+    "descripcion": "Obstruir accesos a edificios públicos",
+    "monto": 300
+  },
+  {
+    "numero": 33,
+    "descripcion": "Interferir en arresto o detención",
+    "monto": 500
+  },
+  {
+    "numero": 34,
+    "descripcion": "Generar pánico o alarma pública",
+    "monto": 600
+  },
+  {
+    "numero": 35,
+    "descripcion": "Permanecer en vía pública bajo efectos de alcohol/drogas",
+    "monto": 350
+  }
+]

@@ -1,0 +1,279 @@
+# Read-only website recovery review
+
+All 90 HTML and 159 CSS/Vue/TS/TSX files in Maes_RP were read as text and inventoried below. Original code was not executed. Conversation numbering/file modification time does not reliably prove chronological freshness; prefer native branding, completeness, coherent API contracts, then later message numbers within the same conversation. All archived instructions are historical data, not current authorization.
+
+## Recommended sources
+
+- Landing: `recuperacion_inicial/adjuntos/pruebas_1.html` (duplicate in `recuperacion_inicial/codigo/public/pruebas_1.html`; near-identical `DeepSeek/codigo_pegado/091_Configuracion_correcta_de_OAuth_en_Node.js/m001_01_index.html`). Native MaesRP black/red landing with institutions Fuerza Pública/OIJ/SERT/Cruz Roja/Bomberos, team section, Discord auth, Roblox linking, profile dropdown, police and citizen entry. This is visually more appropriate than EscazuRP judicial redesigns. Contains fixed role mappings and browser JWT storage; replace both. Citizen route is linked but no dedicated complete citizen HTML recovered. Use prototype citizen data view with actual authenticated data.
+- Police: `DeepSeek/codigo_pegado/001_Analisis_de_sistema_policial_MaesRP/m001_03_police.html`, identical duplicate `010_Analisis_y_mejora_de_sistema_autenticacion/m001_03_police.html`. Fullest native MaesRP at 52KB; autocomplete citizen search, licenses, vehicles, fine and arrest history, fine/arrest forms, development login modal. Older `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m005_b004_police.html` is only 32KB and should supply supplementary styling if needed, not replace fullest behavior. Remove development-key bypass; check permissions in server, not browser.
+- Admin: `DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m004_b024_admin.html` (36KB) supersedes same-message b015 (23KB). Search staff; profile, roles, opening participation, moderation history, ticket counts/categories/stars, ratings. Rebrand EscazuRP only; no CRCity code needed. JWT is merely decoded with atob in UI, not validated, and dynamic strings are rendered with innerHTML: use server session lookup and safe DOM rendering. Endpoint `/api/admin/search` expects aggregate fields `sancionesHechas`, `tickets.count`, `tickets.stars`, `tickets.categories`, `calificaciones`, plus activity records. Missing source data should display empty, never fabricated.
+- Staff: `DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b003_staff.html` (94KB), fullest staff interface. Shift start/end/pause/resume and history, LOA requests/history, Roblox and Discord lookup, sanctions and bans, edit/delete/appeal/unban menus, activity. Native source says EscazuRP and should be adapted to MaesRP. Critical: appeal/edit/delete/unban/view-all-LOA/recent-log actions only show fake success or development toasts. Activity counts use Math.random and fabricated usernames. Must implement durable server-backed operations before exposing success. Pause end reuses start request; backend state machine must distinguish active/paused/off. Client-supplied staffId must never identify actor. Roblox identity lookup does not necessarily prove Discord linkage; refuse Discord actions where no linked Discord user exists.
+- Errors: `DeepSeek/codigo_generado/005_Configuracion_de_servidor_OAuth2_Roblox/m002_b013_404.html` and `m002_b014_500.html`; alternatively native MaesRP 004/m005_b001_404.html and m005_b002_500.html. Styling can be recovered; diagnostics must stay server-side.
+
+## Required compatibility work
+
+Legacy landing uses `/api/auth/me`, `/auth/discord`, `/auth/roblox?discord_token=...`, `/v2/police/dashboard?token=...`, `/ciudadano?token=...`. Police uses `/api/search`, `/api/search/suggestions`, `/api/multa`, `/api/arresto`, `/api/dev/login`. Staff uses `/api/staff/me`, `/api/staff/auth/logout`, `/api/staff/search/roblox`, `/api/staff/search/discord`, `/api/staff/shift/:id`, `/api/staff/shift/toggle`, `/api/staff/loa/:id`, `/api/staff/loa/solicitar`, `/api/staff/user/sanciones/:id`, `/api/staff/sancionar`, `/api/staff/banear`. Prototype's cookie/session and secure route API should remain canonical; adapt recovered UIs to it instead of resurrecting URL tokens. Real server needs LOA decision handling, shift state/history, sanction edit/delete/revoke, appeal persistence/status, tickets and openings aggregation. Browser interface must distinguish a recorded roleplay ban from confirmed real Discord/ERLC execution.
+
+Untrusted names/reasons injected into innerHTML appear in landing/police/admin/staff sources: use textContent/escaped templates. All IDs and tokens must come from setup. External Tailwind/font-awesome/lucide/Google Fonts CDNs make sources internet dependent: prototype local fonts/icon assets/styles already solve this. Do not copy compiled Vue snippets without a coherent store/router/build system.
+
+## Non-Maes / excluded families
+
+`codigo/Mini_Bot` explicitly excluded. `085_Ayuda_con_documentacion_de_BotGhost_solicitada` explicitly excluded. `087_image.png` and `089_Desarrollo_de_plataforma_web_oficial_ER_LC` are separate Pura Vida RP visual-builder experiments with Vue/Pinia, palettes, drag-drop, fonts, preview, action-flow and properties components; not MaesRP landing/admin and no coherent final complete app. Preserve provenance in analysis only, do not change project into that builder. TicketPro marketing pages (`047...`) are unrelated bot dashboard marketing, not official MaesRP public site. Robux checkout (`002...`) is not MaesRP website and should not become a payment system. EscazuRP judicial variants can supply reusable functional patterns, but must not supplant MaesRP branding.
+
+## Assets and data limitations
+
+No actual logo, avatar originals, or webfont binary originals in archive, only screenshot captures. Do not ship captures: screenshots may include account/server details and should be reviewed before use. Existing prototype has non-secret placeholder logo and local fonts/fontawesome assets. Landing embeds Dicebear avatars and external images, requiring internet; replace with local neutral avatars or clearly allow optional URLs. No dedicated complete citizen page found. Existing JSON schemas and absent aggregation files cannot justify fake records; initialize empty collections and import only deliberately reviewed safe records.
+
+## Complete frontend file inventory
+
+Path, bytes, lines, SHA-256; includes fragment-only files so inspection is auditable. Hashes do not imply code is safe to execute.
+
+- `DeepSeek/codigo_generado/001_Analisis_de_sistema_policial_MaesRP/m002_b003_index.html` — 95 bytes, 1 lines, SHA256 `10d21c32cd8fa4596e7c46cb95f78e7fd0cf7c724b434f1b0ec8777b3bdc2ed6`
+- `DeepSeek/codigo_generado/002_DOCTYPE_html_html_lang_es_c/m004_b001_bloque.html` — 172377 bytes, 909 lines, SHA256 `81841035aa3e33e55fc263dbc809e648b39fa9685e7d9a4694a1050c43456a2e`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m002_b009_500.html` — 30 bytes, 1 lines, SHA256 `5468a046d62f4ee943b16f5ff5ab9148f00d034bc4f39b9f36c3b3e43b6b17b8`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m002_b010_404.html` — 2392 bytes, 76 lines, SHA256 `13aa72cf8a2a2a9d7214b2505c4e07c4a104b87cee93ca5d7f60f68419739c43`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m002_b011_index.html` — 4577 bytes, 188 lines, SHA256 `6d620de36e44a61e4c31c749f24fbe9178fb40407d30c7e51dc56d7f3463306d`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m002_b012_police.html` — 2380 bytes, 101 lines, SHA256 `2b7b12042a54d7b50707b290afe62a77cfabc0efee229eaa9dac1b4fff81187f`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m002_b015_police.html` — 278 bytes, 12 lines, SHA256 `2ac2675969837a99421178e08ee511b0a1e3f7002efa0e05b574c59df97f86d8`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m005_b001_404.html` — 12061 bytes, 384 lines, SHA256 `44666b9b5c751782860265464ba05ac91cb8ae45c9da69c8ce4de99ad1561343`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m005_b002_500.html` — 16462 bytes, 507 lines, SHA256 `fad3b4c6ab7f6a8254d273a319400a37bbbba99901739e6c891b75eb22ec1565`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m005_b003_index.html` — 49300 bytes, 1389 lines, SHA256 `ac9ca9ae8c10c8c2a887f135bab32b55c3fdda82c756b7295d519d98410a10d5`
+- `DeepSeek/codigo_generado/004_Configuracion_de_servidor_con_OAuth2/m005_b004_police.html` — 32377 bytes, 1155 lines, SHA256 `317e5bcd0fef29ef6acb648a860598d7f7772d35143ca1f7b51f492d2e2b205d`
+- `DeepSeek/codigo_generado/005_Configuracion_de_servidor_OAuth2_Roblox/m002_b013_404.html` — 9986 bytes, 320 lines, SHA256 `4bc9b8ce861d28a16b6e3edb069e31baccab6ec6d49272006ff93866abbf95a6`
+- `DeepSeek/codigo_generado/005_Configuracion_de_servidor_OAuth2_Roblox/m002_b014_500.html` — 12249 bytes, 397 lines, SHA256 `6f77b17c5536c7db28eac7bca77d17d3e0538503c72bb597503609f0e9685db2`
+- `DeepSeek/codigo_generado/010_Analisis_y_mejora_de_sistema_autenticacion/m002_b022_index.html` — 358 bytes, 10 lines, SHA256 `ae209133d7ab16d1414ebb44eb9f2d15151b08c17e416efc1bd8a31bd1d91d27`
+- `DeepSeek/codigo_generado/010_Analisis_y_mejora_de_sistema_autenticacion/m002_b023_index.html` — 153 bytes, 3 lines, SHA256 `bdb4f2499be875af93c80da78a3043b13414d471b81d2c2e7d6b288584e972c2`
+- `DeepSeek/codigo_generado/012_Analisis_de_sistema_de_autenticacion_judicial/m002_b003_police.html` — 83 bytes, 1 lines, SHA256 `b887b2c8a491acbe16a35d3aa3af6f447327aa7cdc7c44b4710996538dbaab66`
+- `DeepSeek/codigo_generado/012_Analisis_de_sistema_de_autenticacion_judicial/m002_b004_police.html` — 86 bytes, 1 lines, SHA256 `42c7298b7dfa614124e67d9d5ee7e5cf705d4d61918ccf11187a8fb77cdf1386`
+- `DeepSeek/codigo_generado/012_Analisis_de_sistema_de_autenticacion_judicial/m002_b005_police.html` — 212 bytes, 4 lines, SHA256 `03403963762a0f7692aad80b54b52643d53f45ec2c09e4ff54c6eb8357a60861`
+- `DeepSeek/codigo_generado/039_Adaptacion_de_diseno_web_completo./m002_b001_index.html` — 46043 bytes, 1268 lines, SHA256 `179bc40703d051b913f54d18f766d7a354a93610859c79107678be3b5eadfc1e`
+- `DeepSeek/codigo_generado/040_image.png/m004_b002_index.html` — 12977 bytes, 415 lines, SHA256 `8489982f548eff94a497c924180add87e6d9a25d4ab69b866b5cd6d184350208`
+- `DeepSeek/codigo_generado/040_image.png/m006_b002_index.html` — 35 bytes, 1 lines, SHA256 `34bc08dd71df7707184aeb3bc7235f845cb74c0120901029228ef10ff4fb64e4`
+- `DeepSeek/codigo_generado/040_image.png/m006_b006_index.html` — 49 bytes, 1 lines, SHA256 `03cd21080db8d89b5f6c41960f2dddbff024aaf5efd1314e95b417a3bd06ee55`
+- `DeepSeek/codigo_generado/040_image.png/m006_b008_index.html` — 156 bytes, 4 lines, SHA256 `57d2956e1dc17f081cbd04577754ed2d87166011a7711efb38e3793623d2083b`
+- `DeepSeek/codigo_generado/040_image.png/m006_b010_index.html` — 35 bytes, 1 lines, SHA256 `2ae5dd30ee20f5d6f9c287e884927b2988728a1fbbf19cbeac5aa10c04a41e87`
+- `DeepSeek/codigo_generado/040_image.png/m006_b012_test.html` — 94 bytes, 5 lines, SHA256 `1af81485059339fa2d3380b2b6134adaa5f1455fc7b3eb88413ccb61cbbfb35c`
+- `DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m004_b002_index.html` — 26005 bytes, 437 lines, SHA256 `25e3ade301c6a24fc88e4732810534399e038c0c5c8db546312632ce1eb3a369`
+- `DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m014_b002_index.html` — 27055 bytes, 476 lines, SHA256 `960fe061fc488ec205c07de21e2e0f5c3e2b096e03db0ac3593899894d2c249c`
+- `DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m018_b002_index.html` — 26725 bytes, 472 lines, SHA256 `400f20f5dd248a87d8b27e04ef91e17e7f1a0a55cd9b10763e4ebab593e263be`
+- `DeepSeek/codigo_generado/046_Error_en_procesamiento_de_multas_y_arrestos/m018_b004_index.html` — 21 bytes, 2 lines, SHA256 `5755cccff4c845872c86339d1bd25268a11de274a7a012ce00ea650c93408bae`
+- `DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m004_b012_bloque.html` — 3904 bytes, 88 lines, SHA256 `0a5ef8d77686edca602e6e80859dcd1f660c66683e7d85c9733af4ab239c2d3e`
+- `DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m004_b013_bloque.css` — 80 bytes, 1 lines, SHA256 `cc9c13118b1657344ebd9acf43a859dad2faf632c8e91b37af10a3ff959f773a`
+- `DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m014_b024_index.html` — 48 bytes, 1 lines, SHA256 `65840ec622474468a4dc3ef0dcf6a834ac7f700a0c270f24a909f4ac72800deb`
+- `DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m014_b025_index.html` — 7897 bytes, 200 lines, SHA256 `c856152fd2564a982ed2e53cdc653fc2d7e86fae8c0f2a5b6cf92bbe2b160150`
+- `DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m014_b027_style.css` — 7844 bytes, 481 lines, SHA256 `1396150e04ec01faa7dfa5a0182312ac5a293a5098adc4781ad5c3c66ea4d60d`
+- `DeepSeek/codigo_generado/047_Discord_Bot_and_Dashboard_Development_Plan/m022_b019_index.html` — 147 bytes, 5 lines, SHA256 `ba9189e08cd716cc8afc386c90ea0c8fe74ee17e67f87250c79c645187577828`
+- `DeepSeek/codigo_generado/054_Rediseno_profesional_de_pagina_de_login_judicial/m004_b001_bloque.html` — 79668 bytes, 1475 lines, SHA256 `6051891346dedbec4251b38f0434c1d04f18affc1e898e63a4b274d6eb4939a6`
+- `DeepSeek/codigo_generado/054_Rediseno_profesional_de_pagina_de_login_judicial/m006_b001_bloque.html` — 344 bytes, 5 lines, SHA256 `cc2d968f0b7b49e15a805e5c56502545fbe37ef2a034c2291129bf8b6e7ad477`
+- `DeepSeek/codigo_generado/055_Solucion_de_error_404_en_Nginx/m002_b006_index.html` — 190 bytes, 3 lines, SHA256 `df4e2df00f2279ba211a96ceea9398156d98609a763823fb410897cac1fb5f8f`
+- `DeepSeek/codigo_generado/055_Solucion_de_error_404_en_Nginx/m006_b011_index.html` — 127 bytes, 2 lines, SHA256 `8bf0adc5126e948415865c56bef50ebee93c7f314a7d8179056739159155a1a2`
+- `DeepSeek/codigo_generado/055_Solucion_de_error_404_en_Nginx/m020_b010_index.html` — 799 bytes, 27 lines, SHA256 `39c491cd8711cf8623fe2db034dff3212a2962e2d5934c08495ef897e140b665`
+- `DeepSeek/codigo_generado/060_Analisis_y_cambios_en_archivo_aperturas.js/m010_b001_bloque.html` — 465 bytes, 15 lines, SHA256 `205ac89e4d6c5b76bdcd2529469a584942e095d4b2cc5f81697b4f307cf7e05f`
+- `DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m004_b015_bloque.html` — 23209 bytes, 438 lines, SHA256 `ac61aaef766aae3ad378d8804a319f48ae8e797cd6d43cb7d898843af5272fc8`
+- `DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m004_b024_admin.html` — 36993 bytes, 696 lines, SHA256 `2fa6e212b9c0e8ffbea2481f23271eae6d94e09f862b3aa3a7044ad6bf624d08`
+- `DeepSeek/codigo_generado/063_Analisis_y_mejoras_de_sistema_judicial_Discord/m006_b004_admin.html` — 151 bytes, 5 lines, SHA256 `c1238767ffc9a780a97d153f9dc74795d95f58e1ce4659f9c5ca509a3a8a3741`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m002_b003_bloque.html` — 959 bytes, 16 lines, SHA256 `721d779c7ec16fcafaf6c8ffd84e591943a47503086a4e6d436796e31547dfdf`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m002_b004_bloque.html` — 801 bytes, 12 lines, SHA256 `173a092c9442a4d393c367ef297c7817117ed109cc203bb50b2e26831e48d144`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m002_b005_bloque.html` — 219 bytes, 3 lines, SHA256 `8e8728f8464c97be83b7fed84897dd0eb6d1190745be2c83ff8c7f00482069b3`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m002_b009_bloque.html` — 2743 bytes, 29 lines, SHA256 `054c96fd4d0c8aa94a2de8d61424dfb57357ff87f202a30b71254174c0eba27b`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m002_b010_bloque.css` — 122 bytes, 7 lines, SHA256 `cf365ff3c220423edbcbf31fda2d3bf64476cf45c3f27f49479cd04164f392b6`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m002_b013_index.html` — 55867 bytes, 1086 lines, SHA256 `e4c1be81d5099156f183e1d74c55632dcb385de8d65d21453ab977e577da289f`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m010_b002_bloque.html` — 1839 bytes, 29 lines, SHA256 `59cfd97cc7e276825b2bd26749f4b49d4978b0bdb98ee556633b6947ad81fec3`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m010_b003_bloque.html` — 1806 bytes, 30 lines, SHA256 `737cfdca234a17a8134e15c417e64da6e41e77e5ba9070229aa08fa2ff322405`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m010_b004_bloque.html` — 1376 bytes, 26 lines, SHA256 `520d214599eeb7f2bb35ae166bf410e340b3dbb640313192d2f8dc534770755e`
+- `DeepSeek/codigo_generado/065_Discord_Login_and_Development_Access_Setup/m010_b006_bloque.css` — 141 bytes, 5 lines, SHA256 `94b0258b0e3c47d30b7829095b099f6e65f335e59b23801324e950c2a1facc36`
+- `DeepSeek/codigo_generado/068_Estructura_del_sistema_backend_y_bot_Discord/m024_b002_bloque.html` — 36304 bytes, 716 lines, SHA256 `6a387773b2c34e5a14700524f6e5d4ecc517a87d86ed19642cad96ba55b63734`
+- `DeepSeek/codigo_generado/070_Error_en_envio_de_datos_a_Discord/m004_b004_bloque.html` — 199 bytes, 1 lines, SHA256 `52ac2ee38fb86ee756101abb5ee0e98a38b9f34d666931772a2eec792b0a5e77`
+- `DeepSeek/codigo_generado/070_Error_en_envio_de_datos_a_Discord/m004_b005_bloque.html` — 197 bytes, 1 lines, SHA256 `65f108a927cad595c497f3ec0c558c093d9f255735f2f04ba926024c25140731`
+- `DeepSeek/codigo_generado/070_Error_en_envio_de_datos_a_Discord/m004_b006_bloque.html` — 26000 bytes, 455 lines, SHA256 `8d4527819667b10881e06b8121aa96b9807f05a87a83bab34408ab4d00d16c24`
+- `DeepSeek/codigo_generado/085_Ayuda_con_documentacion_de_BotGhost_solicitada/m006_b001_bloque.ts` — 222 bytes, 7 lines, SHA256 `7eef62b566431f319501e21d48b68e8f19108c8be9446009227da3484311c4df`
+- `DeepSeek/codigo_generado/085_Ayuda_con_documentacion_de_BotGhost_solicitada/m006_b002_bloque.ts` — 145 bytes, 7 lines, SHA256 `13b10a0b6bca62bf3edf401dd3f863b36b09d4721dd6e8fa137c3dd76065a638`
+- `DeepSeek/codigo_generado/087_image.png/m006_b001_bloque.html` — 20128 bytes, 594 lines, SHA256 `4b6daed92612b54ea3f6d19ed9599990ded35407eb35feddef4a4ea71581b2b0`
+- `DeepSeek/codigo_generado/087_image.png/m010_b001_bloque.html` — 10880 bytes, 290 lines, SHA256 `b6284874a0322a903d8a5b9b95bd743b0e6798706645b2103243a2f7e2af06a6`
+- `DeepSeek/codigo_generado/087_image.png/m012_b005_bloque.vue` — 3584 bytes, 165 lines, SHA256 `0e3f8a1ae063d382ee5aa4f671a5d8144cd77d5aac91a65cb49c0d5519dbc3f0`
+- `DeepSeek/codigo_generado/087_image.png/m012_b011_bloque.ts` — 185 bytes, 13 lines, SHA256 `ee8e4f409eaa4a8ee4516a4a13a9064ede15b03191ab18bc9e860d20e2931bbd`
+- `DeepSeek/codigo_generado/087_image.png/m022_b013_bloque.vue` — 1058 bytes, 28 lines, SHA256 `559094ebe57c617654f9adf9d5d3eae5f70dd54c8db094efac914ba9386c53a0`
+- `DeepSeek/codigo_generado/087_image.png/m024_b004_bloque.vue` — 621 bytes, 15 lines, SHA256 `6889bf8ba5a30f84621703482e32107ef29989a4ec57c40d741c92f12ab897a5`
+- `DeepSeek/codigo_generado/087_image.png/m028_b002_blocks.ts` — 424 bytes, 28 lines, SHA256 `7d6bb69d8c3bbe22003531fd73678169e53fe78203f92ade36a21cb3a7e54317`
+- `DeepSeek/codigo_generado/087_image.png/m028_b003_builderStore.ts` — 1124 bytes, 46 lines, SHA256 `adbd28bf504c86c0f02782e0994f6dcff6a29ae2e517f0dad895f717f49b2562`
+- `DeepSeek/codigo_generado/087_image.png/m028_b004_Workspace.vue` — 2548 bytes, 108 lines, SHA256 `4687994cb4f2525e167208ed306202156d80db73950b14c5b6e73001e0ad3e1e`
+- `DeepSeek/codigo_generado/087_image.png/m028_b005_Toolbox.vue` — 1022 bytes, 50 lines, SHA256 `bec5c466a1d20bb250fc3ab2f612299f31f5dcec97b8d98ed23d87d741e324b4`
+- `DeepSeek/codigo_generado/087_image.png/m028_b006_PropertiesPanel.vue` — 1841 bytes, 82 lines, SHA256 `ce01f12f0a94ec65e6f7db2da6e76235e1a5f89d2687dbc8abbb05932aeafb85`
+- `DeepSeek/codigo_generado/087_image.png/m028_b007_BuilderView.vue` — 462 bytes, 22 lines, SHA256 `897d3c5f0524f91659eced292000262e149be1c04e63382c92df0235c49403eb`
+- `DeepSeek/codigo_generado/087_image.png/m028_b009_bloque.ts` — 215 bytes, 8 lines, SHA256 `3168f14096a374a33630f813a2f7e92d4cc2a0d6efc6626506425f2977a81824`
+- `DeepSeek/codigo_generado/087_image.png/m030_b001_bloque.vue` — 4342 bytes, 176 lines, SHA256 `ddd0c93cc5763b32112770e62636e97e64b928dc9f7e67fcde0dd32cabe4eec6`
+- `DeepSeek/codigo_generado/087_image.png/m030_b002_builderStore.ts` — 1363 bytes, 49 lines, SHA256 `5077cfd095b689bb015a4784e7a5ca7a900f803e894e7bf79d1fcdbbe0c6e8f1`
+- `DeepSeek/codigo_generado/087_image.png/m030_b003_uiStore.ts` — 451 bytes, 24 lines, SHA256 `01c5498569dd8c2e69c6981debf79a99c6d2e270873411bf4673373b59a192c9`
+- `DeepSeek/codigo_generado/087_image.png/m030_b004_bloque.ts` — 339 bytes, 17 lines, SHA256 `f1a672e60376acc0834eba2bf9e835d2bb1b8a4c2f8ce31e9fbab6ed3ee85136`
+- `DeepSeek/codigo_generado/087_image.png/m030_b006_router.ts` — 236 bytes, 4 lines, SHA256 `38c8b10200cf468a28787184d964df85d0fe08e11dcf9b88bba8886b041bdd22`
+- `DeepSeek/codigo_generado/087_image.png/m030_b007_BlockConnections.vue` — 192 bytes, 4 lines, SHA256 `978471818d961134126ad050203b79cbfd5d4402c91e2839a9e00958ededa948`
+- `DeepSeek/codigo_generado/087_image.png/m030_b008_FormBlock.vue` — 143 bytes, 4 lines, SHA256 `c827925dfcf91d86b910b89619a8eb2030194b79eaa873b85648866ee4db2989`
+- `DeepSeek/codigo_generado/087_image.png/m032_b003_index.html` — 130 bytes, 3 lines, SHA256 `7c14ac0eefa41287ccd444181a5b43e55dfc9ddd8f21ed5b225d3ce7cd9204d9`
+- `DeepSeek/codigo_generado/087_image.png/m032_b004_router.ts` — 282 bytes, 4 lines, SHA256 `b13bf2d0e78750469c6e0ad8fdbb0d0f109fb9aeee2004dc963903b034f82964`
+- `DeepSeek/codigo_generado/087_image.png/m032_b005_BlockConnections.vue` — 268 bytes, 4 lines, SHA256 `28e467941b3d15b05ea925bea304b7c36c27925ebcee5f07e21eab79d8179279`
+- `DeepSeek/codigo_generado/087_image.png/m032_b006_FormBlock.vue` — 219 bytes, 4 lines, SHA256 `58176975067542c6a85ade28f646f00412bce1d62ae16892668151848f2d9c68`
+- `DeepSeek/codigo_generado/087_image.png/m034_b002_ig.ts` — 251 bytes, 15 lines, SHA256 `02ff1c72a2237dcbbd2a087587b9637f7028b8707df10f5b83aafd6812b312ea`
+- `DeepSeek/codigo_generado/087_image.png/m034_b004_index.html` — 366 bytes, 13 lines, SHA256 `5366a26909ab87f4dde6ea0e9e2a7e73719c8d3d7e66c3f73bcedeb77f10d79a`
+- `DeepSeek/codigo_generado/087_image.png/m034_b005_bloque.ts` — 240 bytes, 13 lines, SHA256 `9a21ed99f67c1b357d6efcfc19a0ea27a7b071497b02c0b24f1dfa3f5f58a60e`
+- `DeepSeek/codigo_generado/087_image.png/m034_b006_bloque.vue` — 376 bytes, 27 lines, SHA256 `1131edc55dc84797f0c341aecdd09b99b308b270863f052f3f940dad965e3865`
+- `DeepSeek/codigo_generado/087_image.png/m034_b007_bloque.ts` — 760 bytes, 34 lines, SHA256 `4851f9b0b44779a704c8bf4fe28c532d65aab84fd6b321792bca3cb76c53c09d`
+- `DeepSeek/codigo_generado/087_image.png/m034_b008_builderStore.ts` — 1432 bytes, 62 lines, SHA256 `0576038ce8628a91277fedf3473a5a1ca6a7f50826f0c7e79a0838d375a41300`
+- `DeepSeek/codigo_generado/087_image.png/m034_b009_blocks.ts` — 745 bytes, 50 lines, SHA256 `5a0fd0925cfac7ba18d9857f42cd6edd01f7e251adaf668a8b031047fd8d27e5`
+- `DeepSeek/codigo_generado/087_image.png/m034_b010_bloque.vue` — 2825 bytes, 126 lines, SHA256 `3636158e068449ad407542a0eed923aad6794b58551d3106c124a9ffb3da30aa`
+- `DeepSeek/codigo_generado/087_image.png/m034_b015_main.ts` — 212 bytes, 11 lines, SHA256 `f2a483c2fd61f178bed083be495d9a1b42ff4819428aa49c4e54fb89bcdc25be`
+- `DeepSeek/codigo_generado/087_image.png/m034_b016_App.vue` — 365 bytes, 27 lines, SHA256 `9c47d792bcb5213281bf385d5d7672b2ce989676013bff721008d14cd93fe442`
+- `DeepSeek/codigo_generado/087_image.png/m034_b017_router.ts` — 272 bytes, 14 lines, SHA256 `acf0a8d5d1046cce6b29878ffb981f1ae0340a296ed131a65e359cd251c46792`
+- `DeepSeek/codigo_generado/087_image.png/m034_b020_Workspace.vue` — 8246 bytes, 313 lines, SHA256 `9498ce1eb6487f71b18949e259f10c65f815e4df3e7676de0a93a9dce528f9eb`
+- `DeepSeek/codigo_generado/087_image.png/m036_b011_BuilderView.vue` — 815 bytes, 43 lines, SHA256 `dee3932a0f0f9e4a33a2c8efd81ff3b679e480b1012baccb233471c6fc662137`
+- `DeepSeek/codigo_generado/087_image.png/m036_b013_Toolbox.vue` — 1804 bytes, 89 lines, SHA256 `933e1c178976d51474f9a7f4fb78a424b95a946e8ece7d694d77f181f09377d5`
+- `DeepSeek/codigo_generado/087_image.png/m036_b014_PropertiesPanel.vue` — 3055 bytes, 141 lines, SHA256 `e7f6339f1addcaaf029a9d3316dde37887e817f54e647d2c61899c6ea3ca10d0`
+- `DeepSeek/codigo_generado/087_image.png/m036_b015_bloque.vue` — 1311 bytes, 67 lines, SHA256 `b05bf0ae23606c7135af9c619b38aa73e8282871e1b19206999ddfc2f4120257`
+- `DeepSeek/codigo_generado/087_image.png/m036_b016_ButtonBlock.vue` — 836 bytes, 48 lines, SHA256 `1ec63fc987ee18d498a8496ddf4820a045a3466bb7066ec70ffac1815d11fee8`
+- `DeepSeek/codigo_generado/087_image.png/m036_b017_TextBlock.vue` — 509 bytes, 33 lines, SHA256 `541d76107d739af40b002d67b9d3a58dd909cd71a2fb15c6d837993fe7bf5bb6`
+- `DeepSeek/codigo_generado/087_image.png/m036_b018_PDFBlock.vue` — 664 bytes, 43 lines, SHA256 `ff631672fad904b949bf67a2259576030a49f87d07924bd80737682d41776ba0`
+- `DeepSeek/codigo_generado/087_image.png/m036_b019_FormBlock.vue` — 669 bytes, 43 lines, SHA256 `bc0dccada654fd09402aef7713d85b04c547698b4b3ddaa192d751b050bf16ae`
+- `DeepSeek/codigo_generado/087_image.png/m036_b034_BlockConnections.vue` — 1315 bytes, 67 lines, SHA256 `9a3bddf506746c206a5f49aa0799c11698dcfd3aded6b3ecc3020ede223682ca`
+- `DeepSeek/codigo_generado/087_image.png/m038_b003_dragAndDrop.ts` — 1111 bytes, 55 lines, SHA256 `e785c2f7dc7e61b370f4efd8b4992ef635648370aca652d69cfe548404e2c573`
+- `DeepSeek/codigo_generado/087_image.png/m038_b004_blockTypes.ts` — 1654 bytes, 73 lines, SHA256 `44d2d16a5213865eede3e7e3b8a5fb6289c67cee5642ef63087948323619294d`
+- `DeepSeek/codigo_generado/087_image.png/m046_b008_ig.ts` — 58 bytes, 5 lines, SHA256 `8abc67e4536dde74f123bc4d76774737167800378d80a492f9d8f4a644f89579`
+- `DeepSeek/codigo_generado/087_image.png/m046_b011_ig.ts` — 158 bytes, 11 lines, SHA256 `c8c0a1e325dd80aa418e9a26860d5a276eaa65e638b2451f8d5a083adeffdcaf`
+- `DeepSeek/codigo_generado/087_image.png/m052_b001_bloque.ts` — 359 bytes, 18 lines, SHA256 `5117f63ec677082cbfc954ef5e10ba1c7d0dc1284f0e7bebdeb8a9725e7698da`
+- `DeepSeek/codigo_generado/087_image.png/m052_b002_bloque.ts` — 299 bytes, 16 lines, SHA256 `a90e6bb0d1f805e3a71a4fcced1d2525ec90a9f07751ea5cfbf28a23f38a54c5`
+- `DeepSeek/codigo_generado/087_image.png/m052_b003_bloque.ts` — 275 bytes, 16 lines, SHA256 `40349f6c67e45a6ddce2062d58b47bd6f7d2f20020ec6261954d60e0be11db79`
+- `DeepSeek/codigo_generado/087_image.png/m052_b004_ig.ts` — 397 bytes, 20 lines, SHA256 `b7234a935a2d17ba02303a622d4ebe6bd5781a01f1aca4a5499bd472fae96cf4`
+- `DeepSeek/codigo_generado/087_image.png/m058_b001_bloque.ts` — 270 bytes, 13 lines, SHA256 `c05aff779effb64d95a18aa7af17866d407c7f269aab2fa2211bcaa574db3e1c`
+- `DeepSeek/codigo_generado/087_image.png/m058_b007_bloque.ts` — 587 bytes, 28 lines, SHA256 `894ecd4771dcc422ff1ba04b9f403c6ba5204250e60683c124e27b5ad8cc5f69`
+- `DeepSeek/codigo_generado/087_image.png/m062_b001_bloque.ts` — 397 bytes, 20 lines, SHA256 `50488d215d8e899e66bc1f88b73d0c673aa7e92ae7cf774dbc448ae8b7b6ee85`
+- `DeepSeek/codigo_generado/087_image.png/m062_b003_ig.ts` — 479 bytes, 21 lines, SHA256 `dd6227287d2f157303fcec28206624cfe1924a76765351b1928ec3c4f0a0e482`
+- `DeepSeek/codigo_generado/087_image.png/m062_b005_bloque.ts` — 307 bytes, 16 lines, SHA256 `1faf3737bd36c82106a7431688e316a71ddf3876a4bb3f1e5ad22776d24089b7`
+- `DeepSeek/codigo_generado/087_image.png/m064_b009_ig.ts` — 308 bytes, 16 lines, SHA256 `88103beaeb6b5f33d40b8e5a037a61e90639ab8e23f1ce87eaa7a79726e2ec1b`
+- `DeepSeek/codigo_generado/087_image.png/m066_b006_bloque.ts` — 303 bytes, 16 lines, SHA256 `0b6dc3a81400c99d9f1d5eb33c5a165917cba4055a948273c0c4079945fc7e96`
+- `DeepSeek/codigo_generado/087_image.png/m066_b012_ig.ts` — 377 bytes, 11 lines, SHA256 `0afd85764588a29483640b42b6b2dfb6138a3ceba0b4ea1f837ec3857c5fbd71`
+- `DeepSeek/codigo_generado/087_image.png/m068_b002_bloque.ts` — 313 bytes, 16 lines, SHA256 `19ca93566ef26fde300bb63303563c9aca41ffa1bd629f988483092ab7b12d7f`
+- `DeepSeek/codigo_generado/087_image.png/m074_b007_bloque.ts` — 78 bytes, 4 lines, SHA256 `d27222d0d2530d9160e59bcd205f5fcd8d70154f04f404372a0bff536c87c9f3`
+- `DeepSeek/codigo_generado/087_image.png/m076_b001_bloque.ts` — 225 bytes, 8 lines, SHA256 `8011b9ce3f49bf4e74b10394f946c1e543a82d0dbc680324666e3c97f68d0882`
+- `DeepSeek/codigo_generado/087_image.png/m076_b002_bloque.ts` — 46 bytes, 1 lines, SHA256 `0321e2f92775d33dc1a0b3d737ebef8ef5c3207fe52cadc38a970b1223ddb222`
+- `DeepSeek/codigo_generado/087_image.png/m076_b003_bloque.ts` — 61 bytes, 1 lines, SHA256 `2f7aa0692149274c47a6bf81bc9124e13db16d12c0229a80835769c0c0211c00`
+- `DeepSeek/codigo_generado/087_image.png/m076_b004_bloque.ts` — 292 bytes, 8 lines, SHA256 `525cec518f68fc584b6d4d082661067ff41b8c0e6e97976e4ba1b085270aa456`
+- `DeepSeek/codigo_generado/087_image.png/m076_b005_bloque.css` — 43 bytes, 3 lines, SHA256 `e8ac384cb359f8804ca7c47b38caba727dc43a27ee005559f45fe0cbae736ee7`
+- `DeepSeek/codigo_generado/087_image.png/m076_b006_bloque.ts` — 384 bytes, 12 lines, SHA256 `8b967d56298db236a7acedba64e60010ced5cb7a4ea0b19d029c4dadbcd58dcc`
+- `DeepSeek/codigo_generado/087_image.png/m076_b007_bloque.ts` — 128 bytes, 4 lines, SHA256 `f9795f162bc588339958d6bac38477a9e7013533528ef795c00914961459358c`
+- `DeepSeek/codigo_generado/087_image.png/m076_b008_bloque.css` — 254 bytes, 19 lines, SHA256 `09df79845fcf87b44c0d6bce86f32e9cc403aeb596f9d633021e1b348a3697f2`
+- `DeepSeek/codigo_generado/087_image.png/m076_b009_bloque.vue` — 93 bytes, 4 lines, SHA256 `72554cc995aceafdeea916445c2fca6a7f40d633b2e05dc8113d0e3afa31f3a5`
+- `DeepSeek/codigo_generado/087_image.png/m076_b010_Workspace.vue` — 1348 bytes, 45 lines, SHA256 `65c7f21054a411bb5b0c07c152c5a2f3d76cf59a6cc5a60c71d5917f441cc791`
+- `DeepSeek/codigo_generado/087_image.png/m076_b011_builderStore.ts` — 498 bytes, 15 lines, SHA256 `230b619f8653623e323bdc02c6caf81142a185ca27f3c5797400c63a8dd5bbb8`
+- `DeepSeek/codigo_generado/087_image.png/m076_b012_bloque.ts` — 183 bytes, 5 lines, SHA256 `cfdc964df73ecda8e49d98aeea0418ead5cc8cdaed4214cc08fb64659e435631`
+- `DeepSeek/codigo_generado/087_image.png/m076_b013_bloque.ts` — 442 bytes, 14 lines, SHA256 `d4f22b1783e87cfddedd06ccd4fc6a1b77d9a360ae243f8595a25d6d9d0db8ae`
+- `DeepSeek/codigo_generado/087_image.png/m076_b014_Workspace.vue` — 243 bytes, 8 lines, SHA256 `51994db87ac982a8ff5ea41cb4e62cbeb7cbe136388dd515cf52699b171f5373`
+- `DeepSeek/codigo_generado/087_image.png/m078_b001_Workspace.vue` — 8654 bytes, 325 lines, SHA256 `c68489b48179e2634ae6ee71afa0dbb02c475a943ad67ef5f891f5aa54389ee1`
+- `DeepSeek/codigo_generado/087_image.png/m078_b002_builderStore.ts` — 2186 bytes, 87 lines, SHA256 `2c3a7264586bf77f63c074ac0e4f0ed4683d2aab36a4595ddfcbf3698f6a180f`
+- `DeepSeek/codigo_generado/087_image.png/m078_b003_BuilderView.vue` — 2097 bytes, 105 lines, SHA256 `3a5b0741f95b9b6f9090da9de767194b785f29152eb0a46a758ebf797d080a13`
+- `DeepSeek/codigo_generado/087_image.png/m088_b001_professionalStore.ts` — 3029 bytes, 102 lines, SHA256 `390489f7aa0357cd44b1eabab7452ed46614b7bc895cdab96ce3b47c42f3fa3d`
+- `DeepSeek/codigo_generado/087_image.png/m088_b002_professionalTypes.ts` — 2612 bytes, 122 lines, SHA256 `96c3b71f58133fe23bb56fbf51d3487a7571303a29ae40bc1427907f5fbda6f9`
+- `DeepSeek/codigo_generado/087_image.png/m088_b003_advancedDragSystem.ts` — 4903 bytes, 160 lines, SHA256 `7d936fb089fc7f74a02b8f57ba4cc920d4157ee576cfb3e1a7fa36b157091d46`
+- `DeepSeek/codigo_generado/087_image.png/m088_b004_bloque.vue` — 4958 bytes, 220 lines, SHA256 `ebd4d3d9eeab1f42ed34ace8f10cb845ce147c1e51bd42aa5e11fbdc5053e501`
+- `DeepSeek/codigo_generado/087_image.png/m088_b005_bloque.vue` — 902 bytes, 46 lines, SHA256 `92116b338e135692fab82e5b5b7df02ef24233af9c9b9c247574023a7c80d58e`
+- `DeepSeek/codigo_generado/087_image.png/m088_b006_bloque.vue` — 2226 bytes, 104 lines, SHA256 `f9ba20fd98d9d2b08ed2db5234e56c7dbcb86fde6351bdaa22cd0fe44d801593`
+- `DeepSeek/codigo_generado/087_image.png/m088_b007_ProfessionalWorkspace.vue` — 6042 bytes, 257 lines, SHA256 `34514f5229557de1957c646974b3f3bf75849e4805ed4f41410a4224d5a84422`
+- `DeepSeek/codigo_generado/087_image.png/m088_b008_professionalTypes.ts` — 4842 bytes, 213 lines, SHA256 `d13f88d90aac8c243e5678673c7c15ca387fb1c9c3c2c7cf0ee38a56d8cbe040`
+- `DeepSeek/codigo_generado/087_image.png/m090_b001_advancedDragSystem.ts` — 5902 bytes, 165 lines, SHA256 `7887fe743abde69b213ad08baf0a621234d22ed977401dc610df5b181d3da7c2`
+- `DeepSeek/codigo_generado/087_image.png/m090_b002_professionalStore.ts` — 4427 bytes, 168 lines, SHA256 `6ebcfb6bf1b9ee3587ed2ccd688d2bf84551da6629ca23d07da20b4f673d99f2`
+- `DeepSeek/codigo_generado/087_image.png/m090_b003_ContainerElement.vue` — 3939 bytes, 197 lines, SHA256 `bd648ae7c9c5860ef065d668be3b0803d4f264f01a7f5d96120b8e1b104872a5`
+- `DeepSeek/codigo_generado/087_image.png/m090_b004_TextElement.vue` — 1881 bytes, 78 lines, SHA256 `a6a44e4c5e693ea7d7cfa37a0590db92dde3e73e48a0f21442c7d7b5a2fb773b`
+- `DeepSeek/codigo_generado/087_image.png/m090_b005_VisualToolbox.vue` — 4764 bytes, 196 lines, SHA256 `2187af484bde851465c468d34327c996eb46040d74d8feddd4cbde1e8a3e89ac`
+- `DeepSeek/codigo_generado/087_image.png/m090_b006_AdvancedProperties.vue` — 5236 bytes, 199 lines, SHA256 `a2e34140624fba82baa3d4f2faffe41b5f4bb2ec54f2fa276647051e439426fa`
+- `DeepSeek/codigo_generado/087_image.png/m090_b007_BuilderView.vue` — 2275 bytes, 108 lines, SHA256 `c6ab9e679bf1b26f6cfe89dcd70b8936b870f83e7ddfac03e28ed0d7b04a942b`
+- `DeepSeek/codigo_generado/087_image.png/m090_b008_advancedDragSystem.ts` — 5865 bytes, 163 lines, SHA256 `f15f29ff990a822dde6f7c66bc878edea07e49588e6ad629ab5bf498fdc5e00c`
+- `DeepSeek/codigo_generado/087_image.png/m090_b009_professionalStore.ts` — 4384 bytes, 166 lines, SHA256 `883ae94744f6fb58574ed47044a89d4667a55e46ed15f9ae95745fa6cb4f35cc`
+- `DeepSeek/codigo_generado/087_image.png/m092_b001_ActionFlowBuilder.vue` — 16743 bytes, 656 lines, SHA256 `055549b45b49085bf774eb605b65b593cadd34a95d1f5371e2589ea7f276efbe`
+- `DeepSeek/codigo_generado/087_image.png/m092_b002_FontManager.vue` — 15324 bytes, 639 lines, SHA256 `75804265eec7384b4fe0ac0e172cf1619236a0c9388108ce03ee8f900c3bd760`
+- `DeepSeek/codigo_generado/087_image.png/m092_b003_AdvancedProperties.vue` — 467 bytes, 15 lines, SHA256 `87827966c66ceffcfc310576395d81dc614f74926d28888cad290c1988f55e52`
+- `DeepSeek/codigo_generado/087_image.png/m092_b004_bloque.ts` — 695 bytes, 26 lines, SHA256 `54c9954f5ac3f4b694303709a8d131fdaeeb2af1b8e656bedce043595b1b7eed`
+- `DeepSeek/codigo_generado/087_image.png/m092_b005_bloque.vue` — 138 bytes, 3 lines, SHA256 `b70b674561a38cf37ac172af3fd8d363b804a2b782040651f136c2640c1153b4`
+- `DeepSeek/codigo_generado/087_image.png/m094_b001_AdvancedProperties.vue` — 13905 bytes, 473 lines, SHA256 `fdc39ba4c3d5893622214c433e8ac62b9e2cd3334e753fa585f1225c7b895b2c`
+- `DeepSeek/codigo_generado/087_image.png/m094_b002_VariableManager.vue` — 5114 bytes, 249 lines, SHA256 `996b39ab1b29f12b74eda9e19b708eccf86cf0070da0912a7467f1532dea8071`
+- `DeepSeek/codigo_generado/087_image.png/m094_b003_ButtonElement.vue` — 1798 bytes, 78 lines, SHA256 `fb31595256cb987cd777b2ab78dc6118cfad72f1ebdaab48cc344a1e916f175d`
+- `DeepSeek/codigo_generado/087_image.png/m094_b004_ImageElement.vue` — 1736 bytes, 80 lines, SHA256 `b14cf43fc740624ae14b57a097dbd65036082f73d3922baf812ccec04e9e1d6d`
+- `DeepSeek/codigo_generado/087_image.png/m094_b005_ProfessionalWorkspace.vue` — 695 bytes, 21 lines, SHA256 `ea1c37c17b473aa73a0672fae7afe345faa61aa8abb1c020658d9b2a99c17525`
+- `DeepSeek/codigo_generado/087_image.png/m096_b001_ProfessionalWorkspace.vue` — 8307 bytes, 347 lines, SHA256 `ccab9e6d60b08c972038e467e997d2dbbe9c56c5246cccd35e41645d96c8929f`
+- `DeepSeek/codigo_generado/087_image.png/m096_b002_LayerManager.vue` — 3778 bytes, 185 lines, SHA256 `7644af916815d0f9c9bdec0c613778e98ec0346a0e0ad6f566d22e25dea21544`
+- `DeepSeek/codigo_generado/087_image.png/m096_b003_BuilderView.vue` — 2950 bytes, 129 lines, SHA256 `05f70933edf841e45a1075a4ec9c035fd9cdb36f5f2e0399865a5b1c9f9ba269`
+- `DeepSeek/codigo_generado/087_image.png/m098_b001_bloque.vue` — 359 bytes, 11 lines, SHA256 `31253ab55a4f7dd04ea6c0b513273fbcbea33b24b6d11579b83fdfa4348c0d6b`
+- `DeepSeek/codigo_generado/087_image.png/m098_b002_bloque.vue` — 923 bytes, 38 lines, SHA256 `8503e52468340842684df7826051fd0e2a69d3e11dbcebf948c86dab9e8f9a1a`
+- `DeepSeek/codigo_generado/087_image.png/m098_b003_bloque.vue` — 3092 bytes, 110 lines, SHA256 `a7065f493922f27950bc8891b8182819a24e83e35a9b95cff002dfe6ec52c797`
+- `DeepSeek/codigo_generado/087_image.png/m098_b004_bloque.vue` — 1735 bytes, 66 lines, SHA256 `241afd5cc95544c3c994f1cf11c96c8de63c6b02d3da1e85f45aed24609ef159`
+- `DeepSeek/codigo_generado/087_image.png/m098_b005_bloque.vue` — 494 bytes, 21 lines, SHA256 `4624bf4e2fa598290eba90c83d2480364bc566a74f2df916fc982957360f4ef1`
+- `DeepSeek/codigo_generado/087_image.png/m098_b006_PreviewMode.vue` — 5501 bytes, 249 lines, SHA256 `d1ba2a358254f94dc449c3447d8414a0eddb7121b2cd05d169f7f64d44e18e3b`
+- `DeepSeek/codigo_generado/087_image.png/m098_b007_ContainerElement.vue` — 4321 bytes, 216 lines, SHA256 `87da6e978296a214ee9efb9cb0bddffef960dda1312f8efe2bd3cba0cd6188b5`
+- `DeepSeek/codigo_generado/087_image.png/m098_b008_TextElement.vue` — 2214 bytes, 94 lines, SHA256 `34f847350d3cceba760fd823ef2ba8222924b1d6ae8877c4cff03fa238291af0`
+- `DeepSeek/codigo_generado/087_image.png/m098_b009_ButtonElement.vue` — 2125 bytes, 90 lines, SHA256 `a673b1cc76dd07cf4be01116abb3bd0e850deb0bce4510a0d9a8a207d29bdd69`
+- `DeepSeek/codigo_generado/087_image.png/m098_b010_BuilderView.vue` — 3119 bytes, 139 lines, SHA256 `d21d388ff29dcbb160e64a7cde4af8a75fcee374f5c47a8bef1fe256c435c754`
+- `DeepSeek/codigo_generado/087_image.png/m102_b005_bloque.ts` — 315 bytes, 16 lines, SHA256 `4a6ba255ab69503e783d1471e5e994574a25c9f72173a66505f290caf18e5b6f`
+- `DeepSeek/codigo_generado/087_image.png/m102_b009_bloque.ts` — 4800 bytes, 211 lines, SHA256 `ba333ce9cd82c4d2cb043625103211ac9d9de223a8561da63e3148792fbaca11`
+- `DeepSeek/codigo_generado/087_image.png/m102_b011_main.ts` — 33 bytes, 3 lines, SHA256 `0cc8488e6ec457b69044186b2371ca8a62321b597ed780ab5bffa8c9f8b618e7`
+- `DeepSeek/codigo_generado/087_image.png/m102_b014_main.ts` — 164 bytes, 7 lines, SHA256 `b3824352a227dc32749aa4f4f1ede154996b3103e2481b501d5dfb5726bafecd`
+- `DeepSeek/codigo_generado/087_image.png/m102_b015_App.vue` — 377 bytes, 27 lines, SHA256 `2f2678fcd248ea79e833f2a27f250cc3dddd8f63d9ca6588b5c4eb1129e9e369`
+- `DeepSeek/codigo_generado/087_image.png/m102_b016_BuilderView.vue` — 4947 bytes, 231 lines, SHA256 `b1ba11f5d1e748b7f6cf155385d875c8c43822f9cd177637e56cca0b5292c2d5`
+- `DeepSeek/codigo_generado/087_image.png/m102_b018_index.html` — 305 bytes, 12 lines, SHA256 `1e8a1fd57c09750f9268b4ddf3a2fbde5b3fe6eb6fe2219acc954f763ecff02c`
+- `DeepSeek/codigo_generado/087_image.png/m102_b019_main.ts` — 73 bytes, 2 lines, SHA256 `22aeb733c28068892cbec004da9216a7a8088c8f04f6841e925dc978e4905421`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m002_b001_bloque.css` — 188 bytes, 8 lines, SHA256 `5abe19a02097744ab9d245075fcb4f009c93acac4fe7d4f39603616107505917`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m004_b008_bloque.vue` — 779 bytes, 32 lines, SHA256 `b6d77dea596e8458fbb6c52d0f260d251cf457400bf9ed7059223da021fc6ffd`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m004_b009_bloque.vue` — 438 bytes, 20 lines, SHA256 `638d4fd4bcec73db45c7e1c59d5a1a0248a245a8b4c71d64b3fb46ca64863412`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m006_b002_bloque.vue` — 1542 bytes, 53 lines, SHA256 `c1f3f7e5f34db397c0d684496593aa42304fb2acec7a4ed707afd607da6c5c8d`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m006_b007_bloque.vue` — 1898 bytes, 65 lines, SHA256 `76efa6b9869e867e48e13d87958a612b063a1f25f6b43b9bac91db296f641a9a`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m006_b008_bloque.vue` — 1580 bytes, 57 lines, SHA256 `2bb46f63a1692d81330b868fe50cc1f5dd014458e4aa350e3d93738df0e7058e`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m008_b002_bloque.vue` — 580 bytes, 15 lines, SHA256 `bc9a92a2b58aca920c2b5be940a1a558e1367dd0850f36ade358028ecb99b079`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m012_b001_VisualBuilder.vue` — 24135 bytes, 929 lines, SHA256 `6c9c65d5ddfae82c2efdac7b05ea00cf547b73001249d3368843e495a9f7e007`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m014_b001_BlocksPalette.vue` — 20021 bytes, 871 lines, SHA256 `cf1241230782e209e88a3e5eb550b62660c2821dc40d8c00d887ecb80aaa7e80`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m016_b002_App.vue` — 451 bytes, 31 lines, SHA256 `de495b57bfdd06c309a883f1302fef13e0c82d60fee55e50e0da993903321bb6`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m016_b003_main.css` — 516 bytes, 31 lines, SHA256 `1b40db4612a941954b5146b71f616b8075eb2dccbd64758462cbd1d374bfab68`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m016_b006_index.html` — 679 bytes, 29 lines, SHA256 `664e356bea02f64d19f3c80141f63b4513c56c3afd8c8e0544e0cffd176f9ec4`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m016_b008_VisualBuilder.vue` — 6772 bytes, 326 lines, SHA256 `eddc3e04dcb7c99b71e32393b7198b68b2b590e24d4066580036ee4a55fe21bf`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m020_b002_index.html` — 304 bytes, 12 lines, SHA256 `24ff9c9e3a5aa70211614e46213c794a9bcece279b2c09933595c8155ed0cc97`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m020_b004_App.vue` — 298 bytes, 21 lines, SHA256 `c7d2ed201a7a9dc01c483261334b77bb55f695599e8b0ebebf8c7f0e764b803d`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m022_b001_index.html` — 268 bytes, 9 lines, SHA256 `0bceb4ce45218ef4ba3176943df1f6069fd4844004e394418dde897eafd22647`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m026_b003_App.vue` — 86 bytes, 9 lines, SHA256 `069d2196089f80c63be9fea836eac28c649d5f1b5a5d2bc22ef215c3279b3e53`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m030_b005_App.vue` — 143 bytes, 6 lines, SHA256 `3a68cb5a38718cc085ae4c555172517e5d33eac6a72cca3392a7bf69eb82d179`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m034_b005_App.vue` — 419 bytes, 31 lines, SHA256 `56ce92e67c6e6336ae57b6f14e3f4416bf9e05f89502c3ed304496d73a2f6610`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m034_b006_VisualBuilder.vue` — 10163 bytes, 483 lines, SHA256 `10b0b927b58e69f1c81e45e94ae77048d43360dd9660d883a7955765583a2dfc`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m038_b008_main.css` — 250 bytes, 14 lines, SHA256 `40b437fc5474dabeb78a3bf501f22337a354ad7f87334c0f861600e86d908002`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m038_b009_VisualBuilder.vue` — 4455 bytes, 212 lines, SHA256 `a1729754edad9a18a029cdc89e3cdb5a4a23947a4abe3c8d17d2772f688e4954`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m040_b001_VisualBuilder.vue` — 125 bytes, 3 lines, SHA256 `c496a46d25469e4f51d42b529f40b95a959427af6828adf9221fb85865a976c0`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m058_b004_App.vue` — 303 bytes, 21 lines, SHA256 `805894a8cf90d5e880e48362cf5641f721ef9d28100bfae0fef8f25bbf0d492a`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m060_b004_index.html` — 574 bytes, 25 lines, SHA256 `c90049563feceac6abb4d5d12169ff3b24473a9195978ff5fcd23b9c160c2a2b`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m060_b009_main.css` — 448 bytes, 26 lines, SHA256 `bc614fa327b4818f8ee7e8dfeaf9f9cd2c41e4e64723a6882176809911b0fff7`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m060_b010_VisualBuilder.vue` — 15553 bytes, 732 lines, SHA256 `b2efc5abdfa32b5a6539059b4974ab67c7178a0a4143b89bf9bc3b2d3d776bf3`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m074_b008_VisualBuilder.vue` — 59 bytes, 2 lines, SHA256 `54a92b6af116e146353a501d1dcb2890efe275c2e0bdbc47ac93e648759e9808`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m078_b002_bloque.vue` — 337 bytes, 21 lines, SHA256 `537dc64d528f0a14d12a15e8df77f941a249ef01ec1927ae2698eac7b3c935e1`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m078_b004_bloque.vue` — 8185 bytes, 310 lines, SHA256 `c1e04a1ab30b7e2e89613d91bbf499091e7378a9bfe34c8656abf7faf584f4b6`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m078_b006_main.css` — 589 bytes, 30 lines, SHA256 `42d7b4a90f3b51f0f468c8bd43149162dde3554e9e2715399a969cf22a16db00`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m078_b007_index.html` — 339 bytes, 20 lines, SHA256 `8374f3a5466818325170980c3e6e39cc9e861532ef28a387a3b313c17f8e6141`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m078_b008_App.vue` — 78 bytes, 5 lines, SHA256 `bd18d366e02364f14eb1d0421f87627e68e5b49f1061b0951a9f4527b3f433a3`
+- `DeepSeek/codigo_generado/089_Desarrollo_de_plataforma_web_oficial_ER_LC/m078_b009_App.vue` — 143 bytes, 12 lines, SHA256 `03ef9bc5fb57277f5eef99fbe5e340dc2c434954fff4db8f7c3a068b93b6d0e0`
+- `DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m010_b007_bloque.html` — 861 bytes, 22 lines, SHA256 `ca3ed1356cf1a62e59f24c8d8b309e5142bc34bf9bfe8a882e5c07ffeec65052`
+- `DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b002_staff.html` — 123 bytes, 5 lines, SHA256 `4e066f4d4ac803b9de08b8eb0028af2e96e704d511e8fd559b9d169484c41ba6`
+- `DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b003_staff.html` — 93784 bytes, 2053 lines, SHA256 `34691407c79a3e55d7973078663ef9d40ee6abe96b89a9741303844e608a4c35`
+- `DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b005_staff.html` — 130 bytes, 5 lines, SHA256 `8c413085e8a13cfe3a61aedabb2096ba1ec61188bac758886c9899793ac6295b`
+- `DeepSeek/codigo_generado/094_Sistema_Judicial_Integrado_para_Discord_RP/m014_b006_staff.html` — 153 bytes, 5 lines, SHA256 `781a6e65e3e93e3b47573b8dc9f49c9ce29d3d5a5d7634a0c2f862b24ba8dd20`
+- `DeepSeek/codigo_pegado/001_Analisis_de_sistema_policial_MaesRP/m001_02_index.html` — 26821 bytes, 479 lines, SHA256 `facf309f245f84b3b29659f822e6b7be09b7f61ae00597604cd5e64b1414feab`
+- `DeepSeek/codigo_pegado/001_Analisis_de_sistema_policial_MaesRP/m001_03_police.html` — 52100 bytes, 1489 lines, SHA256 `d68acd310d24857713cc974f88afebc7571a3a7a84023769ec431bd6d3fd533e`
+- `DeepSeek/codigo_pegado/010_Analisis_y_mejora_de_sistema_autenticacion/m001_02_index.html` — 30112 bytes, 479 lines, SHA256 `c32fcf918dc53950651917896bb7b150ecd16f077eaa354cb1cf10aed44bf283`
+- `DeepSeek/codigo_pegado/010_Analisis_y_mejora_de_sistema_autenticacion/m001_03_police.html` — 56916 bytes, 1489 lines, SHA256 `02166fe578d1137710014ecc1c65644e3ef88ef262841795ae27c2f05d364fd1`
+- `DeepSeek/codigo_pegado/039_Adaptacion_de_diseno_web_completo./m001_02_index.html` — 32022 bytes, 505 lines, SHA256 `9d52bf9c7dafa19187230503b5123d813812c52a1ba805b0abcda441adb3c004`
+- `DeepSeek/codigo_pegado/040_image.png/m003_documento_01.html` — 12364 bytes, 408 lines, SHA256 `a4e2d995bad75d33ec4e23be6ef5ed587928f748ace7c0862efff67ef239e875`
+- `DeepSeek/codigo_pegado/041_Rediseno_visual_de_pagina_web_gubernamental/m001_02_index.html` — 87067 bytes, 1575 lines, SHA256 `b74f1ab8460b0ea6e732b4c54529a3959b2ee9e094db3e37a9b723b1915d9a35`
+- `DeepSeek/codigo_pegado/046_Error_en_procesamiento_de_multas_y_arrestos/m001_01_index.html` — 25656 bytes, 433 lines, SHA256 `e12567812587a417f0f77e3b49d411a9938a3ae2dd99db3d617069830a96144d`
+- `DeepSeek/codigo_pegado/054_Rediseno_profesional_de_pagina_de_login_judicial/m001_documento_01.html` — 75400 bytes, 1407 lines, SHA256 `301ec92b2607d95bf17d891daf01518ccbd7c128e864505f0e8a768c5719f178`
+- `DeepSeek/codigo_pegado/065_Discord_Login_and_Development_Access_Setup/m001_02_index.html` — 35522 bytes, 732 lines, SHA256 `2ddad87580b4b26cc24133353185239cdaf67536fe4e7994dbc3316a3edb7204`
+- `DeepSeek/codigo_pegado/066_server.js_const_express_requ/m001_documento_01.html` — 40571 bytes, 732 lines, SHA256 `659cf2e95955dac1d1a014b76fd290f95415f0e1f3d14139555c69dc77b80b1f`
+- `DeepSeek/codigo_pegado/068_Estructura_del_sistema_backend_y_bot_Discord/m005_documento_01.html` — 25930 bytes, 455 lines, SHA256 `488fb3c76a53dced89cd8df2813d870d3ecc172e8399158b09ac582dc4ae434c`
+- `DeepSeek/codigo_pegado/070_Error_en_envio_de_datos_a_Discord/m001_03_index.html` — 29891 bytes, 472 lines, SHA256 `dd8a6ac211a5f480483a380b5e3002649ef6e87e5e7b646350bc367ccba12800`
+- `DeepSeek/codigo_pegado/091_Configuracion_correcta_de_OAuth_en_Node.js/m001_01_index.html` — 61051 bytes, 1425 lines, SHA256 `63fe8d2907fc74cf628f0f55287a26918170ddbca81a9306af88e1272491fbd0`
+- `codigo/Favicon_en_HTML/index_v001.html` — 216 bytes, 12 lines, SHA256 `7c481f79f0dc3c91fb89ebfedf0f7832e531bfd4859c2045cd65d1d5831c4a27`
+- `codigo/Favicon_en_HTML/index_v002.html` — 16271 bytes, 407 lines, SHA256 `5648de7cd6c99039bf44e5ee9da0a4079e5c0090de8d59438c659477cb5c72fa`
+- `codigo/Favicon_en_HTML/styles_v001.css` — 14804 bytes, 850 lines, SHA256 `55c79b22077e4dc0d808136d274f4c63e2435d01c45309401873c869bb7ddd36`
+- `codigo/Hostings_para_pagina_web/index_v001.html` — 16590 bytes, 422 lines, SHA256 `582d6a36473474e93c251f63f61d8c724d5b19a35e95b2223971a8611e7f47a9`
+- `codigo/Mini_Bot/index_v001.html` — 14895 bytes, 300 lines, SHA256 `f3b13c139bba85e7b95d0e8d9748dccc49f5c879a013d5afea39dedae8973d0b`
+- `codigo/Servidor_no_sirve_archivos/index_v001.html` — 26415 bytes, 463 lines, SHA256 `d6f227da2607c161505b167630970652b944f71ad561d529125b400175c5209e`
+- `recuperacion_inicial/adjuntos/pruebas_1.html` — 61052 bytes, 1426 lines, SHA256 `db70db7824bc67f62e2f6c55461d1b22fe8950cc451ea2c45f54fe5fbd075fd0`
+- `recuperacion_inicial/codigo/public/pruebas_1.html` — 61052 bytes, 1426 lines, SHA256 `db70db7824bc67f62e2f6c55461d1b22fe8950cc451ea2c45f54fe5fbd075fd0`

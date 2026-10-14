@@ -1,0 +1,2074 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/075_Creating_Ban_Commands_for_Discord_Bot/m012_b001_sanciones.js
+
+// commands/sanciones.js
+const {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  MessageFlags,
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
+} = require('discord.js');
+const { loadJson, saveJson } = require('../utils');
+
+const path = require('path');
+const DATA_DIR = path.join(__dirname, '..', 'data');
+
+const MOD_ROLE_ID = 'ID_POR_CONFIGURAR';
+const ADMIN_ROLE_ID = 'ID_POR_CONFIGURAR'; // Mismo rol por ahora
+const SANCIONES_FILE = 'sanciones.json';
+const ADVERTENCIAS_FILE = 'advertencias.json';
+const CEDULAS_FILE = 'cedulas.json';
+const BANEADOS_FILE = 'baneados.json';
+const LOG_CHANNEL_ID = 'ID_POR_CONFIGURAR';
+const WARNING_LOG_CHANNEL_ID = 'ID_POR_CONFIGURAR'; // Mismo canal que logs
+
+const SANCION_ROLES = {
+  1: 'ID_POR_CONFIGURAR',
+  2: 'ID_POR_CONFIGURAR',
+  3: 'ID_POR_CONFIGURAR',
+  4: 'ID_POR_CONFIGURAR',
+  5: 'ID_POR_CONFIGURAR',
+};
+
+const BAN_ROLES = {
+  1: 'ID_POR_CONFIGURAR',
+  2: 'ID_POR_CONFIGURAR',
+  3: 'ID_POR_CONFIGURAR',
+};
+
+const BAN_APPROVAL_CHANNEL_ID = 'ID_POR_CONFIGURAR';
+const BAN_LOG_CHANNEL_ID = 'ID_POR_CONFIGURAR';
+
+const SANCTION_ROLE_IDS = Object.values(SANCION_ROLES);
+const BAN_ROLE_IDS = Object.values(BAN_ROLES);
+
+const ERROR_EMOJI = '✅';
+const SUCCESS_EMOJI = '✅';
+const WARNING_EMOJI = '⚠️';
+const STATS_EMOJI = '📊';
+const HISTORY_EMOJI = '📋';
+
+// ===== Helpers de containers =====
+function buildContainer(icon, title, body) {
+  const header = icon ? `${icon} **${title}**` : `**${title}**`;
+
+  return new ContainerBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(header),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder()
+        .setDivider(true)
+        .setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(body),
+    );
+}
+
+function buildErrorContainer(title, body) {
+  return buildContainer(ERROR_EMOJI, title, body);
+}
+
+function buildSuccessContainer(title, body) {
+  return buildContainer(SUCCESS_EMOJI, title, body);
+}
+
+function buildWarningContainer(title, body) {
+  return buildContainer(WARNING_EMOJI, title, body);
+}
+
+// ===== Helpers originales =====
+function formatDate(isoString) {
+  const d = new Date(isoString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function formatDateShort(isoString) {
+  const d = new Date(isoString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function getEstadoInfo(count) {
+  if (count <= 1) {
+    return { label: 'Normal', color: 0x2ecc71 };
+  }
+  if (count === 2) {
+    return { label: 'Bajo supervisión', color: 0xf1c40f };
+  }
+  if (count === 3) {
+    return { label: 'Bajo supervisión', color: 0xe74c3c };
+  }
+  if (count === 4) {
+    return { label: 'Bajo supervisión continua', color: 0xe74c3c };
+  }
+  return { label: 'Bajo supervisión severa', color: 0x000000 };
+}
+
+function getCastigoInfo(count) {
+  const nivel = Math.min(count, 5);
+  switch (nivel) {
+    case 1:
+      return 'Advertencia';
+    case 2:
+      return 'Kick de Apertura';
+    case 3:
+      return 'Ban de 1 día';
+    case 4:
+      return 'Ban de 3 días';
+    default:
+      return 'Ban de 7 días';
+  }
+}
+
+function ensureRecord(db, userId) {
+  if (!db[userId]) {
+    db[userId] = { sanctions: [] };
+  } else if (!Array.isArray(db[userId].sanctions)) {
+    db[userId].sanctions = [];
+  }
+  return db[userId];
+}
+
+function ensureWarningRecord(db, userId) {
+  if (!db[userId]) {
+    db[userId] = { warnings: [] };
+  } else if (!Array.isArray(db[userId].warnings)) {
+    db[userId].warnings = [];
+  }
+  return db[userId];
+}
+
+function ensureBanRecord(db, userId) {
+  if (!db[userId]) {
+    db[userId] = { bans: [] };
+  } else if (!Array.isArray(db[userId].bans)) {
+    db[userId].bans = [];
+  }
+  return db[userId];
+}
+
+// Sistema de límite rápido de sanciones
+const staffSanctionCooldown = new Map();
+const RAPID_SANCTION_LIMIT = 3; // Máximo de sanciones en periodo
+const RAPID_SANCTION_WINDOW = 60000; // 1 minuto en ms
+
+function checkRapidSanctions(staffId) {
+  const now = Date.now();
+  const staffData = staffSanctionCooldown.get(staffId) || [];
+  
+  // Limpiar entradas antiguas
+  const recentSanctions = staffData.filter(time => now - time < RAPID_SANCTION_WINDOW);
+  
+  // Agregar nueva sanción
+  recentSanctions.push(now);
+  staffSanctionCooldown.set(staffId, recentSanctions);
+  
+  // Si excede el límite, enviar advertencia
+  if (recentSanctions.length >= RAPID_SANCTION_LIMIT) {
+    return {
+      warning: true,
+      count: recentSanctions.length,
+      message: `⚠️ **Advertencia:** El staff <@${staffId}> ha aplicado ${recentSanctions.length} sanciones en menos de 1 minuto.`
+    };
+  }
+  
+  return { warning: false, count: recentSanctions.length };
+}
+
+// Actualizar roles de sanción para que SOLO tenga el rol del número de sanciones activas
+async function updateSanctionRolesForMember(member, activeCount) {
+  if (!member) return;
+  try {
+    const rolesToRemove = SANCTION_ROLE_IDS.filter(id =>
+      member.roles.cache.has(id),
+    );
+    if (rolesToRemove.length) {
+      await member.roles.remove(rolesToRemove);
+    }
+    const newRoleId = SANCION_ROLES[activeCount] || null;
+    if (newRoleId) {
+      await member.roles.add(newRoleId);
+    }
+  } catch (err) {
+    console.error('Error actualizando roles de sanción:', err);
+  }
+}
+
+// Construir el texto del historial de sanciones (igual al comando /historial-sanciones)
+function buildHistorialDescription(record) {
+  if (!record || !Array.isArray(record.sanctions) || !record.sanctions.length) {
+    return null;
+  }
+
+  const activas = record.sanctions.filter(s => s.estado === 'activa');
+  const apeladas = record.sanctions.filter(s => s.estado === 'apelada');
+
+  let desc = '';
+
+  if (activas.length) {
+    desc += '🟢 **Sanciones activas:**\n';
+    activas.forEach(s => {
+      desc += `• #${s.numero} — ${formatDate(s.fecha)} — Staff: <@${s.moderadorId}> — Motivo: ${s.motivo}\n`;
+    });
+  } else {
+    desc += '🟢 **Sanciones activas:** Ninguna.\n';
+  }
+
+  if (apeladas.length) {
+    desc += '\n📝 **Sanciones apeladas:**\n';
+    apeladas.forEach(s => {
+      const apelInfo = s.apelacion
+        ? ` (apelada por <@${s.apelacion.moderadorId}> el ${formatDate(
+            s.apelacion.fecha,
+          )})`
+        : '';
+      desc += `• #${s.numero} — ${formatDate(s.fecha)} — Staff: <@${s.moderadorId}> — Motivo: ${s.motivo}${apelInfo}\n`;
+    });
+  } else {
+    desc += '\n📝 **Sanciones apeladas:** Ninguna.\n';
+  }
+
+  if (desc.length > 4000) {
+    desc = desc.slice(0, 3990) + '…';
+  }
+
+  return desc;
+}
+
+// Construir texto de advertencias
+function buildWarningsDescription(warningsDb, userId) {
+  const userWarnings = warningsDb[userId]?.warnings || [];
+  
+  if (!userWarnings.length) {
+    return '⚠️ **Advertencias:** Ninguna.\n';
+  }
+  
+  let desc = '⚠️ **Advertencias:**\n';
+  userWarnings.forEach((w, idx) => {
+    desc += `• #${idx + 1} — ${formatDate(w.fecha)} — Staff: <@${w.moderadorId}> — Motivo: ${w.motivo}\n`;
+  });
+  
+  if (desc.length > 1000) {
+    desc = desc.slice(0, 990) + '…';
+  }
+  
+  return desc;
+}
+
+// Enviar recordatorio de ban por terminar
+async function sendBanReminder(client, userId, banData) {
+  try {
+    const user = await client.users.fetch(userId).catch(() => null);
+    if (!user) return;
+    
+    const endTime = new Date(banData.end);
+    const now = new Date();
+    const timeLeft = endTime - now;
+    const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+    
+    if (hoursLeft <= 1 && hoursLeft > 0) {
+      const cuerpoReminder = [
+        `Tu baneo en **${client.guilds.cache.first()?.name || 'el servidor'}** está por terminar.`,
+        '',
+        `⏱️ **Tiempo restante:** Menos de 1 hora`,
+        `🕒 **Fin del ban:** <t:${Math.floor(endTime.getTime() / 1000)}:f>`,
+        '',
+        `Recuerda seguir las reglas una vez que tu ban termine.`,
+      ].join('\n');
+      
+      const reminderContainer = buildContainer(
+        '⏰',
+        'Baneo por terminar',
+        cuerpoReminder,
+      );
+      
+      await user.send({
+        flags: MessageFlags.IsComponentsV2,
+        components: [reminderContainer],
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('Error enviando recordatorio de ban:', err);
+  }
+}
+
+// ===== MANEJADOR DE INTERACCIONES PERSISTENTES =====
+async function handleComponentInteraction(interaction) {
+  if (!interaction.isButton()) return;
+  
+  const customId = interaction.customId;
+  
+  // 1) Botones de aprobación/denegación de ban
+  if (customId.startsWith('ban_approve_') || customId.startsWith('ban_deny_')) {
+    await handleBanApprovalInteraction(interaction);
+    return true;
+  }
+  
+  // 2) Botones de baneos activos (ver roles y terminar ban)
+  if (customId.startsWith('ban_view_roles_') || customId.startsWith('ban_end_')) {
+    await handleBanActiveInteraction(interaction);
+    return true;
+  }
+  
+  return false;
+}
+
+// Función para manejar interacciones de aprobación/denegación de ban
+async function handleBanApprovalInteraction(interaction) {
+  if (!interaction.member?.roles?.cache?.has(MOD_ROLE_ID)) {
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [
+        buildErrorContainer(
+          'Permisos insuficientes',
+          'No tienes permiso para autorizar o desaprobar este ban.',
+        ),
+      ],
+    });
+  }
+  
+  const customId = interaction.customId;
+  const sancionId = customId.replace('ban_approve_', '').replace('ban_deny_', '');
+  
+  // Cargar datos para obtener información del usuario
+  const db = loadJson(SANCIONES_FILE);
+  let usuario = null;
+  let usuarioId = null;
+  
+  // Buscar la sanción en los datos
+  for (const [userId, record] of Object.entries(db)) {
+    if (record && Array.isArray(record.sanctions)) {
+      const sancion = record.sanctions.find(s => s.id === sancionId);
+      if (sancion) {
+        usuarioId = userId;
+        usuario = await interaction.client.users.fetch(userId).catch(() => null);
+        break;
+      }
+    }
+  }
+  
+  if (!usuario || !usuarioId) {
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [
+        buildErrorContainer(
+          'Solicitud no encontrada',
+          'No se encontró la solicitud de ban correspondiente.',
+        ),
+      ],
+    });
+  }
+  
+  if (customId.startsWith('ban_approve_')) {
+    // Aprobar ban
+    // Obtener datos de la sanción
+    const record = db[usuarioId];
+    const sancion = record.sanctions.find(s => s.id === sancionId);
+    
+    if (!sancion) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Sanción no encontrada',
+            'La sanción ya no existe o fue eliminada.',
+          ),
+        ],
+      });
+    }
+    
+    const activasDespues = record.sanctions.filter(s => s.estado === 'activa').length;
+    const diasPorNivel = { 3: 1, 4: 3, 5: 7 };
+    const banDias = diasPorNivel[Math.min(activasDespues, 5)] || 1;
+    
+    const inicio = new Date();
+    const fin = new Date(inicio.getTime() + banDias * 24 * 60 * 60 * 1000);
+    const inicioTs = Math.floor(inicio.getTime() / 1000);
+    const finTs = Math.floor(fin.getTime() / 1000);
+    
+    const banLabel = banDias === 1 ? 'Ban de 1 día' : banDias === 3 ? 'Ban de 3 días' : 'Ban de 7 días';
+    
+    // Datos básicos del ban
+    const bansDb = loadJson(BANEADOS_FILE);
+    const banUserRecord = ensureBanRecord(bansDb, usuarioId);
+    
+    let rolesBefore = [];
+    let nicknameBefore = null;
+    
+    // Obtener miembro actual
+    let miembro = interaction.guild.members.cache.get(usuarioId);
+    if (!miembro) {
+      miembro = await interaction.guild.members.fetch(usuarioId).catch(() => null);
+    }
+    
+    if (miembro) {
+      // Guardar TODOS los roles antes del ban (sin @everyone)
+      rolesBefore = miembro.roles.cache
+        .filter(r => r.id !== interaction.guild.id)
+        .map(r => r.id);
+      
+      nicknameBefore = miembro.nickname || null;
+    }
+    
+    const banId = `ban_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    
+    const banObj = {
+      id: banId,
+      start: inicio.toISOString(),
+      end: fin.toISOString(),
+      days: banDias,
+      approverId: interaction.user.id,
+      staffId: sancion.moderadorId,
+      rolesBefore,
+      nicknameBefore,
+      active: true,
+    };
+    
+    banUserRecord.bans.push(banObj);
+    saveJson(BANEADOS_FILE, bansDb);
+    
+    const banCount = banUserRecord.bans.length;
+    const banRoleId = BAN_ROLES[Math.min(banCount, 3)] || null;
+    
+    if (miembro) {
+      // Aplicar el ban
+      try {
+        // Quitar TODOS los roles previos
+        if (rolesBefore.length) {
+          await miembro.roles.remove(rolesBefore).catch(err => {
+            console.error('Error removiendo roles previos en ban:', err);
+          });
+        }
+        
+        // Quitar posibles roles de ban anteriores
+        const banRolesToRemove = BAN_ROLE_IDS.filter(id => miembro.roles.cache.has(id));
+        if (banRolesToRemove.length) {
+          await miembro.roles.remove(banRolesToRemove);
+        }
+        
+        // Poner solo el rol de ban correspondiente
+        if (banRoleId) {
+          await miembro.roles.add(banRoleId).catch(err => {
+            console.error('Error añadiendo rol de ban:', err);
+          });
+        }
+        
+        // Cambiar nickname
+        const cedulasDb = loadJson(CEDULAS_FILE);
+        const robloxUsername = cedulasDb[usuarioId]?.roblox?.username || 'No registrado';
+        const currentNick = miembro.nickname || miembro.user.username;
+        
+        let rightSide;
+        if (robloxUsername && robloxUsername !== 'No registrado') {
+          const parts = currentNick.split('|').map(p => p.trim());
+          rightSide = parts.length > 1 ? parts[1] : robloxUsername;
+        } else {
+          const parts = currentNick.split('|').map(p => p.trim());
+          rightSide = parts.length > 1 ? parts[1] : parts[0];
+        }
+        
+        const prefix = banDias === 1 ? 'BAN 1 DIA' : banDias === 3 ? 'BAN 3 DIAS' : 'BAN 7 DIAS';
+        const newNick = `${prefix} | ${rightSide}`;
+        
+        await miembro.setNickname(newNick).catch(err => {
+          console.error('Error cambiando nickname por ban:', err);
+        });
+      } catch (err) {
+        console.error('Error gestionando roles/nick en ban aprobado:', err);
+      }
+    }
+    
+    // Actualizar mensaje original (quitar botones, mostrar aprobado)
+    const extraLinea = `Estado: **Aprobado** por ${interaction.user.tag}`;
+    const historialTexto = buildHistorialDescription(record) || 'Sin historial disponible.';
+    let pruebasTexto = historialTexto;
+    if (pruebasTexto.length > 1024) {
+      pruebasTexto = pruebasTexto.slice(0, 1010) + '…';
+    }
+    
+    function buildBanApprovalContainer(extraLinea) {
+      const body = [
+        `Se ha alcanzado el límite de sanciones para ${usuario}.`,
+        '',
+        `👤 **Usuario a banear:** ${usuario}`,
+        `🛡️ **Staff que generó la sanción:** <@${sancion.moderadorId}>`,
+        '',
+        `📊 **Sanciones activas actuales:** ${activasDespues}`,
+        `⏱️ **Tiempo del ban:** ${banLabel}`,
+        '',
+        `🕒 **Inicio del ban:** <t:${inicioTs}:f>`,
+        `🕒 **Fin estimado del ban:** <t:${finTs}:f>`,
+        '',
+        `🧾 **Historial de sanciones:**`,
+        pruebasTexto,
+        extraLinea ? `\n${extraLinea}` : '',
+      ].join('\n');
+      
+      return buildContainer('⚖️', 'Solicitud de autorización de ban', body);
+    }
+    
+    await interaction.update({
+      components: [buildBanApprovalContainer(extraLinea)],
+    });
+    
+    // Enviar log del ban
+    const banLogChannel = interaction.client.channels.cache.get(BAN_LOG_CHANNEL_ID);
+    if (banLogChannel) {
+      const banBody = [
+        `Se ha aplicado un ban a ${usuario}.`,
+        '',
+        `👤 **Usuario baneado:** ${usuario}`,
+        `📄 **Motivo del ban:** Límite de sanciones alcanzado (${activasDespues} sanciones activas).`,
+        '',
+        `⏱️ **Tiempo del ban:** ${banLabel}`,
+        `🕒 **Inicio del ban:** <t:${inicioTs}:f>`,
+        `🕒 **Fin del ban:** <t:${finTs}:f>`,
+        '',
+        `⚖️ **Apelable:** Preguntar en general`,
+        '',
+        `🧾 **Pruebas del ban:**`,
+        pruebasTexto,
+        '',
+        `🛡️ **Alto mando que permite el ban:** ${interaction.user}`,
+        `🔢 **Número de baneos totales:** ${banCount}`,
+      ].join('\n');
+      
+      const banContainer = buildContainer('⛔', 'Usuario baneado', banBody);
+      
+      const rolesButton = new ButtonBuilder()
+        .setCustomId(`ban_view_roles_${banId}`)
+        .setLabel('Ver Roles Anteriores')
+        .setStyle(ButtonStyle.Secondary);
+      
+      const endButton = new ButtonBuilder()
+        .setCustomId(`ban_end_${banId}`)
+        .setLabel('Terminar Baneo (STAFF)')
+        .setStyle(ButtonStyle.Danger);
+      
+      const buttonsRow = new ActionRowBuilder().addComponents(rolesButton, endButton);
+      
+      await banLogChannel.send({
+        flags: MessageFlags.IsComponentsV2,
+        components: [banContainer, buttonsRow],
+      }).catch(err => {
+        console.error('Error enviando log de ban:', err);
+      });
+    }
+    
+    // Programar recordatorio para 1 hora antes del fin
+    setTimeout(() => {
+      sendBanReminder(interaction.client, usuarioId, banObj);
+    }, (banDias * 24 * 60 * 60 * 1000) - (60 * 60 * 1000));
+    
+  } else if (customId.startsWith('ban_deny_')) {
+    // Mostrar modal para motivo de denegación
+    const modal = new ModalBuilder()
+      .setCustomId(`ban_deny_modal_${sancionId}`)
+      .setTitle('Desaprobación de ban');
+    
+    const motivoInput = new TextInputBuilder()
+      .setCustomId('motivo')
+      .setLabel('Motivo de la desaprobación')
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true)
+      .setMaxLength(400);
+    
+    const modalRow = new ActionRowBuilder().addComponents(motivoInput);
+    modal.addComponents(modalRow);
+    
+    await interaction.showModal(modal);
+    
+    // Esperar respuesta del modal
+    try {
+      const submitted = await interaction.awaitModalSubmit({
+        filter: m => m.customId === `ban_deny_modal_${sancionId}` && m.user.id === interaction.user.id,
+        time: 5 * 60 * 1000,
+      });
+      
+      const motivoDesaprobacion = submitted.fields.getTextInputValue('motivo');
+      const extra = `❌ **Desaprobado por ${submitted.user.tag}**\nMotivo: ${motivoDesaprobacion}`;
+      
+      // Obtener datos para el container
+      const record = db[usuarioId];
+      const sancion = record.sanctions.find(s => s.id === sancionId);
+      const activasDespues = record.sanctions.filter(s => s.estado === 'activa').length;
+      const historialTexto = buildHistorialDescription(record) || 'Sin historial disponible.';
+      let pruebasTexto = historialTexto;
+      if (pruebasTexto.length > 1024) {
+        pruebasTexto = pruebasTexto.slice(0, 1010) + '…';
+      }
+      
+      function buildBanApprovalContainer(extraLinea) {
+        const diasPorNivel = { 3: 1, 4: 3, 5: 7 };
+        const banDias = diasPorNivel[Math.min(activasDespues, 5)] || 1;
+        const banLabel = banDias === 1 ? 'Ban de 1 día' : banDias === 3 ? 'Ban de 3 días' : 'Ban de 7 días';
+        
+        const body = [
+          `Se ha alcanzado el límite de sanciones para ${usuario}.`,
+          '',
+          `👤 **Usuario a banear:** ${usuario}`,
+          `🛡️ **Staff que generó la sanción:** <@${sancion.moderadorId}>`,
+          '',
+          `📊 **Sanciones activas actuales:** ${activasDespues}`,
+          `⏱️ **Tiempo del ban:** ${banLabel}`,
+          '',
+          `🧾 **Historial de sanciones:**`,
+          pruebasTexto,
+          extraLinea ? `\n${extraLinea}` : '',
+        ].join('\n');
+        
+        return buildContainer('⚖️', 'Solicitud de autorización de ban', body);
+      }
+      
+      await submitted.update({
+        components: [buildBanApprovalContainer(extra)],
+      });
+      
+    } catch (err) {
+      // Modal timeout, ignorar
+    }
+  }
+}
+
+// Función para manejar interacciones de baneos activos
+async function handleBanActiveInteraction(interaction) {
+  const customId = interaction.customId;
+  
+  if (customId.startsWith('ban_view_roles_')) {
+    const banId = customId.replace('ban_view_roles_', '');
+    const bansDb = loadJson(BANEADOS_FILE);
+    
+    // Buscar el ban en todos los usuarios
+    let thisBan = null;
+    let userId = null;
+    
+    for (const [uid, userData] of Object.entries(bansDb)) {
+      if (userData && Array.isArray(userData.bans)) {
+        const ban = userData.bans.find(b => b.id === banId);
+        if (ban) {
+          thisBan = ban;
+          userId = uid;
+          break;
+        }
+      }
+    }
+    
+    if (!thisBan) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Datos no encontrados',
+            'No se encontraron datos de roles anteriores para este ban.',
+          ),
+        ],
+      });
+    }
+    
+    const rolesList = thisBan.rolesBefore || [];
+    const textoRoles = rolesList.length
+      ? rolesList.map(r => `<@&${r}>`).join(', ')
+      : 'Sin roles guardados.';
+    
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [
+        buildSuccessContainer(
+          'Roles anteriores del usuario',
+          `📋 **Roles antes del ban:**\n${textoRoles}`,
+        ),
+      ],
+    });
+    
+  } else if (customId.startsWith('ban_end_')) {
+    // Verificar permisos
+    if (!interaction.member?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'Solo el staff autorizado puede terminar un baneo.',
+          ),
+        ],
+      });
+    }
+    
+    const banId = customId.replace('ban_end_', '');
+    const bansDb = loadJson(BANEADOS_FILE);
+    
+    // Buscar el ban y usuario
+    let thisBan = null;
+    let userId = null;
+    
+    for (const [uid, userData] of Object.entries(bansDb)) {
+      if (userData && Array.isArray(userData.bans)) {
+        const ban = userData.bans.find(b => b.id === banId);
+        if (ban) {
+          thisBan = ban;
+          userId = uid;
+          break;
+        }
+      }
+    }
+    
+    if (!thisBan || !thisBan.active) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Baneo no encontrado',
+            'Este baneo ya fue terminado o no se encontró.',
+          ),
+        ],
+      });
+    }
+    
+    // Marcar como inactivo
+    thisBan.active = false;
+    saveJson(BANEADOS_FILE, bansDb);
+    
+    // Obtener usuario
+    const usuario = await interaction.client.users.fetch(userId).catch(() => null);
+    
+    // Restaurar datos del usuario
+    let miembro = interaction.guild.members.cache.get(userId);
+    if (!miembro) {
+      miembro = await interaction.guild.members.fetch(userId).catch(() => null);
+    }
+    
+    if (miembro) {
+      try {
+        // Quitar roles de ban
+        const banRolesToRemove = BAN_ROLE_IDS.filter(id => miembro.roles.cache.has(id));
+        if (banRolesToRemove.length) {
+          await miembro.roles.remove(banRolesToRemove).catch(err => {
+            console.error('Error removiendo rol de ban al terminar:', err);
+          });
+        }
+        
+        // Devolver roles anteriores
+        const prevRoles = thisBan.rolesBefore || [];
+        if (prevRoles.length) {
+          await miembro.roles.add(prevRoles).catch(err => {
+            console.error('Error devolviendo roles anteriores:', err);
+          });
+        }
+        
+        // Devolver nickname
+        const prevNick = thisBan.nicknameBefore || null;
+        await miembro.setNickname(prevNick).catch(err => {
+          console.error('Error restaurando nickname al terminar ban:', err);
+        });
+      } catch (err) {
+        console.error('Error restaurando datos al terminar ban:', err);
+      }
+    }
+    
+    const inicio = new Date(thisBan.start);
+    const fin = new Date(thisBan.end);
+    const finReal = new Date();
+    
+    const inicioTs = Math.floor(inicio.getTime() / 1000);
+    const finTs = Math.floor(fin.getTime() / 1000);
+    const finRealTs = Math.floor(finReal.getTime() / 1000);
+    
+    const bodyEnded = [
+      `Baneo de ${usuario || userId} marcado como finalizado.`,
+      '',
+      `👤 **Usuario:** ${usuario || userId}`,
+      '',
+      `🕒 **Inicio original del ban:** <t:${inicioTs}:f>`,
+      `🕒 **Fin registrado del ban:** <t:${finTs}:f>`,
+      `🕒 **Fin real del ban:** <t:${finRealTs}:f>`,
+      '',
+      `🛡️ **Staff que termina el ban:** ${interaction.user}`,
+    ].join('\n');
+    
+    const endedContainer = buildContainer('✅', 'Baneo finalizado', bodyEnded);
+    
+    await interaction.update({
+      components: [endedContainer],
+    });
+    
+    // Log de fin de ban
+    const unbanLogChannel = interaction.client.channels.cache.get(LOG_CHANNEL_ID);
+    if (unbanLogChannel) {
+      unbanLogChannel.send({
+        flags: MessageFlags.IsComponentsV2,
+        components: [endedContainer],
+      }).catch(err => {
+        console.error('Error enviando log de fin de ban:', err);
+      });
+    }
+  }
+}
+
+// ===== /sancionar =====
+const sancionarCommand = {
+  data: new SlashCommandBuilder()
+    .setName('sancionar')
+    .setDescription('Registra una sanción para un usuario.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario a sancionar')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt
+        .setName('motivo')
+        .setDescription('Motivo de la sanción')
+        .setRequired(true),
+    )
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'No tienes permiso para usar este comando.',
+          ),
+        ],
+      });
+    }
+
+    const usuario = interaction.options.getUser('usuario', true);
+    const motivo = interaction.options.getString('motivo', true);
+
+    // Verificar límite rápido de sanciones
+    const rapidCheck = checkRapidSanctions(interaction.user.id);
+    if (rapidCheck.warning) {
+      const warningChannel = interaction.client.channels.cache.get(WARNING_LOG_CHANNEL_ID);
+      if (warningChannel) {
+        await warningChannel.send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [buildWarningContainer('Advertencia de actividad', rapidCheck.message)],
+        }).catch(() => {});
+      }
+    }
+
+    const db = loadJson(SANCIONES_FILE);
+    const cedulasDb = loadJson(CEDULAS_FILE);
+
+    const userId = usuario.id;
+    const record = ensureRecord(db, userId);
+
+    const activasAntes = record.sanctions.filter(
+      s => s.estado === 'activa',
+    ).length;
+    const activasDespues = activasAntes + 1;
+    const nivel = Math.min(activasDespues, 5);
+    const roleId = SANCION_ROLES[activasDespues] || null;
+
+    const now = new Date().toISOString();
+    const sancion = {
+      id: `${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+      numero: record.sanctions.length + 1,
+      motivo,
+      moderadorId: interaction.user.id,
+      fecha: now,
+      estado: 'activa',
+      nivel,
+      roleId: roleId || null,
+    };
+
+    record.sanctions.push(sancion);
+    db[userId] = record;
+    saveJson(SANCIONES_FILE, db);
+
+    const { label: estadoTexto } = getEstadoInfo(activasDespues);
+    const castigo = getCastigoInfo(activasDespues);
+    const robloxUsername =
+      cedulasDb[userId]?.roblox?.username || 'No registrado';
+
+    const sancionTs = Math.floor(new Date(sancion.fecha).getTime() / 1000);
+
+    const cuerpoSancion = [
+      `Se ha registrado una sanción para ${usuario}.`,
+      '',
+      `👤 **Usuario sancionado:** ${usuario}`,
+      `🛡️ **Moderador responsable:** ${interaction.user}`,
+      `⚖️ **Estado actual del usuario:** ${estadoTexto}`,
+      '',
+      `📄 **Motivo:** ${motivo}`,
+      '',
+      `📊 **Sanciones activas:** ${activasDespues}`,
+      `🎮 **Usuario de Roblox:** ${robloxUsername}`,
+      `📅 **Fecha de sanción:** <t:${sancionTs}:f>`,
+      '',
+      `🚫 **Castigo aplicado:** ${castigo}`,
+    ].join('\n');
+
+    const sancionContainer = buildContainer(
+      '🚨',
+      'Nueva sanción aplicada',
+      cuerpoSancion,
+    );
+
+    // Actualizar roles de sanción (solo 1 rol según número de sanciones activas)
+    try {
+      let miembro = interaction.guild.members.cache.get(userId);
+      if (!miembro) {
+        miembro = await interaction.guild.members
+          .fetch(userId)
+          .catch(() => null);
+      }
+      if (miembro) {
+        await updateSanctionRolesForMember(miembro, activasDespues);
+      }
+    } catch (err) {
+      console.error('Error gestionando roles de sanción:', err);
+    }
+
+    // DM al usuario sancionado
+    const cuerpoDm = [
+      `Has recibido una sanción en **${interaction.guild.name}**.`,
+      '',
+      `🛡️ **Moderador responsable:** ${interaction.user}`,
+      `📄 **Motivo:** ${motivo}`,
+      '',
+      `📊 **Sanciones activas ahora:** ${activasDespues}`,
+      `🚫 **Castigo aplicado:** ${castigo}`,
+      `📅 **Fecha de sanción:** <t:${sancionTs}:f>`,
+    ].join('\n');
+
+    const dmContainer = buildContainer(
+      '🚨',
+      'Has sido sancionado',
+      cuerpoDm,
+    );
+
+    usuario
+      .send({
+        flags: MessageFlags.IsComponentsV2,
+        components: [dmContainer],
+      })
+      .catch(() => {
+        // DMs cerrados, ignoramos
+      });
+
+    // Log al canal de logs (sanción)
+    const logChannel = interaction.client.channels.cache.get(LOG_CHANNEL_ID);
+    if (logChannel) {
+      logChannel
+        .send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [sancionContainer],
+        })
+        .catch(err => {
+          console.error('Error enviando log de sanción:', err);
+        });
+    }
+
+    // Respuesta pública
+    await interaction.reply({
+      flags: MessageFlags.IsComponentsV2,
+      components: [sancionContainer],
+    });
+
+    // ===== Sistema de BAN automático con aprobación (a partir de 3 sanciones activas) =====
+    if (activasDespues >= 3) {
+      const diasPorNivel = {
+        3: 1,
+        4: 3,
+        5: 7,
+      };
+      const banDias = diasPorNivel[Math.min(activasDespues, 5)];
+      const banApprovalChannel =
+        interaction.client.channels.cache.get(BAN_APPROVAL_CHANNEL_ID);
+
+      if (banApprovalChannel && banDias) {
+        const inicio = new Date();
+        const fin = new Date(inicio.getTime() + banDias * 24 * 60 * 60 * 1000);
+        const inicioTs = Math.floor(inicio.getTime() / 1000);
+        const finTs = Math.floor(fin.getTime() / 1000);
+
+        const historialTexto =
+          buildHistorialDescription(record) || 'Sin historial disponible.';
+        let pruebasTexto = historialTexto;
+        if (pruebasTexto.length > 1024) {
+          pruebasTexto = pruebasTexto.slice(0, 1010) + '…';
+        }
+
+        const banLabel =
+          banDias === 1
+            ? 'Ban de 1 día'
+            : banDias === 3
+            ? 'Ban de 3 días'
+            : 'Ban de 7 días';
+
+        function buildBanApprovalContainer(extraLinea) {
+          const body = [
+            `Se ha alcanzado el límite de sanciones para ${usuario}.`,
+            '',
+            `👤 **Usuario a banear:** ${usuario}`,
+            `🛡️ **Staff que generó la sanción:** ${interaction.user}`,
+            '',
+            `📊 **Sanciones activas actuales:** ${activasDespues}`,
+            `⏱️ **Tiempo del ban:** ${banLabel}`,
+            '',
+            `🕒 **Inicio del ban:** <t:${inicioTs}:f>`,
+            `🕒 **Fin estimado del ban:** <t:${finTs}:f>`,
+            '',
+            `🧾 **Historial de sanciones:**`,
+            pruebasTexto,
+            extraLinea ? `\n${extraLinea}` : '',
+          ].join('\n');
+
+          return buildContainer(
+            '⚖️',
+            'Solicitud de autorización de ban',
+            body,
+          );
+        }
+
+        const approveButton = new ButtonBuilder()
+          .setCustomId(`ban_approve_${sancion.id}`)
+          .setLabel('Autorizar')
+          .setStyle(ButtonStyle.Success);
+
+        const denyButton = new ButtonBuilder()
+          .setCustomId(`ban_deny_${sancion.id}`)
+          .setLabel('Desaprobar')
+          .setStyle(ButtonStyle.Danger);
+
+        const row = new ActionRowBuilder().addComponents(
+          approveButton,
+          denyButton,
+        );
+
+        // ⚠️ IMPORTANTE: NO usar collector para que los botones sean persistentes
+        // Los botones se manejarán a través del handler handleComponentInteraction
+        await banApprovalChannel.send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [buildBanApprovalContainer(), row],
+        });
+      }
+    }
+  },
+};
+
+// ===== /advertir =====
+const advertirCommand = {
+  data: new SlashCommandBuilder()
+    .setName('advertir')
+    .setDescription('Envía una advertencia a un usuario (no cuenta como sanción).')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario a advertir')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt
+        .setName('motivo')
+        .setDescription('Motivo de la advertencia')
+        .setRequired(true),
+    )
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'No tienes permiso para usar este comando.',
+          ),
+        ],
+      });
+    }
+
+    const usuario = interaction.options.getUser('usuario', true);
+    const motivo = interaction.options.getString('motivo', true);
+
+    // Verificar límite rápido de advertencias
+    const rapidCheck = checkRapidSanctions(interaction.user.id);
+    if (rapidCheck.warning) {
+      const warningChannel = interaction.client.channels.cache.get(WARNING_LOG_CHANNEL_ID);
+      if (warningChannel) {
+        await warningChannel.send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [buildWarningContainer('Advertencia de actividad', rapidCheck.message)],
+        }).catch(() => {});
+      }
+    }
+
+    const warningsDb = loadJson(ADVERTENCIAS_FILE);
+    const cedulasDb = loadJson(CEDULAS_FILE);
+
+    const userId = usuario.id;
+    const record = ensureWarningRecord(warningsDb, userId);
+
+    const now = new Date().toISOString();
+    const warning = {
+      id: `${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+      numero: record.warnings.length + 1,
+      motivo,
+      moderadorId: interaction.user.id,
+      fecha: now,
+    };
+
+    record.warnings.push(warning);
+    warningsDb[userId] = record;
+    saveJson(ADVERTENCIAS_FILE, warningsDb);
+
+    const robloxUsername = cedulasDb[userId]?.roblox?.username || 'No registrado';
+    const warningTs = Math.floor(new Date(warning.fecha).getTime() / 1000);
+
+    const cuerpoWarning = [
+      `Se ha registrado una advertencia para ${usuario}.`,
+      '',
+      `👤 **Usuario advertido:** ${usuario}`,
+      `🛡️ **Moderador responsable:** ${interaction.user}`,
+      '',
+      `📄 **Motivo:** ${motivo}`,
+      '',
+      `⚠️ **Advertencias totales:** ${record.warnings.length}`,
+      `🎮 **Usuario de Roblox:** ${robloxUsername}`,
+      `📅 **Fecha de advertencia:** <t:${warningTs}:f>`,
+    ].join('\n');
+
+    const warningContainer = buildContainer(
+      WARNING_EMOJI,
+      'Nueva advertencia',
+      cuerpoWarning,
+    );
+
+    // DM al usuario advertido
+    const cuerpoDm = [
+      `Has recibido una advertencia en **${interaction.guild.name}**.`,
+      '',
+      `🛡️ **Moderador responsable:** ${interaction.user}`,
+      `📄 **Motivo:** ${motivo}`,
+      '',
+      `⚠️ **Advertencias totales:** ${record.warnings.length}`,
+      `📅 **Fecha de advertencia:** <t:${warningTs}:f>`,
+      '',
+      `ℹ️ **Nota:** Esta advertencia no cuenta como sanción, es solo un recordatorio.`,
+    ].join('\n');
+
+    const dmContainer = buildContainer(
+      WARNING_EMOJI,
+      'Has sido advertido',
+      cuerpoDm,
+    );
+
+    usuario
+      .send({
+        flags: MessageFlags.IsComponentsV2,
+        components: [dmContainer],
+      })
+      .catch(() => {
+        // DMs cerrados
+      });
+
+    // Log al canal de logs
+    const logChannel = interaction.client.channels.cache.get(LOG_CHANNEL_ID);
+    if (logChannel) {
+      logChannel
+        .send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [warningContainer],
+        })
+        .catch(err => {
+          console.error('Error enviando log de advertencia:', err);
+        });
+    }
+
+    await interaction.reply({
+      flags: MessageFlags.IsComponentsV2,
+      components: [warningContainer],
+    });
+  },
+};
+
+// ===== /mis-sanciones =====
+const misSancionesCommand = {
+  data: new SlashCommandBuilder()
+    .setName('mis-sanciones')
+    .setDescription('Muestra tus sanciones, advertencias y estado actual.')
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const usuario = interaction.user;
+    const userId = usuario.id;
+
+    const sancionesDb = loadJson(SANCIONES_FILE);
+    const warningsDb = loadJson(ADVERTENCIAS_FILE);
+    const bansDb = loadJson(BANEADOS_FILE);
+    const cedulasDb = loadJson(CEDULAS_FILE);
+
+    const record = sancionesDb[userId] || { sanctions: [] };
+    const warningsRecord = warningsDb[userId] || { warnings: [] };
+    const banRecord = bansDb[userId] || { bans: [] };
+    
+    const activas = record.sanctions?.filter(s => s.estado === 'activa') || [];
+    const apeladas = record.sanctions?.filter(s => s.estado === 'apelada') || [];
+    const warnings = warningsRecord.warnings || [];
+    const bans = banRecord.bans || [];
+    
+    const activeBan = bans.find(b => b.active);
+    const totalBans = bans.length;
+
+    // Estado del usuario
+    let statusLine = '🟢 **Estado:** Normal';
+    if (activeBan) {
+      const finTs = Math.floor(new Date(activeBan.end).getTime() / 1000);
+      statusLine = `🔴 **Estado:** Baneado (${activeBan.days} día(s)). Fin: <t:${finTs}:f>`;
+    } else if (activas.length > 0) {
+      const { label: estadoTexto } = getEstadoInfo(activas.length);
+      statusLine = `🟡 **Estado:** ${estadoTexto} (${activas.length} sanción(es) activa(s))`;
+    }
+
+    // Información de Roblox
+    const robloxUsername = cedulasDb[userId]?.roblox?.username || 'No registrado';
+
+    // Construir descripción de sanciones
+    let desc = `${statusLine}\n\n`;
+    
+    if (activas.length) {
+      desc += '🟢 **Sanciones activas:**\n';
+      activas.forEach(s => {
+        desc += `• #${s.numero} — ${formatDate(s.fecha)} — Motivo: ${s.motivo}\n`;
+      });
+    } else {
+      desc += '🟢 **Sanciones activas:** Ninguna.\n';
+    }
+
+    if (apeladas.length) {
+      desc += '\n📝 **Sanciones apeladas:**\n';
+      apeladas.forEach(s => {
+        desc += `• #${s.numero} — ${formatDate(s.fecha)} — Motivo: ${s.motivo}\n`;
+      });
+    } else {
+      desc += '\n📝 **Sanciones apeladas:** Ninguna.\n';
+    }
+
+    if (warnings.length) {
+      desc += '\n⚠️ **Advertencias:**\n';
+      warnings.forEach((w, idx) => {
+        desc += `• #${idx + 1} — ${formatDate(w.fecha)} — Motivo: ${w.motivo}\n`;
+      });
+    } else {
+      desc += '\n⚠️ **Advertencias:** Ninguna.\n';
+    }
+
+    if (bans.length) {
+      desc += '\n🚫 **Historial de baneos:**\n';
+      bans.forEach((b, idx) => {
+        const estado = b.active ? 'Activo' : 'Finalizado';
+        desc += `• #${idx + 1} — ${b.days} día(s) — ${estado} — ${formatDate(b.start)}\n`;
+      });
+    } else {
+      desc += '\n🚫 **Historial de baneos:** Ninguno.\n';
+    }
+
+    if (desc.length > 4000) {
+      desc = desc.slice(0, 3990) + '…';
+    }
+
+    const body = [
+      `**Tu historial en ${interaction.guild.name}**`,
+      '',
+      `👤 **Usuario:** ${usuario.tag}`,
+      `🎮 **Roblox:** ${robloxUsername}`,
+      '',
+      desc,
+      '',
+      `ℹ️ Si crees que hay un error, contacta al staff.`,
+    ].join('\n');
+
+    const historyContainer = buildContainer(
+      HISTORY_EMOJI,
+      'Tu historial de sanciones',
+      body,
+    );
+
+    // Si hay un ban activo y termina en menos de 1 hora, enviar recordatorio
+    if (activeBan) {
+      const endTime = new Date(activeBan.end);
+      const now = new Date();
+      const timeLeft = endTime - now;
+      const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+      
+      if (hoursLeft <= 1 && hoursLeft > 0) {
+        const reminderContainer = buildContainer(
+          '⏰',
+          'Recordatorio',
+          `Tu baneo termina en menos de 1 hora. Recuerda seguir las reglas una vez que termine.`,
+        );
+        
+        return interaction.reply({
+          flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+          components: [historyContainer, reminderContainer],
+        });
+      }
+    }
+
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [historyContainer],
+    });
+  },
+};
+
+// ===== /estadisticas-sanciones =====
+const estadisticasCommand = {
+  data: new SlashCommandBuilder()
+    .setName('estadisticas-sanciones')
+    .setDescription('Muestra estadísticas de sanciones y advertencias.')
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'No tienes permiso para usar este comando.',
+          ),
+        ],
+      });
+    }
+
+    const sancionesDb = loadJson(SANCIONES_FILE);
+    const warningsDb = loadJson(ADVERTENCIAS_FILE);
+    const bansDb = loadJson(BANEADOS_FILE);
+
+    // Estadísticas generales
+    let totalUsuariosSancionados = 0;
+    let totalSanciones = 0;
+    let totalSancionesActivas = 0;
+    let totalSancionesApeladas = 0;
+    
+    let totalUsuariosAdvertidos = 0;
+    let totalAdvertencias = 0;
+    
+    let totalUsuariosBaneados = 0;
+    let totalBaneos = 0;
+    let totalBaneosActivos = 0;
+
+    // Procesar sanciones
+    for (const [userId, record] of Object.entries(sancionesDb)) {
+      if (record && Array.isArray(record.sanctions)) {
+        totalUsuariosSancionados++;
+        totalSanciones += record.sanctions.length;
+        
+        const activas = record.sanctions.filter(s => s.estado === 'activa');
+        const apeladas = record.sanctions.filter(s => s.estado === 'apelada');
+        
+        totalSancionesActivas += activas.length;
+        totalSancionesApeladas += apeladas.length;
+      }
+    }
+
+    // Procesar advertencias
+    for (const [userId, record] of Object.entries(warningsDb)) {
+      if (record && Array.isArray(record.warnings) && record.warnings.length > 0) {
+        totalUsuariosAdvertidos++;
+        totalAdvertencias += record.warnings.length;
+      }
+    }
+
+    // Procesar baneos
+    for (const [userId, record] of Object.entries(bansDb)) {
+      if (record && Array.isArray(record.bans)) {
+        if (record.bans.length > 0) {
+          totalUsuariosBaneados++;
+        }
+        totalBaneos += record.bans.length;
+        
+        const activos = record.bans.filter(b => b.active);
+        totalBaneosActivos += activos.length;
+      }
+    }
+
+    // Fechas
+    const hoy = new Date();
+    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const primerDiaMesStr = primerDiaMes.toISOString();
+    
+    let sancionesEsteMes = 0;
+    let advertenciasEsteMes = 0;
+    let baneosEsteMes = 0;
+
+    // Contar sanciones este mes
+    for (const [userId, record] of Object.entries(sancionesDb)) {
+      if (record && Array.isArray(record.sanctions)) {
+        const sancionesMes = record.sanctions.filter(s => s.fecha >= primerDiaMesStr);
+        sancionesEsteMes += sancionesMes.length;
+      }
+    }
+
+    // Contar advertencias este mes
+    for (const [userId, record] of Object.entries(warningsDb)) {
+      if (record && Array.isArray(record.warnings)) {
+        const warningsMes = record.warnings.filter(w => w.fecha >= primerDiaMesStr);
+        advertenciasEsteMes += warningsMes.length;
+      }
+    }
+
+    // Contar baneos este mes
+    for (const [userId, record] of Object.entries(bansDb)) {
+      if (record && Array.isArray(record.bans)) {
+        const bansMes = record.bans.filter(b => b.start >= primerDiaMesStr);
+        baneosEsteMes += bansMes.length;
+      }
+    }
+
+    const body = [
+      `📊 **Estadísticas de moderación**`,
+      '',
+      `📅 **Período:** ${formatDateShort(primerDiaMesStr)} - ${formatDateShort(hoy.toISOString())}`,
+      '',
+      `🚨 **SANCIONES**`,
+      `• Usuarios sancionados: ${totalUsuariosSancionados}`,
+      `• Total sanciones: ${totalSanciones}`,
+      `• Sanciones activas: ${totalSancionesActivas}`,
+      `• Sanciones apeladas: ${totalSancionesApeladas}`,
+      `• Sanciones este mes: ${sancionesEsteMes}`,
+      '',
+      `⚠️ **ADVERTENCIAS**`,
+      `• Usuarios advertidos: ${totalUsuariosAdvertidos}`,
+      `• Total advertencias: ${totalAdvertencias}`,
+      `• Advertencias este mes: ${advertenciasEsteMes}`,
+      '',
+      `⛔ **BANEOS**`,
+      `• Usuarios baneados: ${totalUsuariosBaneados}`,
+      `• Total baneos: ${totalBaneos}`,
+      `• Baneos activos: ${totalBaneosActivos}`,
+      `• Baneos este mes: ${baneosEsteMes}`,
+      '',
+      `📈 **Resumen:**`,
+      `• Total acciones este mes: ${sancionesEsteMes + advertenciasEsteMes + baneosEsteMes}`,
+      `• Proporción sanciones/advertencias: ${totalSanciones > 0 ? (totalAdvertencias / totalSanciones).toFixed(2) : 'N/A'}`,
+      `• Tasa de apelaciones: ${totalSanciones > 0 ? ((totalSancionesApeladas / totalSanciones) * 100).toFixed(1) : '0'}%`,
+    ].join('\n');
+
+    const statsContainer = buildContainer(
+      STATS_EMOJI,
+      'Estadísticas de moderación',
+      body,
+    );
+
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [statsContainer],
+    });
+  },
+};
+
+// ===== /modlogs =====
+const modlogsCommand = {
+  data: new SlashCommandBuilder()
+    .setName('modlogs')
+    .setDescription('Muestra las acciones de moderación de un miembro del staff.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Miembro del staff a revisar')
+        .setRequired(true),
+    )
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member?.roles?.cache?.has(ADMIN_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'Solo los administradores pueden usar este comando.',
+          ),
+        ],
+      });
+    }
+
+    const staffUser = interaction.options.getUser('usuario', true);
+    const staffMember = interaction.guild.members.cache.get(staffUser.id);
+    
+    if (!staffMember?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Usuario no válido',
+            'El usuario seleccionado no es miembro del equipo de moderación.',
+          ),
+        ],
+      });
+    }
+
+    const sancionesDb = loadJson(SANCIONES_FILE);
+    const warningsDb = loadJson(ADVERTENCIAS_FILE);
+    const bansDb = loadJson(BANEADOS_FILE);
+
+    const staffId = staffUser.id;
+    const hoy = new Date();
+    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const primerDiaMesStr = primerDiaMes.toISOString();
+
+    // Recolectar estadísticas
+    let sancionesAplicadas = 0;
+    let sancionesEsteMes = 0;
+    let advertenciasAplicadas = 0;
+    let advertenciasEsteMes = 0;
+    let baneosAprobados = 0;
+    let baneosEsteMes = 0;
+    
+    let ultimasAcciones = [];
+
+    // Sanciones aplicadas por este staff
+    for (const [userId, record] of Object.entries(sancionesDb)) {
+      if (record && Array.isArray(record.sanctions)) {
+        const sancionesStaff = record.sanctions.filter(s => s.moderadorId === staffId);
+        sancionesAplicadas += sancionesStaff.length;
+        
+        const sancionesMes = sancionesStaff.filter(s => s.fecha >= primerDiaMesStr);
+        sancionesEsteMes += sancionesMes.length;
+        
+        // Agregar a últimas acciones
+        sancionesStaff.forEach(s => {
+          ultimasAcciones.push({
+            tipo: 'sanción',
+            fecha: s.fecha,
+            usuario: userId,
+            motivo: s.motivo,
+            estado: s.estado,
+          });
+        });
+      }
+    }
+
+    // Advertencias aplicadas por este staff
+    for (const [userId, record] of Object.entries(warningsDb)) {
+      if (record && Array.isArray(record.warnings)) {
+        const warningsStaff = record.warnings.filter(w => w.moderadorId === staffId);
+        advertenciasAplicadas += warningsStaff.length;
+        
+        const warningsMes = warningsStaff.filter(w => w.fecha >= primerDiaMesStr);
+        advertenciasEsteMes += warningsMes.length;
+        
+        // Agregar a últimas acciones
+        warningsStaff.forEach(w => {
+          ultimasAcciones.push({
+            tipo: 'advertencia',
+            fecha: w.fecha,
+            usuario: userId,
+            motivo: w.motivo,
+          });
+        });
+      }
+    }
+
+    // Baneos aprobados por este staff
+    for (const [userId, record] of Object.entries(bansDb)) {
+      if (record && Array.isArray(record.bans)) {
+        const bansStaff = record.bans.filter(b => b.approverId === staffId || b.staffId === staffId);
+        baneosAprobados += bansStaff.length;
+        
+        const bansMes = bansStaff.filter(b => b.start >= primerDiaMesStr);
+        baneosEsteMes += bansMes.length;
+        
+        // Agregar a últimas acciones
+        bansStaff.forEach(b => {
+          ultimasAcciones.push({
+            tipo: 'baneo',
+            fecha: b.start,
+            usuario: userId,
+            dias: b.days,
+            aprobador: b.approverId === staffId,
+          });
+        });
+      }
+    }
+
+    // Ordenar últimas acciones por fecha (más reciente primero)
+    ultimasAcciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    const ultimas5 = ultimasAcciones.slice(0, 5);
+
+    let ultimasAccionesTexto = '';
+    if (ultimas5.length > 0) {
+      ultimas5.forEach(acc => {
+        const fechaFormateada = formatDate(acc.fecha);
+        if (acc.tipo === 'sanción') {
+          ultimasAccionesTexto += `• **Sanción** a <@${acc.usuario}> - ${fechaFormateada}\n  Motivo: ${acc.motivo.slice(0, 50)}${acc.motivo.length > 50 ? '...' : ''}\n`;
+        } else if (acc.tipo === 'advertencia') {
+          ultimasAccionesTexto += `• **Advertencia** a <@${acc.usuario}> - ${fechaFormateada}\n  Motivo: ${acc.motivo.slice(0, 50)}${acc.motivo.length > 50 ? '...' : ''}\n`;
+        } else if (acc.tipo === 'baneo') {
+          const tipo = acc.aprobador ? 'Aprobó' : 'Generó';
+          ultimasAccionesTexto += `• **Baneo** (${tipo}) a <@${acc.usuario}> - ${fechaFormateada}\n  Duración: ${acc.dias} día(s)\n`;
+        }
+      });
+    } else {
+      ultimasAccionesTexto = 'No se encontraron acciones recientes.';
+    }
+
+    const totalAcciones = sancionesAplicadas + advertenciasAplicadas + baneosAprobados;
+    const totalEsteMes = sancionesEsteMes + advertenciasEsteMes + baneosEsteMes;
+
+    const body = [
+      `📋 **Registro de moderador: ${staffUser.tag}**`,
+      '',
+      `🆔 **ID del staff:** ${staffId}`,
+      `📅 **Período actual:** ${formatDateShort(primerDiaMesStr)} - ${formatDateShort(hoy.toISOString())}`,
+      '',
+      `📊 **ESTADÍSTICAS TOTALES**`,
+      `• Total acciones: ${totalAcciones}`,
+      `• Sanciones aplicadas: ${sancionesAplicadas}`,
+      `• Advertencias aplicadas: ${advertenciasAplicadas}`,
+      `• Baneos aprobados/generados: ${baneosAprobados}`,
+      '',
+      `📈 **ESTE MES**`,
+      `• Total acciones: ${totalEsteMes}`,
+      `• Sanciones: ${sancionesEsteMes}`,
+      `• Advertencias: ${advertenciasEsteMes}`,
+      `• Baneos: ${baneosEsteMes}`,
+      '',
+      `🕒 **ÚLTIMAS 5 ACCIONES**`,
+      ultimasAccionesTexto,
+      '',
+      `ℹ️ **Nota:** Estos datos incluyen todas las acciones registradas en el sistema.`,
+    ].join('\n');
+
+    const modlogsContainer = buildContainer(
+      '🛡️',
+      'Registro de moderador',
+      body,
+    );
+
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [modlogsContainer],
+    });
+  },
+};
+
+// ===== /apelar-sancion =====
+const apelarSancionCommand = {
+  data: new SlashCommandBuilder()
+    .setName('apelar-sancion')
+    .setDescription('Apela (retira) una sanción activa de un usuario.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario al que se le retirará la sanción')
+        .setRequired(true),
+    )
+    .addStringOption(opt =>
+      opt
+        .setName('motivo')
+        .setDescription('Motivo de la apelación de la sanción')
+        .setRequired(true),
+    )
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'No tienes permiso para usar este comando.',
+          ),
+        ],
+      });
+    }
+
+    const usuario = interaction.options.getUser('usuario', true);
+    const motivoApelacion = interaction.options.getString('motivo', true);
+
+    const db = loadJson(SANCIONES_FILE);
+    const record = db[usuario.id];
+
+    if (!record || !Array.isArray(record.sanctions)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Sin sanciones',
+            'El usuario seleccionado no cuenta con sanciones activas.',
+          ),
+        ],
+      });
+    }
+
+    const activas = record.sanctions.filter(s => s.estado === 'activa');
+
+    if (!activas.length) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Sin sanciones',
+            'El usuario seleccionado no cuenta con sanciones activas.',
+          ),
+        ],
+      });
+    }
+
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId(`apelar_sancion_${interaction.id}`)
+      .setPlaceholder('Selecciona la sanción que deseas apelar')
+      .addOptions(
+        activas.map(s => ({
+          label: `#${s.numero} — ${formatDate(s.fecha)}`,
+          description: s.motivo.slice(0, 90),
+          value: s.id,
+        })),
+      );
+
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    const body = [
+      `Selecciona qué sanción de ${usuario} deseas apelar.`,
+      '',
+      'Solo tú puedes usar este menú.',
+    ].join('\n');
+
+    await interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [buildContainer('⚖️', 'Apelar sanción', body), row],
+    });
+
+    const replyMsg = await interaction.fetchReply();
+
+    const collector = replyMsg.createMessageComponentCollector({
+      time: 60 * 1000,
+    });
+
+    collector.on('collect', async i => {
+      if (i.user.id !== interaction.user.id) {
+        return i.reply({
+          flags:
+            MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+          components: [
+            buildErrorContainer(
+              'No puedes usar este menú',
+              'Solo la persona que ejecutó el comando puede usar este menú.',
+            ),
+          ],
+        });
+      }
+      if (i.customId !== `apelar_sancion_${interaction.id}`) return;
+
+      const selectedId = i.values[0];
+
+      const dbReload = loadJson(SANCIONES_FILE);
+      const rec = dbReload[usuario.id];
+
+      if (!rec || !Array.isArray(rec.sanctions)) {
+        await i.update({
+          components: [
+            buildErrorContainer(
+              'Sanción no encontrada',
+              'No se encontró la sanción seleccionada.',
+            ),
+          ],
+        });
+        return;
+      }
+
+      const sancion = rec.sanctions.find(
+        s => s.id === selectedId && s.estado === 'activa',
+      );
+
+      if (!sancion) {
+        await i.update({
+          components: [
+            buildErrorContainer(
+              'Sanción no encontrada',
+              'La sanción seleccionada ya no está activa o no se encontró.',
+            ),
+          ],
+        });
+        return;
+      }
+
+      sancion.estado = 'apelada';
+      sancion.apelacion = {
+        moderadorId: interaction.user.id,
+        motivo: motivoApelacion,
+        fecha: new Date().toISOString(),
+      };
+
+      saveJson(SANCIONES_FILE, dbReload);
+
+      const activasRestantes = rec.sanctions.filter(
+        s => s.estado === 'activa',
+      ).length;
+      const { label: estadoTexto } = getEstadoInfo(activasRestantes);
+
+      // Actualizar roles de sanción según sanciones activas restantes
+      try {
+        let miembro = interaction.guild.members.cache.get(usuario.id);
+        if (!miembro) {
+          miembro = await interaction.guild.members
+            .fetch(usuario.id)
+            .catch(() => null);
+        }
+        if (miembro) {
+          await updateSanctionRolesForMember(miembro, activasRestantes);
+        }
+      } catch (err) {
+        console.error(
+          'Error actualizando roles al apelar sanción:',
+          err,
+        );
+      }
+
+      const cuerpoApelacion = [
+        `Se ha apelado una sanción de ${usuario}.`,
+        '',
+        `👤 **Usuario sancionado:** ${usuario}`,
+        `🛡️ **Staff que apeló:** ${interaction.user}`,
+        '',
+        `📊 **Sanciones activas ahora:** ${activasRestantes}`,
+        '',
+        `📄 **Motivo original:** ${sancion.motivo || 'Sin motivo'}`,
+        `📝 **Motivo de apelación:** ${motivoApelacion}`,
+        '',
+        `📅 **Fecha original:** ${formatDate(sancion.fecha)}`,
+        `📅 **Fecha de apelación:** ${formatDate(
+          sancion.apelacion.fecha,
+        )}`,
+        '',
+        `⚖️ **Estado actual del usuario:** ${estadoTexto}`,
+      ].join('\n');
+
+      const apelacionContainer = buildSuccessContainer(
+        'Sanción apelada',
+        cuerpoApelacion,
+      );
+
+      await i.update({
+        components: [apelacionContainer],
+      });
+
+      // Mensaje público al canal
+      await interaction.channel
+        .send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [apelacionContainer],
+        })
+        .catch(() => {});
+
+      // DM al usuario informado de la apelación
+      const cuerpoDm = [
+        `Una sanción tuya ha sido apelada en **${interaction.guild.name}**.`,
+        '',
+        `🛡️ **Staff que apeló:** ${interaction.user}`,
+        '',
+        `📄 **Motivo original:** ${sancion.motivo || 'Sin motivo'}`,
+        `📝 **Motivo de apelación:** ${motivoApelacion}`,
+        '',
+        `📊 **Sanciones activas ahora:** ${activasRestantes}`,
+        `📅 **Fecha de apelación:** ${formatDate(
+          sancion.apelacion.fecha,
+        )}`,
+      ].join('\n');
+
+      const dmContainer = buildSuccessContainer(
+        'Una de tus sanciones ha sido apelada',
+        cuerpoDm,
+      );
+
+      usuario
+        .send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [dmContainer],
+        })
+        .catch(() => {
+          // DMs cerrados
+        });
+
+      // Log al canal de logs (apelación)
+      const logChannel = interaction.client.channels.cache.get(
+        LOG_CHANNEL_ID,
+      );
+      if (logChannel) {
+        logChannel
+          .send({
+            flags: MessageFlags.IsComponentsV2,
+            components: [apelacionContainer],
+          })
+          .catch(err => {
+            console.error(
+              'Error enviando log de apelación de sanción:',
+              err,
+            );
+          });
+      }
+    });
+
+    collector.on('end', async collected => {
+      if (collected.size === 0) {
+        try {
+          await replyMsg.edit({
+            components: [
+              buildErrorContainer(
+                'Tiempo agotado',
+                'No se seleccionó ninguna sanción, la apelación ha sido cancelada.',
+              ),
+            ],
+          });
+        } catch {
+          // ignorar
+        }
+      }
+    });
+  },
+};
+
+// ===== /historial-sanciones =====
+const historialSancionesCommand = {
+  data: new SlashCommandBuilder()
+    .setName('historial-sanciones')
+    .setDescription('Muestra el historial de sanciones de un usuario.')
+    .addUserOption(opt =>
+      opt
+        .setName('usuario')
+        .setDescription('Usuario del que deseas ver el historial')
+        .setRequired(true),
+    )
+    .setDMPermission(false),
+
+  async execute(interaction) {
+    const member = interaction.member;
+    if (!member?.roles?.cache?.has(MOD_ROLE_ID)) {
+      return interaction.reply({
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [
+          buildErrorContainer(
+            'Permisos insuficientes',
+            'No tienes permiso para usar este comando.',
+          ),
+        ],
+      });
+    }
+
+    const usuario = interaction.options.getUser('usuario', true);
+
+    const db = loadJson(SANCIONES_FILE);
+    const record = db[usuario.id];
+
+    const bansDb = loadJson(BANEADOS_FILE);
+    const banRecord = bansDb[usuario.id] || { bans: [] };
+    const bansArr = Array.isArray(banRecord.bans) ? banRecord.bans : [];
+
+    const activeBan = bansArr.find(b => b.active);
+    const totalBans = bansArr.length;
+
+    // Cargar advertencias
+    const warningsDb = loadJson(ADVERTENCIAS_FILE);
+    const warningsRecord = warningsDb[usuario.id] || { warnings: [] };
+    const warnings = warningsRecord.warnings || [];
+
+    let statusLine = '🟢 **Estado del usuario:** Sin baneo activo.';
+    if (activeBan) {
+      const finTs = Math.floor(
+        new Date(activeBan.end).getTime() / 1000,
+      );
+      statusLine = `🔴 **Estado del usuario:** Baneado (${activeBan.days} día(s)). Fin: <t:${finTs}:f>. Baneos totales: ${totalBans}.`;
+      // Enviar recordatorio si falta menos de 1 hora
+      sendBanReminder(interaction.client, usuario.id, activeBan);
+    } else if (totalBans > 0) {
+      statusLine = `🟡 **Estado del usuario:** Sin baneo activo. Baneos históricos: ${totalBans}.`;
+    }
+
+    const sancionesDesc =
+      buildHistorialDescription(record) ||
+      '🟢 **Sanciones activas:** Ninguna.\n\n📝 **Sanciones apeladas:** Ninguna.\n';
+
+    // Agregar advertencias
+    let warningsDesc = '';
+    if (warnings.length) {
+      warningsDesc += '\n⚠️ **Advertencias:**\n';
+      warnings.forEach((w, idx) => {
+        warningsDesc += `• #${idx + 1} — ${formatDate(w.fecha)} — Staff: <@${w.moderadorId}> — Motivo: ${w.motivo}\n`;
+      });
+    } else {
+      warningsDesc += '\n⚠️ **Advertencias:** Ninguna.\n';
+    }
+
+    let bansDesc = '';
+    if (bansArr.length) {
+      bansDesc += '\n🚫 **Baneos:**\n';
+      bansArr.forEach((b, idx) => {
+        const estado = b.active ? 'Activo' : 'Finalizado';
+        const inicioStr = formatDate(b.start);
+        const finStr = formatDate(b.end);
+        bansDesc += `• #${idx + 1} — ${b.days} día(s) — ${estado} — Inicio: ${inicioStr} — Fin: ${finStr} — Aprobado por <@${b.approverId}>\n`;
+      });
+    } else {
+      bansDesc += '\n🚫 **Baneos:** Ninguno.\n';
+    }
+
+    let desc = `${statusLine}\n\n${sancionesDesc}${warningsDesc}${bansDesc}`;
+    if (desc.length > 4000) {
+      desc = desc.slice(0, 3990) + '…';
+    }
+
+    const body = [
+      `Historial de sanciones para ${usuario.tag} (${usuario.id})`,
+      '',
+      desc,
+    ].join('\n');
+
+    const historyContainer = buildContainer(
+      '📂',
+      'Historial de sanciones',
+      body,
+    );
+
+    return interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [historyContainer],
+    });
+  },
+};
+
+// Exportar comandos Y manejador de componentes
+module.exports = {
+  commands: [
+    sancionarCommand,
+    advertirCommand,
+    misSancionesCommand,
+    estadisticasCommand,
+    modlogsCommand,
+    apelarSancionCommand,
+    historialSancionesCommand,
+  ],
+  handleComponentInteraction,
+};

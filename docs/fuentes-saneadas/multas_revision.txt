@@ -1,0 +1,829 @@
+FUENTE SANEADA PARA REVISIÓN; NO ES CÓDIGO EJECUTABLE DE LA ENTREGA.
+ORIGEN: DeepSeek/codigo_generado/031_este_es_mi_index.js/m004_b001_multas.js
+
+// ============================================
+// COMANDO: MULTAS - CONTAINERS V2 ONLY
+// ============================================
+
+const { 
+    SlashCommandBuilder, 
+    MessageFlags,
+    TextDisplayBuilder,
+    SectionBuilder,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    ButtonBuilder,
+    ButtonStyle,
+    ActionRowBuilder
+} = require('discord.js');
+const fs = require('fs').promises;
+const path = require('path');
+
+// ========== CONFIGURACIÓN ==========
+const CONFIG = require('../index.js').CONFIG;
+const MULTAS_FILE = path.resolve(__dirname, '../bot-cr/data/multas.json');
+
+// ========== DEFINICIÓN DE ARTÍCULOS ==========
+const ARTICULOS_MULTAS = [
+    // TRÁNSITO
+    { numero: 1, descripcion: "Exceso de velocidad", monto: 150, categoria: "TRÁNSITO" },
+    { numero: 2, descripcion: "Pasarse semáforo en rojo", monto: 250, categoria: "TRÁNSITO" },
+    { numero: 3, descripcion: "No respetar STOP", monto: 200, categoria: "TRÁNSITO" },
+    { numero: 4, descripcion: "Conducción temeraria", monto: 500, categoria: "TRÁNSITO" },
+    { numero: 5, descripcion: "Carrera ilegal", monto: 1000, categoria: "TRÁNSITO" },
+    { numero: 6, descripcion: "Derrapes / donuts en vía pública", monto: 600, categoria: "TRÁNSITO" },
+    { numero: 7, descripcion: "Uso del celular conduciendo", monto: 150, categoria: "TRÁNSITO" },
+    { numero: 8, descripcion: "Vehículo sin luces", monto: 100, categoria: "TRÁNSITO" },
+    { numero: 9, descripcion: "Vidrios polarizados ilegales", monto: 200, categoria: "TRÁNSITO" },
+    { numero: 10, descripcion: "Escape ruidoso ilegal", monto: 250, categoria: "TRÁNSITO" },
+    { numero: 11, descripcion: "Circular sin placas", monto: 500, categoria: "TRÁNSITO" },
+    { numero: 12, descripcion: "Placas alteradas u ocultas", monto: 400, categoria: "TRÁNSITO" },
+    { numero: 13, descripcion: "Estacionar en doble fila", monto: 100, categoria: "TRÁNSITO" },
+    { numero: 14, descripcion: "Bloquear intersección", monto: 200, categoria: "TRÁNSITO" },
+    { numero: 15, descripcion: "No ceder el paso", monto: 150, categoria: "TRÁNSITO" },
+    
+    // ORDEN PÚBLICO
+    { numero: 16, descripcion: "Escándalo público", monto: 300, categoria: "ORDEN PÚBLICO" },
+    { numero: 17, descripcion: "Lenguaje ofensivo en público", monto: 150, categoria: "ORDEN PÚBLICO" },
+    { numero: 18, descripcion: "Beber alcohol en vía pública", monto: 200, categoria: "ORDEN PÚBLICO" },
+    { numero: 19, descripcion: "Orinar en vía pública", monto: 250, categoria: "ORDEN PÚBLICO" },
+    { numero: 20, descripcion: "Obstrucción de la vía", monto: 200, categoria: "ORDEN PÚBLICO" },
+    { numero: 21, descripcion: "Merodeo sospechoso", monto: 150, categoria: "ORDEN PÚBLICO" },
+    { numero: 22, descripcion: "Negarse a dispersarse", monto: 300, categoria: "ORDEN PÚBLICO" },
+    { numero: 23, descripcion: "Incitar disturbios", monto: 400, categoria: "ORDEN PÚBLICO" },
+    { numero: 24, descripcion: "Dormir en zonas no permitidas", monto: 100, categoria: "ORDEN PÚBLICO" },
+    { numero: 25, descripcion: "Falsa alarma", monto: 500, categoria: "ORDEN PÚBLICO" },
+    { numero: 26, descripcion: "Reunión que altera el orden público", monto: 400, categoria: "ORDEN PÚBLICO" },
+    { numero: 28, descripcion: "Negarse a seguir instrucciones de la autoridad", monto: 300, categoria: "ORDEN PÚBLICO" },
+    { numero: 29, descripcion: "Provocar a otros ciudadanos en vía pública", monto: 250, categoria: "ORDEN PÚBLICO" },
+    { numero: 30, descripcion: "Actitud agresiva sin llegar a violencia", monto: 350, categoria: "ORDEN PÚBLICO" },
+    { numero: 31, descripcion: "Uso indebido de megáfonos o altavoces", monto: 200, categoria: "ORDEN PÚBLICO" },
+    { numero: 32, descripcion: "Obstruir accesos a edificios públicos", monto: 300, categoria: "ORDEN PÚBLICO" },
+    { numero: 33, descripcion: "Interferir en arresto o detención", monto: 500, categoria: "ORDEN PÚBLICO" },
+    { numero: 34, descripcion: "Generar pánico o alarma pública", monto: 600, categoria: "ORDEN PÚBLICO" },
+    { numero: 35, descripcion: "Permanecer en vía pública bajo efectos de alcohol/drogas", monto: 350, categoria: "ORDEN PÚBLICO" }
+];
+
+// ========== FUNCIONES AUXILIARES ==========
+async function leerMultas() {
+    try {
+        const data = await fs.readFile(MULTAS_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error leyendo multas:', error);
+        return [];
+    }
+}
+
+async function guardarMultas(multas) {
+    try {
+        await fs.writeFile(MULTAS_FILE, JSON.stringify(multas, null, 2), 'utf8');
+        return true;
+    } catch (error) {
+        console.error('Error guardando multas:', error);
+        return false;
+    }
+}
+
+async function obtenerNombreUsuario(client, userId) {
+    try {
+        const usuario = await client.users.fetch(userId);
+        return usuario.username;
+    } catch (error) {
+        console.error(`Error obteniendo usuario ${userId}:`, error);
+        return 'Desconocido';
+    }
+}
+
+function generarIdMulta() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    for (let i = 0; i < 12; i++) {
+        id += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return id;
+}
+
+function formatearArticulos(articulosStr) {
+    if (!articulosStr) return 'Ninguno';
+    
+    const numeros = articulosStr.split(',').map(n => n.trim());
+    const articulos = [];
+    
+    for (const num of numeros) {
+        const articulo = ARTICULOS_MULTAS.find(a => a.numero === parseInt(num));
+        if (articulo) {
+            articulos.push(`Art.${articulo.numero} (${articulo.descripcion})`);
+        } else {
+            articulos.push(`Art.${num} (Desconocido)`);
+        }
+    }
+    
+    return articulos.join(', ');
+}
+
+// ========== FUNCIÓN DE REVISIÓN DE MULTAS ==========
+async function revisarMultas(client) {
+    try {
+        console.log('🔍 Revisando multas pendientes...');
+        const multas = await leerMultas();
+        const ahora = new Date();
+        let actualizadas = 0;
+        
+        for (const multa of multas) {
+            if (multa.estado === 'PENDIENTE' && !multa.cobradaAuto) {
+                const fechaLimite = new Date(multa.fechaLimite);
+                
+                if (ahora > fechaLimite) {
+                    multa.estado = 'PAGADA';
+                    multa.cobradaAuto = true;
+                    multa.fechaPago = ahora.toISOString();
+                    actualizadas++;
+                    
+                    console.log(`✅ Multa ${multa.id} cobrada automáticamente`);
+                }
+            }
+        }
+        
+        if (actualizadas > 0) {
+            await guardarMultas(multas);
+            console.log(`✅ ${actualizadas} multas cobradas automáticamente`);
+        }
+        
+        return actualizadas;
+    } catch (error) {
+        console.error('❌ Error en revisión de multas:', error);
+        return 0;
+    }
+}
+
+// ========== COMANDOS ==========
+
+// COMANDO: /multar
+const multarCommand = {
+    data: new SlashCommandBuilder()
+        .setName('multar')
+        .setDescription('Registra una multa a un usuario')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Usuario a multar')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('articulos')
+                .setDescription('Artículos de la multa (separados por coma) - Escribe para buscar')
+                .setRequired(true)
+                .setAutocomplete(true))
+        .addIntegerOption(option =>
+            option.setName('monto')
+                .setDescription('Monto total de la multa (se calcula automáticamente)')
+                .setRequired(false)),
+    
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused();
+        const opciones = [];
+        
+        for (const articulo of ARTICULOS_MULTAS) {
+            const nombre = `Art.${articulo.numero} (${articulo.descripcion}) ($${articulo.monto})`;
+            
+            if (nombre.toLowerCase().includes(focusedValue.toLowerCase()) || 
+                articulo.numero.toString().includes(focusedValue) ||
+                articulo.descripcion.toLowerCase().includes(focusedValue.toLowerCase())) {
+                
+                opciones.push({
+                    name: nombre,
+                    value: articulo.numero.toString()
+                });
+                
+                if (opciones.length >= 25) break; // Discord limita a 25 opciones
+            }
+        }
+        
+        await interaction.respond(opciones);
+    },
+    
+    async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
+        
+        const usuario = interaction.options.getUser('usuario');
+        const articulosInput = interaction.options.getString('articulos');
+        const montoManual = interaction.options.getInteger('monto');
+        
+        // Validaciones
+        if (usuario.bot) {
+            return interaction.editReply({
+                content: '❌ No puedes multar a un bot.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        if (usuario.id === interaction.user.id) {
+            return interaction.editReply({
+                content: '❌ No puedes multarte a ti mismo.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        // Procesar artículos
+        const articulosNumeros = articulosInput.split(',').map(a => a.trim()).filter(a => a);
+        
+        if (articulosNumeros.length === 0) {
+            return interaction.editReply({
+                content: '❌ Debes especificar al menos un artículo válido.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        // Calcular monto total
+        let montoTotal = 0;
+        const articulosValidos = [];
+        
+        for (const num of articulosNumeros) {
+            const articuloNum = parseInt(num);
+            const articulo = ARTICULOS_MULTAS.find(a => a.numero === articuloNum);
+            
+            if (articulo) {
+                montoTotal += articulo.monto;
+                articulosValidos.push(articulo.numero.toString());
+            }
+        }
+        
+        if (articulosValidos.length === 0) {
+            return interaction.editReply({
+                content: '❌ No se encontraron artículos válidos.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        // Usar monto manual si se proporcionó
+        if (montoManual !== null) {
+            if (montoManual <= 0) {
+                return interaction.editReply({
+                    content: '❌ El monto debe ser mayor a 0.',
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+            montoTotal = montoManual;
+        }
+        
+        // Crear la multa
+        const multa = {
+            id: generarIdMulta(),
+            usuarioId: usuario.id,
+            oficialId: interaction.user.id,
+            monto: montoTotal,
+            articulos: articulosValidos.join(','),
+            fechaCreacion: new Date().toISOString(),
+            fechaLimite: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 días
+            estado: 'PENDIENTE',
+            cobradaAuto: false
+        };
+        
+        // Guardar multa
+        const multas = await leerMultas();
+        multas.push(multa);
+        await guardarMultas(multas);
+        
+        // Crear Container con la información de la multa
+        const fechaTimestamp = Math.floor(new Date(multa.fechaLimite).getTime() / 1000);
+        
+        const container = new ContainerBuilder()
+            .setAccentColor(0xFF0000) // Rojo para multa
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('# 🚨 **MULTA REGISTRADA**')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addSectionComponents(
+                new SectionBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent(`**📋 ID de Multa:** \`${multa.id}\``),
+                        new TextDisplayBuilder()
+                            .setContent(`**👤 Usuario Multado:** ${usuario.username}`),
+                        new TextDisplayBuilder()
+                            .setContent(`**👮 Oficial:** ${interaction.user.username}`)
+                    )
+            )
+            .addSectionComponents(
+                new SectionBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent(`**💰 Monto:** $${multa.monto}`),
+                        new TextDisplayBuilder()
+                            .setContent(`**⏰ Fecha Límite:** <t:${fechaTimestamp}:R>`),
+                        new TextDisplayBuilder()
+                            .setContent(`**📊 Estado:** ${multa.estado}`)
+                    )
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`**📜 Artículos:** ${formatearArticulos(multa.articulos)}`)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('_© Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish_')
+            );
+        
+        // Enviar respuesta usando Components V2
+        await interaction.editReply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        });
+        
+        console.log(`✅ Multa ${multa.id} registrada para ${usuario.username} por $${multa.monto}`);
+    }
+};
+
+// COMANDO: /ver-multas
+const verMultasCommand = {
+    data: new SlashCommandBuilder()
+        .setName('ver-multas')
+        .setDescription('Muestra todas las multas registradas')
+        .addUserOption(option =>
+            option.setName('usuario')
+                .setDescription('Filtrar por usuario específico')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('id_multa')
+                .setDescription('Buscar multa por ID específico - Escribe para buscar')
+                .setRequired(false)
+                .setAutocomplete(true)),
+    
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused();
+        const multas = await leerMultas();
+        const opciones = [];
+        
+        for (const multa of multas) {
+            if (multa.id.toLowerCase().includes(focusedValue.toLowerCase())) {
+                let nombreUsuario = 'Desconocido';
+                try {
+                    const usuario = await interaction.client.users.fetch(multa.usuarioId);
+                    nombreUsuario = usuario.username;
+                } catch (e) {}
+                
+                opciones.push({
+                    name: `${multa.id} - ${nombreUsuario} - $${multa.monto}`,
+                    value: multa.id
+                });
+                
+                if (opciones.length >= 25) break;
+            }
+        }
+        
+        await interaction.respond(opciones);
+    },
+    
+    async execute(interaction) {
+        await interaction.deferReply();
+        
+        const usuarioFiltro = interaction.options.getUser('usuario');
+        const idMultaFiltro = interaction.options.getString('id_multa');
+        const multas = await leerMultas();
+        
+        // Aplicar filtros
+        let multasFiltradas = multas;
+        
+        if (usuarioFiltro) {
+            multasFiltradas = multasFiltradas.filter(m => m.usuarioId === usuarioFiltro.id);
+        }
+        
+        if (idMultaFiltro) {
+            multasFiltradas = multasFiltradas.filter(m => m.id === idMultaFiltro);
+        }
+        
+        if (multasFiltradas.length === 0) {
+            return interaction.editReply({
+                content: usuarioFiltro || idMultaFiltro 
+                    ? '❌ No se encontraron multas con los filtros aplicados.'
+                    : '✅ No hay multas registradas en el sistema.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        // Si se busca por ID específico, mostrar detalles completos
+        if (idMultaFiltro && multasFiltradas.length === 1) {
+            const multa = multasFiltradas[0];
+            
+            // Obtener nombres de usuario
+            let nombreUsuario = 'Desconocido';
+            let nombreOficial = 'Desconocido';
+            
+            try {
+                const usuario = await interaction.client.users.fetch(multa.usuarioId);
+                nombreUsuario = usuario.username;
+            } catch (e) {}
+            
+            try {
+                const oficial = await interaction.client.users.fetch(multa.oficialId);
+                nombreOficial = oficial.username;
+            } catch (e) {}
+            
+            const fechaCreacionTimestamp = Math.floor(new Date(multa.fechaCreacion).getTime() / 1000);
+            const fechaLimiteTimestamp = Math.floor(new Date(multa.fechaLimite).getTime() / 1000);
+            
+            const container = new ContainerBuilder()
+                .setAccentColor(multa.estado === 'PAGADA' ? 0x00FF00 : 0xFFA500) // Verde si pagada, naranja si pendiente
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`# 🚨 **MULTA #${multa.id}**`)
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`**👤 Usuario Multado:** ${nombreUsuario}`),
+                            new TextDisplayBuilder()
+                                .setContent(`**👮 Oficial:** ${nombreOficial}`),
+                            new TextDisplayBuilder()
+                                .setContent(`**💰 Monto:** $${multa.monto}`)
+                        )
+                )
+                .addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`**📜 Artículos:** ${formatearArticulos(multa.articulos)}`)
+                        )
+                )
+                .addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`**📅 Fecha Creación:** <t:${fechaCreacionTimestamp}:R>`),
+                            new TextDisplayBuilder()
+                                .setContent(`**⏰ Fecha Límite:** <t:${fechaLimiteTimestamp}:R>`),
+                            new TextDisplayBuilder()
+                                .setContent(`**📊 Estado:** ${multa.estado}`)
+                        )
+                );
+            
+            if (multa.fechaPago) {
+                const fechaPagoTimestamp = Math.floor(new Date(multa.fechaPago).getTime() / 1000);
+                container.addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`**💳 Fecha de Pago:** <t:${fechaPagoTimestamp}:R>`)
+                        )
+                );
+            }
+            
+            container.addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('_© Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish_')
+            );
+            
+            return interaction.editReply({
+                components: [container],
+                flags: MessageFlags.IsComponentsV2
+            });
+        }
+        
+        // Mostrar todas las multas (paginado)
+        const itemsPorPagina = 5;
+        let pagina = 0;
+        const totalPaginas = Math.ceil(multasFiltradas.length / itemsPorPagina);
+        
+        async function generarContainer(paginaActual) {
+            const inicio = paginaActual * itemsPorPagina;
+            const fin = inicio + itemsPorPagina;
+            const multasPagina = multasFiltradas.slice(inicio, fin);
+            
+            const container = new ContainerBuilder()
+                .setAccentColor(0x0099FF)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`✅ **Todas las Multas**`)
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`**📊 Total:** ${multasFiltradas.length} multas | **📄 Página:** ${paginaActual + 1}/${totalPaginas}`)
+                );
+            
+            // Procesar cada multa en la página
+            for (let i = 0; i < multasPagina.length; i++) {
+                const multa = multasPagina[i];
+                const index = inicio + i + 1;
+                
+                let nombreUsuario = 'Desconocido';
+                let nombreOficial = 'Desconocido';
+                
+                try {
+                    const usuario = await interaction.client.users.fetch(multa.usuarioId);
+                    nombreUsuario = usuario.username;
+                } catch (e) {}
+                
+                try {
+                    const oficial = await interaction.client.users.fetch(multa.oficialId);
+                    nombreOficial = oficial.username;
+                } catch (e) {}
+                
+                const fechaTimestamp = Math.floor(new Date(multa.fechaCreacion).getTime() / 1000);
+                
+                container.addSeparatorComponents(
+                    new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Small)
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                        .setContent(`**Multa #${index}**`)
+                )
+                .addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`**ID:** \`${multa.id}\``),
+                            new TextDisplayBuilder()
+                                .setContent(`**Usuario:** ${nombreUsuario}`),
+                            new TextDisplayBuilder()
+                                .setContent(`**Oficial:** ${nombreOficial}`)
+                        )
+                )
+                .addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(`**Monto:** $${multa.monto}`),
+                            new TextDisplayBuilder()
+                                .setContent(`**Estado:** ${multa.estado}`),
+                            new TextDisplayBuilder()
+                                .setContent(`**Fecha:** <t:${fechaTimestamp}:R>`)
+                        )
+                );
+            }
+            
+            container.addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('-# © Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish')
+            );
+            
+            // Botones de navegación si hay más de una página
+            if (totalPaginas > 1) {
+                const botones = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('multas_prev')
+                            .setLabel('⬅️ Anterior')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setDisabled(paginaActual === 0),
+                        new ButtonBuilder()
+                            .setCustomId('multas_next')
+                            .setLabel('Siguiente ➡️')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setDisabled(paginaActual === totalPaginas - 1)
+                    );
+                
+                return { container, botones };
+            }
+            
+            return { container };
+        }
+        
+        // Generar primera página
+        const { container, botones } = await generarContainer(pagina);
+        
+        const replyOptions = {
+            components: [container],
+            flags: MessageFlags.IsComponentsV2
+        };
+        
+        if (botones) {
+            replyOptions.components.push(botones);
+        }
+        
+        const mensaje = await interaction.editReply(replyOptions);
+        
+        // Configurar collector para botones de navegación si existen
+        if (botones && mensaje) {
+            const collector = mensaje.createMessageComponentCollector({ time: 60000 });
+            
+            collector.on('collect', async (buttonInteraction) => {
+                if (buttonInteraction.user.id !== interaction.user.id) {
+                    return buttonInteraction.reply({
+                        content: '❌ Solo quien ejecutó el comando puede navegar.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+                
+                if (buttonInteraction.customId === 'multas_prev') {
+                    pagina = Math.max(0, pagina - 1);
+                } else if (buttonInteraction.customId === 'multas_next') {
+                    pagina = Math.min(totalPaginas - 1, pagina + 1);
+                }
+                
+                const nuevaPagina = await generarContainer(pagina);
+                const updateOptions = {
+                    components: [nuevaPagina.container],
+                    flags: MessageFlags.IsComponentsV2
+                };
+                
+                if (nuevaPagina.botones) {
+                    updateOptions.components.push(nuevaPagina.botones);
+                }
+                
+                await buttonInteraction.update(updateOptions);
+                collector.resetTimer();
+            });
+            
+            collector.on('end', () => {
+                // Deshabilitar botones cuando expire
+                if (botones) {
+                    const botonesDeshabilitados = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('multas_prev')
+                                .setLabel('⬅️ Anterior')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setDisabled(true),
+                            new ButtonBuilder()
+                                .setCustomId('multas_next')
+                                .setLabel('Siguiente ➡️')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setDisabled(true)
+                        );
+                    
+                    mensaje.edit({
+                        components: [container, botonesDeshabilitados],
+                        flags: MessageFlags.IsComponentsV2
+                    }).catch(() => {});
+                }
+            });
+        }
+    }
+};
+
+// COMANDO: /pagar-multa
+const pagarMultaCommand = {
+    data: new SlashCommandBuilder()
+        .setName('pagar-multa')
+        .setDescription('Paga una multa pendiente'),
+    
+    async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
+        
+        const multas = await leerMultas();
+        const multasUsuario = multas.filter(m => 
+            m.usuarioId === interaction.user.id && 
+            m.estado === 'PENDIENTE'
+        );
+        
+        if (multasUsuario.length === 0) {
+            return interaction.editReply({
+                content: 'No tienes multas pendientes a tu nombre.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        // Calcular total a pagar
+        const total = multasUsuario.reduce((sum, multa) => sum + multa.monto, 0);
+        
+        // Actualizar multas
+        const ahora = new Date();
+        for (const multa of multasUsuario) {
+            multa.estado = 'PAGADA';
+            multa.fechaPago = ahora.toISOString();
+        }
+        
+        await guardarMultas(multas);
+        
+        // Crear Container de confirmación
+        const container = new ContainerBuilder()
+            .setAccentColor(0x00FF00) // Verde para pago exitoso
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('# ✅ **PAGO REALIZADO**')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addSectionComponents(
+                new SectionBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent(`**👤 Usuario:** ${interaction.user.username}`),
+                        new TextDisplayBuilder()
+                            .setContent(`**📊 Multas Pagadas:** ${multasUsuario.length}`),
+                        new TextDisplayBuilder()
+                            .setContent(`**💰 Total Pagado:** $${total}`)
+                    )
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('_© Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish_')
+            );
+        
+        await interaction.editReply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        });
+        
+        console.log(`✅ ${interaction.user.username} pagó ${multasUsuario.length} multas por un total de $${total}`);
+    }
+};
+
+// COMANDO: /revisar-multas (administrativo)
+const revisarMultasCommand = {
+    data: new SlashCommandBuilder()
+        .setName('revisar-multas')
+        .setDescription('Revisa multas pendientes (solo administradores)'),
+    
+    async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
+        
+        // Verificar permisos
+        if (!interaction.member.permissions.has('ADMINISTRATOR')) {
+            return interaction.editReply({
+                content: '❌ Solo administradores pueden usar este comando.',
+                flags: MessageFlags.Ephemeral
+            });
+        }
+        
+        const multasCobradas = await revisarMultas(interaction.client);
+        
+        const container = new ContainerBuilder()
+            .setAccentColor(0xFFFF00) // Amarillo para revisión
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('# 🔍 **REVISIÓN DE MULTAS**')
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addSectionComponents(
+                new SectionBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                            .setContent(`**✅ Multas Cobradas:** ${multasCobradas}`),
+                        new TextDisplayBuilder()
+                            .setContent(`**⏰ Fecha:** <t:${Math.floor(Date.now() / 1000)}:R>`)
+                    )
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setDivider(true)
+                    .setSpacing(SeparatorSpacingSize.Small)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent('_© Todos los derechos reservados, Chicago Real Life Roleplay | ER:LC | Spanish_')
+            );
+        
+        await interaction.editReply({
+            components: [container],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        });
+    }
+};
+
+// ========== EXPORTACIÓN ==========
+module.exports = [
+    multarCommand,
+    verMultasCommand,
+    pagarMultaCommand,
+    revisarMultasCommand,
+    // Objeto con funciones del sistema
+    {
+        revisarMultas
+    }
+];

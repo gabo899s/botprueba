@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maes RP · Plataforma policial</title><link rel="stylesheet" href="/css/police-tailwind.css"><link rel="stylesheet" href="/css/fontawesome.css"><link rel="stylesheet" href="/css/police-recovered.css"><script src="/js/police-recovered.js" defer></script></head><body class="bg-gradient"><div id="toast-container" role="status" aria-live="polite"></div><section id="access" class="container"><h1>Plataforma policial Maes RP</h1><p>Inicia sesión con tu cuenta local o Discord autorizado.</p><a href="/">Ir al inicio de sesión</a></section>  <div id="view-dashboard" class="hidden-view min-h-screen flex flex-col dashboard-bg">
+    <nav class="bg-white/90 fixed top-4 left-4 right-4 z-50 rounded-2xl border border-gray-200 px-6 py-3 flex justify-between items-center backdrop-blur-xl shadow-lg">
+        <div class="flex items-center gap-6">
+            <a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <img src="/images/logo.png" alt="Logo" class="w-8 h-8 rounded-lg border border-maesRed/30">
+                <span class="font-bold text-xs tracking-widest text-slate-600 uppercase">Plataforma Policial MaesRP</span>
+            </a>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <a href="/" class="text-xs font-medium text-gray-600 hover:text-maesRed transition-colors flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left"></i> Volver a MaesRP
+            </a>
+        </div>
+        <div class="flex gap-4 flex-1 justify-end max-w-2xl items-center">
+            <div class="relative w-full">
+                <input type="text" id="search-input" placeholder="Buscar por Cédula, Nombre, Placa..." 
+                       class="w-full bg-slate-100 border border-slate-200 rounded-xl pl-5 pr-12 py-3 text-sm focus:border-blue-500 outline-none text-slate-800 placeholder-slate-400" autocomplete="off">
+                <div class="absolute right-4 top-3 text-slate-400"><i class="fa-solid fa-magnifying-glass w-5 h-5"></i></div>
+                <div id="search-dropdown" class="search-dropdown"></div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-bold text-slate-800" id="user-name">Cargando...</div>
+                    <div class="text-xs text-slate-500" id="user-role">Oficial</div>
+                </div>
+                <img id="user-avatar" src="" class="w-10 h-10 rounded-full border-2 border-maesRed" alt="Avatar">
+                <button data-action="logout" class="text-slate-400 hover:text-maesRed p-2 hover:bg-slate-100 rounded-xl transition-colors"><i class="fa-solid fa-right-from-bracket w-6 h-6"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="p-6 flex-1 max-w-7xl mx-auto w-full mt-24">
+        <div class="recovery-tools"><a href="/police-tools">Gestionar ciudadanos, vehículos y licencias</a> · <a href="/staff">Centro de staff</a> · <a href="/admin">Administración</a></div><div id="dashboard-empty" class="h-[60vh] flex flex-col items-center justify-center text-slate-400">
+            <div class="relative mb-8"><i class="fa-solid fa-magnifying-glass w-32 h-32 relative z-10 opacity-20 text-maesRed"></i></div>
+            <p class="text-lg opacity-60 max-w-md text-center">Introduzca un parámetro de búsqueda para consultar el expediente judicial</p>
+        </div>
+        <div id="citizen-content" class="hidden-view grid grid-cols-1 lg:grid-cols-12 gap-8 fade-in">
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white border border-slate-200 shadow-sm rounded-3xl p-8">
+                    <div class="text-center">
+                        <img id="cit-avatar" src="" class="w-36 h-36 rounded-2xl mx-auto bg-slate-100 object-cover border-4 border-slate-200 mb-6 shadow-lg">
+                        <h2 id="cit-name" class="text-2xl font-black text-slate-800 leading-tight"></h2>
+                        <p id="cit-id" class="text-maesRed font-mono text-sm font-bold mt-1 tracking-wider"></p>
+                    </div>
+                    <div id="cit-details" class="mt-8 space-y-3.5"></div>
+                    <div class="mt-8 space-y-3">
+                        <button data-action="open-multa" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20"><i class="fa-solid fa-file-lines w-5 h-5"></i> GENERAR MULTA</button>
+                        <button data-action="open-arresto" class="w-full bg-maesRed hover:bg-red-700 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-maesRed/20"><i class="fa-solid fa-gavel w-5 h-5"></i> PROCESAR ARRESTO</button>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 shadow-sm rounded-3xl p-8">
+                     <h3 class="font-black mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-slate-500"><i class="fa-solid fa-car w-4 h-4 text-maesRed"></i> Licencias</h3>
+                    <div id="cit-licencias" class="grid grid-cols-2 gap-3"></div>
+                </div>
+            </div>
+            <div class="lg:col-span-8 space-y-6">
+                <div class="bg-white border border-slate-200 shadow-sm rounded-3xl p-8">
+                    <h3 class="font-black mb-6 flex items-center gap-3 text-lg uppercase tracking-wider text-slate-700"><i class="fa-solid fa-car text-maesRed"></i> Vehículos</h3>
+                    <div id="cit-vehicles" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+                <div class="bg-white border border-slate-200 shadow-sm rounded-3xl p-8">
+                    <h3 class="font-black mb-6 flex items-center gap-3 text-lg uppercase tracking-wider text-slate-700"><i class="fa-solid fa-scale-balanced text-maesRed"></i> Historial Penal</h3>
+                    <div class="mb-8"><h4 class="font-bold mb-4 flex items-center gap-2 text-slate-600"><i class="fa-solid fa-file-lines w-4 h-4 text-amber-500"></i> Multas</h4><div id="cit-multas" class="space-y-4"></div></div>
+                    <div><h4 class="font-bold mb-4 flex items-center gap-2 text-slate-600"><i class="fa-solid fa-gavel w-4 h-4 text-maesRed"></i> Arrestos</h4><div id="cit-arrestos" class="space-y-4"></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+  </div>
+
+  <!-- MODALES -->
+  <div id="modal-multa" class="hidden-view fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
+        <div class="p-7 border-b border-gray-100 flex justify-between font-black text-slate-800 items-center bg-gray-50">
+            <span class="tracking-widest text-sm uppercase">Nueva multa</span>
+            <button data-action="close-multa" class="p-2 hover:bg-gray-200 rounded-full transition-colors text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-8 space-y-5">
+            <textarea id="multa-articulos" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl text-slate-800 resize-none" rows="3" placeholder="Artículos..."></textarea>
+            <div class="grid grid-cols-2 gap-4">
+                <input id="multa-placa" type="text" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl text-slate-800 uppercase font-mono" placeholder="PLACA">
+                <input id="multa-valor" type="number" min="0.01" max="100000000" step="0.01" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl text-slate-800" placeholder="VALOR $">
+            </div>
+            <button data-action="submit-multa" class="w-full bg-amber-500 hover:bg-amber-600 py-5 rounded-2xl font-black text-white mt-2 shadow-lg uppercase tracking-widest transition-all">Registrar Multa</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="modal-arresto" class="hidden-view fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
+        <div class="p-7 border-b border-gray-100 flex justify-between font-black text-slate-800 items-center bg-gray-50">
+            <span class="tracking-widest text-sm uppercase">Orden de Captura</span>
+            <button data-action="close-arresto" class="p-2 hover:bg-gray-200 rounded-full transition-colors text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-8 space-y-5">
+            <textarea id="arresto-articulos" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl text-slate-800 resize-none" rows="3" placeholder="Cargos..."></textarea>
+            <input id="arresto-tiempo" type="number" min="1" step="1" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl text-slate-800" placeholder="Sentencia (Años)">
+            <div class="border-2 border-dashed border-gray-300 p-8 text-center cursor-pointer hover:bg-gray-50 rounded-2xl relative group transition-all">
+                <input type="file" id="arresto-foto" accept="image/png,image/jpeg" class="absolute inset-0 opacity-0 cursor-pointer">
+                <i class="fa-solid fa-camera w-8 h-8 mx-auto mb-2 text-gray-400 group-hover:text-maesRed transition-colors"></i>
+                <span id="arresto-filename" class="text-gray-500 text-sm font-medium">Subir evidencia visual</span>
+            </div>
+            <button data-action="submit-arresto" class="w-full bg-maesRed hover:bg-red-700 py-5 rounded-2xl font-black text-white mt-2 shadow-lg uppercase tracking-widest transition-all">Confirmar Ingreso</button>
+        </div>
+    </div>
+  </div>
+
+</body></html>
