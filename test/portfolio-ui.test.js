@@ -6,7 +6,7 @@ test('portfolio mantiene contenido adjunto y enlaza el producto a la demo de Mae
  assert.match(doc.body.textContent,/Soluciones Infinitas/);assert.match(doc.body.textContent,/Trayectoria Profesional/);
  const menu=doc.querySelector('.products-menu');assert.match(menu.textContent,/Productos digitales/);assert.equal(menu.querySelector('a').getAttribute('href'),'/maes-rp');assert.equal(menu.querySelectorAll('a').length,1);
  assert.equal(doc.querySelectorAll('[onclick],[onerror],script:not([src])').length,0);
- for(const node of doc.querySelectorAll('link[rel="stylesheet"],script[src]'))assert.ok(fs.existsSync(path.join(root,'public',node.getAttribute('href')||node.getAttribute('src'))));
+ for(const node of doc.querySelectorAll('link[rel="stylesheet"],script[src]'))assert.ok(fs.existsSync(path.join(root,'public',(node.getAttribute('href')||node.getAttribute('src')).split('?')[0])));
  d.window.close();
 });
 test('asistente conserva notas como texto y vuelve al paso correcto después de confirmar',()=>{

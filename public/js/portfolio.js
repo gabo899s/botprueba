@@ -90,7 +90,7 @@ else document.querySelectorAll('.counter').forEach(n=>{n.textContent=n.dataset.t
     }
     requestAnimationFrame(slowDown);
   }
-  function loaded() { settleTimer = setTimeout(settle, Math.max(0, 6500 - performance.now())); }
+  function loaded() { settleTimer = setTimeout(settle, Math.max(0, 10500 - performance.now())); }
   if (reducedMotion?.matches) document.body.classList.add('aura-settled');
   else if (document.readyState === 'complete') loaded();
   else window.addEventListener('load', loaded, { once: true });
