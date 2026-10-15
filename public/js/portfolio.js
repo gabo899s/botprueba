@@ -80,7 +80,8 @@ else document.querySelectorAll('.counter').forEach(n=>{n.textContent=n.dataset.t
  const blobs=[{x:38,y:40,c:'28,91,230',a:.65,p:.7},{x:64,y:49,c:'59,195,244',a:.55,p:2.1},{x:44,y:65,c:'31,173,157',a:.5,p:4.2},{x:70,y:30,c:'60,135,235',a:.4,p:5.3}];
  const violetBlobs=[{x:56.18,y:53.14,c:'20,11,46',r:76.1,p:.37},{x:40.93,y:70.24,c:'20,11,46',r:70.85,p:1.19},{x:58,y:14.42,c:'109,74,255',r:51.6,p:2.73},{x:65,y:81.01,c:'60,2,164',r:53.35,p:3.41},{x:16.23,y:47.68,c:'109,74,255',r:49.85,p:4.62},{x:94,y:31.96,c:'196,160,255',r:46.35,p:5.8}];
  function mesh(t){const ph=t*.65,amt=1.2;aura.style.backgroundImage=blobs.map(b=>{const x=b.x+(Math.sin(ph*.55+b.p)-Math.sin(b.p))*14*amt,y=b.y+(Math.sin(ph*.43+b.p+1.7)-Math.sin(b.p+1.7))*14*amt;return `radial-gradient(ellipse at ${x}% ${y}%,rgba(${b.c},${b.a}) 0%,rgba(${b.c},0) 48%)`;}).join(',');
-  const vph=t*.20;violet.style.backgroundImage=violetBlobs.map(b=>{const x=b.x+(Math.sin(vph*.55+b.p)-Math.sin(b.p))*14*.25,y=b.y+(Math.sin(vph*.43+b.p+1.7)-Math.sin(b.p+1.7))*14*.25;return `radial-gradient(circle at ${x}% ${y}%,rgba(${b.c},1) 0%,rgba(${b.c},.844) ${b.r*.25}%,rgba(${b.c},.5) ${b.r*.5}%,rgba(${b.c},.156) ${b.r*.75}%,rgba(${b.c},0) ${b.r}%)`;}).join(',');
+  // Acorta un 20 % la zona de difusión del violeta, conservando sus centros y movimiento.
+  const vph=t*.20;violet.style.backgroundImage=violetBlobs.map(b=>{const x=b.x+(Math.sin(vph*.55+b.p)-Math.sin(b.p))*14*.25,y=b.y+(Math.sin(vph*.43+b.p+1.7)-Math.sin(b.p+1.7))*14*.25;return `radial-gradient(circle at ${x}% ${y}%,rgba(${b.c},1) ${b.r*.1}%,rgba(${b.c},.844) ${b.r*.3}%,rgba(${b.c},.5) ${b.r*.5}%,rgba(${b.c},.156) ${b.r*.7}%,rgba(${b.c},0) ${b.r*.9}%)`;}).join(',');
  }
  let desiredMix=0,mix=0;
  function scrollMix(){const h=window.innerHeight||800;desiredMix=Math.max(0,Math.min(1,(h*.65-trajectory.getBoundingClientRect().top)/(h*.5)));if(reduced)applyMix(desiredMix);}
