@@ -63,3 +63,13 @@ body.aura-loaded .ambient-aura{animation-play-state:running}
 
 .hero{align-items:start;padding-top:64px;min-height:610px}
 @media(max-width:800px){.hero{padding-top:52px;min-height:550px}}
+
+/* Ajustes de luz y crossfade de scroll: el violeta pertenece únicamente a Trayectoria. */
+.gradient-text,.intro-colored .intro-word{animation-duration:1.7s;background-image:linear-gradient(115deg,#449fff 0%,#a4f6ff 16%,#35c4ad 33%,#64c4ff 50%,#b2fff0 66%,#46aaff 83%,#449fff 100%);background-size:240% 180%;filter:none;text-shadow:none}
+.intro-word{transition:text-shadow .25s ease}.intro-white-glow .intro-word{text-shadow:0 0 14px #ffffff66,0 0 46px #ffffff26}.intro-colored .intro-word{transition:text-shadow .25s;text-shadow:none}
+.intro-edge{transition:opacity 1.35s ease-out,filter 1.35s ease-out}.intro-colored .intro-edge{opacity:1;transition-duration:.65s}.intro-dim .intro-edge{opacity:0;filter:blur(28px);transition-duration:1.65s}.intro-dim .intro-word,.intro-flight .intro-word{filter:none}
+body.aura-loaded .ambient-aura{opacity:calc(.8 * (1 - var(--violet-mix,0)))}
+.violet-field{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:var(--violet-mix,0);background-color:#140B2E;contain:paint}
+.violet-field:before{content:'';position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:overlay}
+.violet-field:after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#dfcaff,transparent 75%);opacity:var(--transition-bloom,0)}
+@media(prefers-reduced-motion:reduce){.gradient-text,.intro-word{animation:none;transition:none}.intro-edge{display:none}}
