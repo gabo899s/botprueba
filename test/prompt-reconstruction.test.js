@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs'),path=require('node:path'),os=require('node:os');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'maesrp-prompts-'));
 process.env.MAESRP_DATA_DIR=temp;
+require('../lib/config').root = temp;
 const store=require('../lib/store');store.init();
 const {v2Payload,container}=require('../bot/presentation');
 const {MessageFlags,ActionRowBuilder,ButtonBuilder,ButtonStyle,AttachmentBuilder}=require('discord.js');

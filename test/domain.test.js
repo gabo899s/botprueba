@@ -5,6 +5,7 @@ const assert = require("node:assert/strict"),
   path = require("node:path");
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), "maesrp-domain-"));
 process.env.MAESRP_DATA_DIR = temp;
+require('../lib/config').root = temp;
 const store = require("../lib/store"),
   d = require("../bot/domain"),
   settings = require("../bot/settings"),

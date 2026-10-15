@@ -40,8 +40,7 @@ async function data(r) {
 }
 before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), "maesrp-test-"));
-  for (const f of ["server.js", "lib", "public", "bot"])
-    fs.cpSync(path.join(source, f), path.join(dir, f), { recursive: true });
+  require('./helpers/application-sandbox').copyApplication(source,dir);
   const port = await new Promise((resolve) => {
     const s = net.createServer();
     s.listen(0, "127.0.0.1", () => {
@@ -58,6 +57,7 @@ before(async () => {
     cwd: dir,
     env: {
       ...process.env,
+      MAESRP_DATA_DIR: path.join(dir, 'bot/data'),
       NODE_PATH: path.join(source, "node_modules"),
       PORT: String(port),
       BASE_URL: url,

@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'maesrp-runtime-'));
 process.env.MAESRP_DATA_DIR = temp;
+require('../lib/config').root = temp;
 const { examMessage } = require('../bot/runtime');
 const settings = require('../bot/settings');
 const { PRCClient } = require('../bot/prc');

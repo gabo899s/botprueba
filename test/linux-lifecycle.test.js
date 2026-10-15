@@ -2,7 +2,8 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const root=path.resolve(__dirname,'..');
 test('inicio en segundo plano es único, libera locks y se detiene sin perder datos',async()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'botprueba-linux-'));
- for(const name of ['scripts','lib','bot','public'])fs.cpSync(path.join(root,name),path.join(dir,name),{recursive:true,filter:p=>!p.includes('/bot/data')});
+ require('./helpers/application-sandbox').copyApplication(root,dir);
+ fs.cpSync(path.join(root,'scripts'),path.join(dir,'scripts'),{recursive:true});
  for(const name of ['iniciar-linux.sh','detener-linux.sh','package.json','server.js'])fs.copyFileSync(path.join(root,name),path.join(dir,name));
  fs.symlinkSync(path.join(root,'node_modules'),path.join(dir,'node_modules'),'dir');
  const probe=net.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
