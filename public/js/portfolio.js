@@ -90,9 +90,20 @@ else document.querySelectorAll('.counter').forEach(n=>{n.textContent=n.dataset.t
     }
     requestAnimationFrame(slowDown);
   }
-  function loaded() { settleTimer = setTimeout(settle, Math.max(0, 10500 - performance.now())); }
+  function loaded() { document.body.classList.add('aura-loaded'); settleTimer = setTimeout(settle, Math.max(0, 10500 - performance.now())); }
   if (reducedMotion?.matches) document.body.classList.add('aura-settled');
   else if (document.readyState === 'complete') loaded();
   else window.addEventListener('load', loaded, { once: true });
   window.addEventListener('pagehide', () => clearTimeout(settleTimer), { once: true });
+})();
+
+// La navegación móvil comparte los mismos enlaces y conserva el foco al cerrar.
+(() => {
+ const navbar=document.querySelector('.navbar'),toggle=document.querySelector('.nav-toggle');
+ if(!toggle)return;
+ function closeMenu(restoreFocus=false){navbar.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Abrir menú');toggle.firstElementChild.textContent='☰';if(restoreFocus)toggle.focus();}
+ toggle.addEventListener('click',()=>{const open=toggle.getAttribute('aria-expanded')!=='true';navbar.classList.toggle('menu-open',open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');toggle.firstElementChild.textContent=open?'×':'☰';});
+ navbar.querySelectorAll('.nav-links a').forEach(link=>link.addEventListener('click',()=>closeMenu()));
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&toggle.getAttribute('aria-expanded')==='true')closeMenu(true);});
+ document.addEventListener('click',event=>{if(!navbar.contains(event.target))closeMenu();});
 })();

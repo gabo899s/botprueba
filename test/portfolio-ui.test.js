@@ -26,3 +26,11 @@ test('perfil autenticado conserva multas, PDF y solicitud real de validación',a
  w.eval(fs.readFileSync(path.join(root,'public/js/citizen.js'),'utf8'));await new Promise(resolve=>setImmediate(resolve));assert.ok(w.document.querySelector('#records a[href="/pdfs/m1.pdf"]'));assert.equal(w.document.querySelector('#demoNotice').hidden,true);
  w.document.querySelector('#records button').click();await new Promise(resolve=>setImmediate(resolve));assert.equal(submitted,true);d.window.close();
 });
+
+test('navbar móvil conserva enlaces, alterna el menú y restaura foco con Escape',()=>{
+ const d=page('index.html'),w=d.window;w.matchMedia=()=>({matches:true});w.eval(fs.readFileSync(path.join(root,'public/js/portfolio.js'),'utf8'));
+ const button=w.document.querySelector('.nav-toggle'),nav=w.document.querySelector('.navbar');
+ assert.equal(button.getAttribute('aria-expanded'),'false');button.click();assert.ok(nav.classList.contains('menu-open'));assert.equal(button.getAttribute('aria-expanded'),'true');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape'}));assert.equal(button.getAttribute('aria-expanded'),'false');assert.equal(w.document.activeElement,button);
+ button.click();w.document.querySelector('.nav-links a').click();assert.equal(button.getAttribute('aria-expanded'),'false');assert.ok(w.document.querySelector('.mobile-discord'));w.close();
+});
