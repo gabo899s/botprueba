@@ -1,10 +1,7 @@
-const fs = require("node:fs"),
-  path = require("node:path"),
-  crypto = require("node:crypto");
+const crypto = require("node:crypto");
 const store = require("../lib/store"),
   domain = require("./domain");
-const { root } = require("../lib/config");
-const { generate } = require("../lib/pdf");
+const { generate, identityPdf } = require("../lib/pdf");
 async function record(ctx, type, user, values) {
   domain.requireScope(ctx, "police");
   const c = domain.citizen(user);
@@ -148,42 +145,6 @@ function confirmPayment(ctx, fineId, reference) {
     };
     return fine;
   });
-}
-async function identityPdf(c) {
-  const PDFDocument = require("pdfkit");
-  const filename = "cedula_" + c.numeroCedula + ".pdf";
-  if (!/^[\w-]+\.pdf$/.test(filename)) throw domain.error("Cédula inválida.");
-  const doc = new PDFDocument({ size: [600, 340], margin: 30 });
-  const out = fs.createWriteStream(path.join(root, "public/pdfs", filename), {
-    mode: 0o600,
-  });
-  const done = new Promise((resolve, reject) => {
-    out.on("finish", resolve);
-    out.on("error", reject);
-    doc.on("error", reject);
-  });
-  doc.pipe(out);
-  doc.rect(0, 0, 600, 340).fill("#0c1924");
-  doc
-    .fillColor("#fefefe")
-    .font("Helvetica-Bold")
-    .fontSize(24)
-    .text("MAES RP · IDENTIDAD", 30, 30);
-  doc.fontSize(16).text(c.nombre + " " + c.apellidos, 30, 90);
-  doc
-    .font("Helvetica")
-    .fontSize(13)
-    .text("Cedula: " + c.numeroCedula, 30, 125)
-    .text("Discord: " + c.discordId, 30, 150)
-    .text("Provincia: " + (c.provincia || "N/A"), 30, 175)
-    .text("Nacionalidad: " + (c.nacionalidad || "N/A"), 30, 200)
-    .text("Nacimiento: " + (c.fechaNacimiento || "N/A"), 30, 225);
-  doc
-    .fontSize(9)
-    .text("Documento de ficcion para ER:LC. Sin validez legal.", 30, 290);
-  doc.end();
-  await done;
-  return filename;
 }
 async function approvePunishment(ctx, user, sid, prc) {
   domain.requireScope(ctx, "admin");

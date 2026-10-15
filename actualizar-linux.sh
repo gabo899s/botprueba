@@ -30,6 +30,9 @@ if ! npm ci --no-fund >.runtime/update.log 2>&1 || ! npm test >>.runtime/update.
   echo "La comprobación falló. Tu configuración y datos se conservaron. Respaldo: $backup" >&2
   exit 1
 fi
+if [[ -f scripts/refresh-pdfs.js ]]; then
+  node scripts/refresh-pdfs.js || echo 'Los PDF anteriores se conservaron. Revisa el mensaje anterior.' >&2
+fi
 printf '%s\n' "$next" > .runtime/installed-revision
 node -e 'console.log("Actualizado a la versión "+require("./package.json").version)'
 if [[ "$restart" == true ]]; then bash iniciar-linux.sh; fi

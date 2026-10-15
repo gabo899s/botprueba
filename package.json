@@ -1,6 +1,6 @@
 {
   "name": "infinitedev-maesrp",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "private": true,
   "description": "Panel policial local con PDF y bot Discord",
   "engines": {
@@ -12,7 +12,8 @@
     "web": "node server.js",
     "bot": "node bot/index.js",
     "test": "node --test test/*.test.js",
-    "data": "node scripts/data-tools.js"
+    "data": "node scripts/data-tools.js",
+    "pdf:refresh": "node scripts/refresh-pdfs.js"
   },
   "dependencies": {
     "@discordjs/voice": "0.19.2",
