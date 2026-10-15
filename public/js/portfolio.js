@@ -73,28 +73,32 @@ function count(section) {
 if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){count(entry.target);observer.unobserve(entry.target);}},{threshold:.1});document.querySelectorAll('.stats-grid').forEach(n=>observer.observe(n));}
 else document.querySelectorAll('.counter').forEach(n=>{n.textContent=n.dataset.target;});
 
-// Tras la carga, el movimiento desacelera y conserva su posición: no hay salto visual.
+// Entrada y mesh determinista: las fases permanecen constantes, el reloj es continuo.
 (() => {
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-  const layers = [...document.querySelectorAll('.aura-layer')];
-  let settleTimer;
-  function settle() {
-    const animations = layers.flatMap(layer => layer.getAnimations?.() || []);
-    if (!animations.length) { document.body.classList.add('aura-settled'); return; }
-    const started = performance.now();
-    function slowDown(now) {
-      const progress = Math.min(1, (now - started) / 1800);
-      for (const animation of animations) animation.updatePlaybackRate?.((1-progress)**2);
-      if (progress < 1) requestAnimationFrame(slowDown);
-      else { for (const animation of animations) animation.pause(); document.body.classList.add('aura-settled'); }
-    }
-    requestAnimationFrame(slowDown);
-  }
-  function loaded() { document.body.classList.add('aura-loaded'); settleTimer = setTimeout(settle, Math.max(0, 10500 - performance.now())); }
-  if (reducedMotion?.matches) document.body.classList.add('aura-settled');
-  else if (document.readyState === 'complete') loaded();
-  else window.addEventListener('load', loaded, { once: true });
-  window.addEventListener('pagehide', () => clearTimeout(settleTimer), { once: true });
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !window.requestAnimationFrame;
+ const body=document.body,overlay=document.querySelector('.intro-screen'),word=document.querySelector('.intro-word'),target=document.querySelector('.gradient-text'),aura=document.querySelector('.ambient-aura');
+ const blobs=[{x:38,y:40,c:'28,91,230',a:.65,p:.7},{x:64,y:49,c:'59,195,244',a:.55,p:2.1},{x:44,y:65,c:'31,173,157',a:.5,p:4.2},{x:70,y:30,c:'60,135,235',a:.4,p:5.3}];
+ function mesh(t){const ph=t*.20,amt=.25;aura.style.backgroundImage=blobs.map(b=>{const x=b.x+(Math.sin(ph*.55+b.p)-Math.sin(b.p))*14*amt,y=b.y+(Math.sin(ph*.43+b.p+1.7)-Math.sin(b.p+1.7))*14*amt;return `radial-gradient(ellipse at ${x}% ${y}%,rgba(${b.c},${b.a}) 0%,rgba(${b.c},0) 48%)`;}).join(',');}
+ mesh(0);
+ if(reduced){body.classList.add('aura-loaded','aura-settled','intro-done');return;}
+ body.classList.add('intro-active');overlay.hidden=false;
+ const protectedNodes=[...document.querySelectorAll('body > :not(.intro-screen):not(.ambient-aura):not(script)')];
+ protectedNodes.forEach(node=>{node.inert=true;});
+ let frame,started,flight=false,done=false;
+ function finish(){if(done)return;done=true;overlay.hidden=true;body.classList.remove('intro-active');body.classList.add('intro-done','intro-reveal','aura-loaded');protectedNodes.forEach(node=>{node.inert=false;});}
+ function tick(now){if(started===undefined)started=now;const t=(now-started)/1000;mesh(Math.max(0,t-2.5));
+  if(t>=.95)body.classList.add('intro-colored');
+  if(t>=1.85)body.classList.add('intro-dim');
+  if(t>=2.45)body.classList.add('aura-loaded');
+  if(t>=2.65&&!flight){flight=true;body.classList.add('intro-flight','intro-reveal');word.textContent='Infinitas';const r=target.getBoundingClientRect(),w=word.getBoundingClientRect();word.animate?.([{transform:'translate(0,0) scale(1)'},{transform:`translate(${r.left+r.width/2-(w.left+w.width/2)}px,${r.top+r.height/2-(w.top+w.height/2)}px) scale(${parseFloat(getComputedStyle(target).fontSize)/parseFloat(getComputedStyle(word).fontSize)})`}],{duration:950,easing:'cubic-bezier(.22,.75,.2,1)',fill:'forwards'});}
+  if(t>=3.65)finish();
+  if(t<14)frame=requestAnimationFrame(tick);else body.classList.add('aura-settled');
+ }
+ // Ocultar la pestaña termina la entrada y libera los controles.
+ function visibility(){if(document.hidden){finish();cancelAnimationFrame(frame);body.classList.add('aura-settled');}}
+ document.addEventListener('visibilitychange',visibility);
+ window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);finish();},{once:true});
+ frame=requestAnimationFrame(tick);
 })();
 
 // La navegación móvil comparte los mismos enlaces y conserva el foco al cerrar.
