@@ -7,7 +7,11 @@ test('inicio en segundo plano es único, libera locks y se detiene sin perder da
  fs.symlinkSync(path.join(root,'node_modules'),path.join(dir,'node_modules'),'dir');
  const probe=net.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
  fs.writeFileSync(path.join(dir,'.env'),`PORT=${port}\nJWT_SECRET=fixture-key-not-a-real-secret\nLOCAL_PASSWORD_HASH=fixture-hash\nDISCORD_TOKEN=\n`);
- const env={...process.env};delete env.MAESRP_DATA_DIR;delete env.DISCORD_TOKEN;delete env.PORT;delete env.BASE_URL;
+ // Fuerza la ventana real entre crear el proceso y ejecutar Node (equipos lentos).
+ const bin=path.join(dir,'.runtime/test-bin');fs.mkdirSync(bin,{recursive:true});
+ const nohup=spawnSync('bash',['-c','command -v nohup'],{encoding:'utf8'}).stdout.trim();
+ fs.writeFileSync(path.join(bin,'nohup'),'#!/usr/bin/env bash\nsleep 0.4\nexec "$LIFECYCLE_REAL_NOHUP" "$@"\n',{mode:0o755});
+ const env={...process.env,LIFECYCLE_REAL_NOHUP:nohup,PATH:bin+':'+process.env.PATH};delete env.MAESRP_DATA_DIR;delete env.DISCORD_TOKEN;delete env.PORT;delete env.BASE_URL;
  function run(args){const r=spawnSync('bash',args,{cwd:dir,env,encoding:'utf8',timeout:20000});assert.equal(r.status,0,r.stdout+'\n'+r.stderr);return r.stdout;}
  try{
   assert.match(run(['-c','mkdir -p .runtime; exec 9>.runtime/update.lock; flock -n 9; bash iniciar-linux.sh']),/Iniciado/);

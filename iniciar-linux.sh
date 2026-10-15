@@ -22,11 +22,19 @@ JS
 pid=$!
 printf '%s\n' "$pid" > .runtime/app.pid
 for ((i=0;i<60;i++)); do
-  if ! running_pid >/dev/null; then tail -n 15 .runtime/app.log; rm -f .runtime/app.pid; exit 1; fi
+  # El hijo puede seguir ejecutando bash/nohup antes de convertirse en Node.
+  # Durante esa transición comprobamos existencia; la identidad se exige al estar listo.
+  if ! kill -0 "$pid" 2>/dev/null; then
+    echo 'El proceso terminó antes de completar el arranque.' >&2
+    tail -n 15 .runtime/app.log
+    rm -f .runtime/app.pid
+    exit 1
+  fi
   if node - <<'JS'
 const {port}=require('./lib/config');fetch(`http://127.0.0.1:${port}/health`,{signal:AbortSignal.timeout(500)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1));
 JS
   then
+    if ! running_pid >/dev/null; then sleep .15; continue; fi
     node -e 'console.log("Iniciado: "+require("./lib/config").baseUrl+" · versión "+require("./package.json").version)'
     echo 'Puedes cerrar esta terminal. Logs: .runtime/app.log'
     exit 0
