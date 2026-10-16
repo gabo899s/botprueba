@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const compression = require("compression");
-const { root, port, baseUrl, configured } = require("./lib/config");
+const { root, port, baseUrl, configured, listenHost, allowedHosts } = require("./lib/config");
 const store = require("./lib/store");
 const { mountAdmin } = require("./lib/admin");
 const { mountStaff } = require("./lib/staff");
@@ -20,7 +20,7 @@ app.use(express.json({ limit: "128kb" }));
 app.use(cookieParser());
 app.use((req, res, next) => {
   const hostname = req.hostname;
-  if (!["localhost", "127.0.0.1", "::1", "[::1]"].includes(hostname))
+  if (!allowedHosts.has(hostname?.toLowerCase()))
     return res
       .status(403)
       .json({ success: false, message: "Host no permitido." });
@@ -71,7 +71,7 @@ function issue(res, user) {
     {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: baseUrl.startsWith("https://"),
       maxAge: 8 * 3600000,
       path: "/",
     },
@@ -867,7 +867,7 @@ function startServer() {
     console.error("Primero ejecuta npm run setup");
     process.exit(1);
   }
-  const server = app.listen(port, "127.0.0.1", () =>
+  const server = app.listen(port, listenHost, () =>
     console.log(`Web lista: ${baseUrl}`),
   );
   server.on("error", (e) => {

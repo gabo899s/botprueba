@@ -76,3 +76,8 @@ cd ~/botprueba && npm test
 - `docs/CAMBIOS-WEB-3.1.md`: adaptación del portfolio y perfil.
 
 El archivo `docs/INSTALACION-ANTERIOR.md` conserva las instrucciones históricas de ZIP como referencia; para el uso actual sigue esta página.
+
+
+Compatibilidad: Node 22.13 o superior de la rama 22, o Node 24 o posterior. Node 20 no incluye la API SQLite que usa el sistema. El instalador de Linux conserva una versión compatible o instala Node 24.
+
+El acceso sigue siendo local por defecto. Para un servidor o una IP de red, configura `BASE_URL` con la dirección completa, por ejemplo `http://192.168.1.50:3000` o `https://panel.ejemplo.com`. Ese host se acepta junto a localhost; los hosts ajenos siguen rechazados. Si necesitas conexiones directas desde otras máquinas, establece también `LISTEN_HOST=0.0.0.0` en `.env`. Con un proxy inverso en el mismo equipo puedes conservar `127.0.0.1`. Reinicia la aplicación después de cambiar `.env` y actualiza las URLs de retorno OAuth en Discord/Roblox cuando cambies la dirección. Esto configura el acceso; no publica ni aloja la web por sí solo.

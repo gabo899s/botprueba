@@ -1,10 +1,10 @@
 {
   "name": "infinitedev-maesrp",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "private": true,
   "description": "Panel policial local con PDF y bot Discord",
   "engines": {
-    "node": ">=24.15.0"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "scripts": {
     "setup": "node scripts/setup.js",

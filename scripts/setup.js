@@ -87,7 +87,10 @@ async function ask(
     defaultValue: "3000",
     validate: (v) => /^\d+$/.test(v) && Number(v) > 1023 && Number(v) < 65536,
   });
-  settings.BASE_URL = `http://localhost:${port}`;
+  const existingUrl = process.env.BASE_URL;
+  settings.BASE_URL = existingUrl && !['localhost','127.0.0.1','[::1]'].includes(new URL(existingUrl).hostname)
+    ? existingUrl : `http://localhost:${port}`;
+  settings.LISTEN_HOST = process.env.LISTEN_HOST || '127.0.0.1';
   await ask("LOCAL_ADMIN", "Usuario administrador local", {
     required: true,
     defaultValue: "admin",

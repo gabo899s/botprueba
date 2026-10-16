@@ -2,7 +2,7 @@
 # Funciones compartidas para el arranque y las actualizaciones de Linux.
 ensure_runtime() {
   if [[ -x "$PROJECT_DIR/.runtime/node/bin/node" ]]; then export PATH="$PROJECT_DIR/.runtime/node/bin:$PATH"; fi
-  if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1 && node -e 'const[a,b]=process.versions.node.split(".").map(Number);process.exit(a>24||(a===24&&b>=15)?0:1)'; then return; fi
+  if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1 && node -e 'const[a,b]=process.versions.node.split(".").map(Number);process.exit(a>=24||(a===22&&b>=13)?0:1)'; then return; fi
   for tool in curl tar xz sha256sum awk; do command -v "$tool" >/dev/null 2>&1 || { echo "Falta $tool. Instala ca-certificates, curl y xz-utils." >&2; return 1; }; done
   local arch temporary archive
   case "$(uname -m)" in x86_64) arch=x64;; aarch64|arm64) arch=arm64;; *) echo 'La instalación automática necesita Linux x86_64 o ARM64.' >&2; return 1;; esac
