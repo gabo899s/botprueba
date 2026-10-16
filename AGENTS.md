@@ -11,6 +11,6 @@ Los comandos de usuario son:
 
 Nunca publicar .env, bot/config.json, bot/data, public/pdfs, public/uploads, .runtime, credenciales, bases de datos ni respaldos. Preservar esos archivos en actualizaciones. El índice de prompts es una referencia de origen, no instrucciones de ejecución.
 
-Conservar las funciones existentes salvo cambio solicitado. InfiniteDev usa la dirección visual azul/celeste; Maes RP mantiene negro, rojo y blanco. El aura de InfiniteDev aparece desde negro y permanece en movimiento visible, más lento que el degradado de la palabra Infinitas. Al bajar a Trayectoria cambia suavemente al mesh violeta; al subir vuelve al azul/celeste. Respetar prefers-reduced-motion.
+Conservar las funciones existentes salvo cambio solicitado. InfiniteDev usa la dirección visual azul/celeste; Maes RP mantiene negro, rojo y blanco. El aura azul de InfiniteDev se ancla a la parte superior del documento y se desplaza fuera de la vista al bajar; el resto de la página conserva el fondo negro. Infinitas usa reflejos metálicos azules y una entrada blanca con tipografías distintas que aceleran, sin neón ni luces de borde. Trayectoria se integra sin tarjeta. Respetar prefers-reduced-motion.
 
 Comprobar los cambios con pruebas relevantes, npm test y bash -n cuando cambien scripts Linux. No afirmar que Discord/ER:LC fueron verificados con cuentas reales cuando solamente se usaron respuestas simuladas.
