@@ -52,6 +52,7 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     ["Clave global PRC", ""],
     ["Token de economía", ""],
     ["Configurar ahora roles", "n"],
+    ["Configurar información legal", "n"],
   ];
   let next = 0,
     output = "";

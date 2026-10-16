@@ -4,7 +4,7 @@ const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseU
 return respond(
         i,
         "Comandos Maes RP",
-        commands.map((v) => "/" + v.name).join(" · "),
+        commands.map((v) => "/" + v.name).join(" · ") + "\nPrivacidad, cookies y condiciones: " + baseUrl + "/legal",
       );
 };
 

@@ -181,6 +181,8 @@ mountAdmin(app, {
   sessions,
 });
 mountStaff(app, { auth, wrap, sessions });
+require("./lib/privacy").mountPrivacy(app,{auth,wrap});
+app.get(["/legal","/privacidad","/terminos","/cookies","/derechos"],(req,res)=>res.sendFile(path.join(root,"public/legal.html")));
 app.get("/health", (req, res) => res.json({ status: "healthy", local: true }));
 app.get("/api/config", (req, res) =>
   res.json({

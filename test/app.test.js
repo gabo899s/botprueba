@@ -98,6 +98,9 @@ test("rutas públicas, 404 y protección de consultas", async () => {
   assert.equal((await request("/css/styles.css")).status, 200);
   assert.equal((await request("/no-existe")).status, 404);
   assert.equal((await request("/health")).status, 200);
+  for(const legal of ['/legal','/privacidad','/terminos','/cookies','/derechos']){
+    const response=await request(legal,{session:false});assert.equal(response.status,200);assert.equal(response.headers.get('set-cookie'),null);
+  }
   assert.equal(
     (await request("/api/search?q=123", { session: false })).status,
     401,

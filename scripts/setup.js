@@ -235,6 +235,14 @@ async function ask(
   }
   delete settings._BOT_ADVANCED;
   const file = path.join(root, ".env");
+  for(const key of ['LEGAL_OWNER_NAME','LEGAL_CONTACT_EMAIL','LEGAL_JURISDICTION'])settings[key]=process.env[key]||'';
+  const configureLegal=await ask('_legal','Configurar información legal pública ahora (s/n)',{defaultValue:'n',validate:v=>/^[sn]$/i.test(v)});
+  if(configureLegal.toLowerCase()==='s'){
+    await ask('LEGAL_OWNER_NAME','Nombre legal público del responsable o empresa',{required:true,validate:v=>v.length>=2&&v.length<=160});
+    await ask('LEGAL_CONTACT_EMAIL','Correo público de privacidad',{required:true,validate:v=>v.length<255&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)});
+    await ask('LEGAL_JURISDICTION','País o jurisdicción de operación',{required:true,validate:v=>v.length>=2&&v.length<=100});
+  }
+  delete settings._legal;
   fs.writeFileSync(
     file,
     Object.entries(settings)

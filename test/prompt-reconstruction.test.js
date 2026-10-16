@@ -18,7 +18,7 @@ after(()=>fs.rmSync(temp,{recursive:true,force:true}));
 const texts=payload=>messageText({components:payload.components.map(c=>c.toJSON()),embeds:[]});
 
 test('cada comando dispone de esquema propio y ejecución, incluidos comandos recuperados',()=>{
- assert.equal(commands.length,78);assert.equal(Object.keys(handlers).length,78);
+ assert.equal(commands.length,79);assert.equal(Object.keys(handlers).length,79);
  for(const c of commands){assert.equal(c.data.toJSON().name,c.name);assert.equal(typeof handlers[c.name],'function');assert.equal(handlers[c.name].metadata.name,c.name);}
  for(const name of ['ck','developer','server','reset-nicks','aperturas','multas','sanciones'])assert.ok(handlers[name]);
 });
@@ -80,7 +80,7 @@ test('sincronización registra miembros sin cédula y conserva licencias manuale
 test('dispatch ejecuta comando separado y conserva respuesta privada en V2',async()=>{
  let payload;
  await dispatch({commandName:'estado',user:{id:other,username:'Prueba'},member:{roles:[]},options:{getUser:()=>null,getString:()=>null,getNumber:()=>null,getInteger:()=>null},deferReply:async()=>{},editReply:async p=>{payload=p;},deferred:true});
- assert.ok(payload.flags&MessageFlags.IsComponentsV2);assert.match(texts(payload),/Comandos: 78/);
+ assert.ok(payload.flags&MessageFlags.IsComponentsV2);assert.match(texts(payload),/Comandos: 79/);
 });
 test('evaluación de 10 estrellas verifica rol staff y muestra porcentaje real',async()=>{
  const rating=require('../bot/commands/staff/calificar-staff');let payload;
