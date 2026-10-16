@@ -10,10 +10,10 @@ test('entrada mantiene Infinitas, espera, acelera caras únicas, revela metal y 
  const d=page(false),w=d.window;let callback;w.requestAnimationFrame=fn=>{callback=fn;return 1;};w.cancelAnimationFrame=()=>{};run(w);
  const body=w.document.body,overlay=w.document.querySelector('.intro-screen');
  assert.equal(overlay.hidden,false);assert.ok(w.document.querySelector('.navbar').inert);
- callback(0);const initial=body.dataset.introTypeface;callback(1200);assert.equal(body.dataset.introTypeface,initial);assert.ok(!body.classList.contains('intro-colored'));
- const faces=[initial];for(const ms of [1450,2200,2700,3000,3250]){callback(ms);faces.push(body.dataset.introTypeface);assert.equal(w.document.querySelector('.intro-word').textContent,'Infinitas');}
- assert.equal(new Set(faces).size,6);callback(3700);assert.ok(body.classList.contains('intro-colored'));callback(4200);assert.ok(body.classList.contains('intro-flight'));
- callback(5200);assert.equal(overlay.hidden,true);assert.ok(!w.document.querySelector('.navbar').inert);assert.ok(body.classList.contains('intro-done'));w.close();
+ callback(0);const initial=body.dataset.introTypeface;callback(1600);assert.equal(body.dataset.introTypeface,initial);assert.ok(!body.classList.contains('intro-colored'));
+ const faces=[initial];for(const ms of [1750,3000,4000,4800,5450,5980,6400,6750,7020,7240,7420,7560,7670,7760,7830,7895,7940,7985,8025,8060]){callback(ms);faces.push(body.dataset.introTypeface);assert.equal(w.document.querySelector('.intro-word').textContent,'Infinitas');}
+ assert.equal(new Set(faces).size,21);callback(8450);assert.ok(body.classList.contains('intro-colored'));callback(9000);assert.ok(body.classList.contains('intro-flight'));
+ callback(10100);assert.equal(overlay.hidden,true);assert.ok(!w.document.querySelector('.navbar').inert);assert.ok(body.classList.contains('intro-done'));w.close();
 });
 test('ocultar pestaña durante entrada desbloquea la interfaz',()=>{
  const d=page(false),w=d.window;w.requestAnimationFrame=()=>1;w.cancelAnimationFrame=()=>{};run(w);

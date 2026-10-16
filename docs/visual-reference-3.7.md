@@ -1,4 +1,4 @@
-# InfiniteDev 3.7 — visual reference
+# InfiniteDev 3.7.1 — visual reference
 
 The user supplied an MHTML export of the 21st.dev homepage, a screenshot and a
 4.79-second recording of its reflective “living” lettering. The live website
@@ -14,18 +14,25 @@ the page, without a surrounding card.
 The reference italic word uses Averia Serif Libre. Its open-license font is
 bundled with its OFL, from the Google Fonts repository. The regular interface
 retains Poppins; the proprietary Apparat font in the snapshot is not distributed.
-The reflective lettering is an original local Canvas 2D implementation with
-moving blue/silver reflection ribbons, a text mask and an internal highlight rim.
-It recreates the reference appearance rather than distributing the site's shader.
+The reflective lettering is an original local Canvas 2D implementation. A
+chamfer distance field and smoothed height field produce rounded glyph normals;
+a moving reflected environment creates blue/cyan highlights around stems,
+counters and serifs. It replaces the previous screen-wide ribbon gradients.
+The glyph mask stays fixed, so reflections do not distort letter shapes. Rendering
+is capped at 32 fps, skips the offscreen word and pauses when the tab is hidden.
 DOM text remains available to assistive technologies and CSS provides a fallback.
+
+The intro now uses 21 distinct locally bundled families. Additional fonts come
+from the official Google Fonts repository, each with its accompanying OFL.
 
 Intro timeline (seconds after local font loading):
 
-- 0: white Infinitas in Noto Serif, held until 1.4.
-- 1.4, 2.15, 2.65, 2.98, 3.2: Open Sans, Syncopate, Space Grotesk, Poppins,
-  then Averia Serif Libre italic. Each family appears once.
-- 3.6: reflective blue finish; 3.95: bloom begins revealing.
-- 4.1–5.15: word moves into the headline as the remaining page appears.
+- 0–1.7: white Infinitas, held in Noto Serif.
+- 1.7–8.05: twenty changes, with intervals decreasing from 1.25 seconds to
+  35 milliseconds. No family repeats. Apparent letter height is normalized;
+  mobile widths remain constrained.
+- 8.4: reflective blue finish; 8.75: bloom begins revealing.
+- 8.95–10: word moves into the headline as the remaining page appears.
 
 No neon, viewport edge illumination or violet scroll transition remains.
 Reduced motion skips the intro and holds reflections and bloom still. Hiding the
