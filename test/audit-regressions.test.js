@@ -2,9 +2,9 @@ const{test,after}=require('node:test'),assert=require('node:assert/strict'),fs=r
 const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'maes-audit-'));process.env.MAESRP_DATA_DIR=temporary;
 const config=require('../lib/config');config.root=temporary;
 const store=require('../lib/store');store.init();after(()=>fs.rmSync(temporary,{recursive:true,force:true}));
-test('settings está disponible, configured exige ambas variables y update no crea globales',()=>{
+test('settings está disponible, configured exige secreto de sesión sin contraseña local y update no crea globales',()=>{
  assert.equal(typeof require('../bot/settings').get,'function');const old={JWT_SECRET:process.env.JWT_SECRET,LOCAL_PASSWORD_HASH:process.env.LOCAL_PASSWORD_HASH};
- try{for(const [jwt,password,expected]of [['','',false],['present','',false],['','present',false],['present','present',true]]){process.env.JWT_SECRET=jwt;process.env.LOCAL_PASSWORD_HASH=password;assert.equal(config.configured(),expected);}}
+ try{for(const [jwt,password,expected]of [['','',false],['present','',true],['','present',false],['present','present',true]]){process.env.JWT_SECRET=jwt;process.env.LOCAL_PASSWORD_HASH=password;assert.equal(config.configured(),expected);}}
  finally{for(const [key,v]of Object.entries(old)){if(v===undefined)delete process.env[key];else process.env[key]=v;}}
  assert.equal(Object.hasOwn(globalThis,'result'),false);assert.equal(store.update('settings',v=>{v.fixture=true;return 42;}),42);assert.equal(store.read('settings').fixture,true);assert.equal(Object.hasOwn(globalThis,'result'),false);
 });

@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { randomBytes, scryptSync } = require("node:crypto");
+const { randomBytes } = require("node:crypto");
 const readline = require("node:readline");
 const { root } = require("../lib/config");
 const rl = readline.createInterface({
@@ -91,45 +91,10 @@ async function ask(
   settings.BASE_URL = existingUrl && !['localhost','127.0.0.1','[::1]'].includes(new URL(existingUrl).hostname)
     ? existingUrl : `http://localhost:${port}`;
   settings.LISTEN_HOST = process.env.LISTEN_HOST || '127.0.0.1';
-  await ask("LOCAL_ADMIN", "Usuario administrador local", {
-    required: true,
-    defaultValue: "admin",
-    validate: (v) => /^[\w.-]{2,40}$/.test(v),
-  });
-  if (process.env.LOCAL_PASSWORD_HASH) {
-    let pass = await readAnswer(
-      "Nueva contraseña local (Enter conserva la actual): ",
-      true,
-    );
-    while (pass && (pass.length < 10 || pass.length > 256))
-      pass = await readAnswer(
-        "Usa entre 10 y 256 caracteres. Nueva contraseña: ",
-        true,
-      );
-    if (pass) {
-      const salt = randomBytes(16).toString("hex");
-      settings.LOCAL_PASSWORD_HASH =
-        salt + ":" + scryptSync(pass, salt, 64).toString("hex");
-    } else settings.LOCAL_PASSWORD_HASH = process.env.LOCAL_PASSWORD_HASH;
-  } else {
-    const pass = await ask(
-      "_PASSWORD",
-      "Contraseña local (mínimo 10 caracteres)",
-      {
-        secret: true,
-        required: true,
-        validate: (v) => v.length >= 10 && v.length <= 256,
-      },
-    );
-    const salt = randomBytes(16).toString("hex");
-    settings.LOCAL_PASSWORD_HASH =
-      salt + ":" + scryptSync(pass, salt, 64).toString("hex");
-    delete settings._PASSWORD;
-  }
   settings.JWT_SECRET =
     process.env.JWT_SECRET || randomBytes(48).toString("hex");
   console.log(
-    "\nDiscord es opcional. Puedes dejar los campos vacíos y configurarlos después.",
+    "\nEl acceso web es solo con Discord. Sin OAuth configurado podrás visitar la demo, pero no iniciar sesión. El token del bot es independiente del secreto OAuth2.",
   );
   const id = (v) => /^\d{17,20}$/.test(v);
   await ask("DISCORD_TOKEN", "Token del bot de Discord", { secret: true });

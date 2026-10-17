@@ -1,23 +1,21 @@
-<!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
-<head>
+<!DOCTYPE html><html lang="es" class="scroll-smooth"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MaesRP - La Élite del Rol en Costa Rica</title>
     <link rel="icon" type="image/png" href="/images/logo.png">
     <!-- Tailwind CSS -->
-    
+
     <!-- FontAwesome Icons -->
-    
+
     <!-- Google Fonts -->
-    
-    
-    
-    
+
+
+
+
 <link rel="stylesheet" href="/css/home-tailwind.css">
 <link rel="stylesheet" href="/css/fontawesome.css">
 <link rel="stylesheet" href="/css/home.css">
-<script src="/js/home.js" defer></script>
+<script src="/js/home.js" defer=""></script>
 <link rel="stylesheet" href="/css/legal-links.css"></head>
 <body class="antialiased selection:bg-maesRed selection:text-white font-sans">
 
@@ -47,13 +45,15 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="fixed w-full z-[100] px-6 py-4">
+    <nav class="fixed w-full z-[100] px-6 py-4 maes-navbar">
         <div class="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-8 py-3">
-            <div class="flex items-center gap-2">
+            <div id="user-area" class="relative">
+                <!-- Esto se llenará dinámicamente con JavaScript -->
+            </div><div class="flex items-center gap-2">
                 <img src="/images/logo.png" alt="MaesRP Logo" class="w-8 h-8 rounded-lg object-cover border-2 border-maesRed">
                 <span class="font-title font-bold text-xl tracking-tighter">MAES<span class="text-maesRed">RP</span></span>
             </div>
-            
+
             <div class="hidden md:flex items-center gap-8 font-medium text-sm uppercase tracking-widest">
                 <a href="#inicio" class="hover:text-maesRed transition-all">Inicio</a>
                 <a href="#departamentos" class="hover:text-maesRed transition-all">Departamentos</a>
@@ -65,9 +65,7 @@
             </div>
 
             <!-- Área de usuario/Login -->
-            <div id="user-area" class="relative">
-                <!-- Esto se llenará dinámicamente con JavaScript -->
-            </div>
+
         </div>
     </nav>
 
@@ -85,7 +83,7 @@
                 <div class="overflow-visible mb-2">
                     <h1 class="hero-title font-title font-bold select-none uppercase tracking-tighter">MAESRP</h1>
                 </div>
-                
+
                 <div class="max-w-3xl mx-auto">
                     <p class="text-3xl md:text-5xl font-bold italic uppercase tracking-tighter mb-8 leading-relaxed">
                         <span class="prevent-clip">Aquí no jugamos, <span class="gradient-text">vivimos el rol</span></span>
@@ -93,7 +91,7 @@
                     <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
                         La experiencia definitiva de ER:LC diseñada para maes que buscan realismo táctico, cultura tica auténtica y un sistema de leyes estricto.
                     </p>
-                    
+
                     <div class="flex flex-wrap justify-center gap-6">
                         <a href="#como-unirse" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
                             Forjar mi Historia
@@ -220,14 +218,14 @@
                     <div class="absolute -inset-4 bg-maesRed/20 blur-3xl rounded-[40px]"></div>
                     <div class="relative bg-maesDeep rounded-[40px] p-8 md:p-12 text-white border border-white/10 red-glow shadow-2xl">
                         <p class="text-[10px] uppercase tracking-[0.5em] font-bold text-maesRed mb-8 text-center">CREDENCIAL DE ACCESO MAESRP</p>
-                        
+
                         <div class="bg-white/5 border border-white/10 rounded-3xl p-8 mb-10 relative overflow-visible">
                             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-maesDeep px-4 border border-white/10 rounded-full">
                                 <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500 italic">Código Único</span>
                             </div>
-                            <input type="text" value="MaesRP" id="serverCode" readonly class="bg-transparent w-full text-center text-5xl md:text-7xl font-title font-bold tracking-tight outline-none overflow-visible px-4 prevent-clip text-white cursor-default">
+                            <input type="text" value="MaesRP" id="serverCode" readonly="" class="bg-transparent w-full text-center text-5xl md:text-7xl font-title font-bold tracking-tight outline-none overflow-visible px-4 prevent-clip text-white cursor-default">
                         </div>
-                        
+
                         <button data-action="copy" class="w-full bg-maesRed py-6 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-maesRed/40 flex items-center justify-center gap-4">
                             <i class="fa-solid fa-copy text-lg"></i> RECLAMAR MI LUGAR
                         </button>
@@ -285,7 +283,7 @@
                 <span class="font-title font-bold text-3xl italic">MAES<span class="text-maesRed">RP</span></span>
                 <p class="text-gray-600 text-[10px] mt-4 uppercase tracking-[0.4em] font-bold italic">Donde el Respeto se Gana con Rol</p>
             </div>
-            
+
             <div class="flex gap-8 text-gray-500">
                 <a href="https://discord.gg/maesrp" target="_blank" class="hover:text-discordBlue transition-colors text-2xl" rel="noopener noreferrer"><i class="fa-brands fa-discord"></i></a>
                 <a href="#" data-action="unconfiguredSocial" class="hover:text-maesRed transition-colors text-2xl"><i class="fa-brands fa-tiktok"></i></a>
@@ -308,7 +306,7 @@
                 <img src="" class="profile-avatar" id="dropdown-avatar" alt="Avatar">
                 <div class="profile-info">
                     <div class="profile-username" id="dropdown-username">Cargando...</div>
-                    <div class="profile-userid" id="dropdown-userid">Sesión local</div>
+                    <div class="profile-userid" id="dropdown-userid">Cuenta de Discord</div>
                 </div>
             </div>
 
@@ -362,14 +360,14 @@
                 </span>
                 BIENVENIDO DE VUELTA
             </div>
-            
+
             <img src="" class="user-hero-avatar mx-auto mb-6" id="hero-avatar" alt="Avatar">
             <h1 class="user-hero-name font-title" id="hero-name">Cargando...</h1>
             <p class="user-hero-role" id="hero-role">Ciudadano</p>
             <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
                 Accede a todas las funcionalidades de tu personaje en Maes Roleplay.
             </p>
-            
+
             <div class="flex flex-wrap justify-center gap-6">
                 <a href="#" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group" data-action="citizen">
                     <i class="fa-solid fa-user"></i>
@@ -384,14 +382,14 @@
         </div>
     </template>
 
-    
+
 
 <template id="guest-hero-template">
                 <!-- Contenido por defecto (sin login) -->
                 <div class="overflow-visible mb-2">
                     <h1 class="hero-title font-title font-bold select-none uppercase tracking-tighter">MAESRP</h1>
                 </div>
-                
+
                 <div class="max-w-3xl mx-auto">
                     <p class="text-3xl md:text-5xl font-bold italic uppercase tracking-tighter mb-8 leading-relaxed">
                         <span class="prevent-clip">Aquí no jugamos, <span class="gradient-text">vivimos el rol</span></span>
@@ -399,7 +397,7 @@
                     <p class="text-gray-400 font-light text-lg mb-12 leading-relaxed max-w-xl mx-auto">
                         La experiencia definitiva de ER:LC diseñada para maes que buscan realismo táctico, cultura tica auténtica y un sistema de leyes estricto.
                     </p>
-                    
+
                     <div class="flex flex-wrap justify-center gap-6">
                         <a href="#como-unirse" class="btn-premium btn-main px-12 py-5 font-title font-bold uppercase text-[10px] tracking-[0.3em] rounded-xl flex items-center gap-4 group">
                             Forjar mi Historia
@@ -414,14 +412,10 @@
 <dialog id="loginDialog" class="local-dialog" aria-labelledby="loginTitle">
  <button class="local-close" type="button" data-action="closeLogin" aria-label="Cerrar">×</button>
  <h2 id="loginTitle" class="font-title font-bold">INICIAR SESIÓN</h2>
- <p class="text-gray-400 mt-4">Usa el administrador que configuraste en tu equipo.</p>
- <form id="localLogin">
-  <label for="localUsername">Usuario</label><input id="localUsername" name="username" autocomplete="username" required maxlength="40">
-  <label for="localPassword">Contraseña</label><input id="localPassword" name="password" type="password" autocomplete="current-password" required maxlength="256">
-  <p id="loginError" role="alert" class="text-red-400 mt-4" hidden></p>
-  <button class="modal-button mt-6" type="submit">Entrar</button>
- </form>
- <a id="discordLogin" href="/auth/discord" class="connect-btn justify-center mt-4" hidden><i class="fa-brands fa-discord"></i> Entrar con Discord</a>
+ <p class="text-gray-400 mt-4">Tu identidad y permisos se verifican con Discord.</p>
+ <p id="loginError" role="alert" class="text-red-400 mt-4" hidden=""></p>
+ <p class="mt-4">Accede con tu cuenta de Discord. La sesión se recuerda hasta 30 días en este navegador.</p>
+ <a id="discordLogin" href="/auth/discord" class="connect-btn justify-center mt-4" hidden=""><i class="fa-brands fa-discord"></i> Continuar con Discord</a>
 </dialog>
 <dialog id="citizenDialog" class="local-dialog" aria-labelledby="citizenTitle">
  <button class="local-close" type="button" data-action="closeCitizen" aria-label="Cerrar">×</button>
@@ -430,5 +424,6 @@
 </dialog>
 
 <div class="demo-shortcuts"><a href="/">← InfiniteDev</a><a href="/ciudadano">Explorar panel ciudadano →</a></div>
-</body>
-</html>
+
+
+</body></html>

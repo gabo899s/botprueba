@@ -22,7 +22,7 @@ async function page({ user = null, profile = null } = {}) {
     let status = 200,
       data = { success: true };
     if (url === "/api/config")
-      data = { success: true, discordOAuth: false, robloxOAuth: false };
+      data = { success: true, discordOAuth: true, robloxOAuth: false };
     else if (url === "/api/auth/me") {
       status = user ? 200 : 401;
       data = user
@@ -30,17 +30,7 @@ async function page({ user = null, profile = null } = {}) {
         : { success: false, message: "Inicia sesión." };
     } else if (url === "/api/profile")
       data = { success: true, citizen: profile };
-    else if (url === "/api/local/login") {
-      const fields = JSON.parse(options.body);
-      assert.equal(fields.username, "admin");
-      assert.equal(fields.password, "prueba123456");
-      user = {
-        nombreCompleto: "admin",
-        mode: "local",
-        trabajo: "Administrador local",
-        hasPoliceAccess: true,
-      };
-    } else if (url === "/api/auth/logout") user = null;
+    else if (url === "/api/auth/logout") user = null;
     return { ok: status < 400, status, json: async () => data };
   };
   w.eval(script);
@@ -62,27 +52,12 @@ test("HTML conserva secciones y sirve recursos locales sin scripts inline ni IDs
   ))
     assert.ok(fs.existsSync(path.join(root, "public", m[1])), m[1]);
 });
-test("visitante puede abrir login y entrar como administrador local", async () => {
-  const d = await page();
-  try {
-    const w = d.window;
-    w.document.querySelector('[data-action="login"]').click();
-    assert.equal(w.document.querySelector("#loginDialog").open, true);
-    const f = w.document.querySelector("#localLogin");
-    f.elements.username.value = "admin";
-    f.elements.password.value = "prueba123456";
-    f.dispatchEvent(new w.Event("submit", { bubbles: true, cancelable: true }));
-    await new Promise((r) => setImmediate(r));
-    assert.equal(w.document.querySelector("#loginDialog").open, false);
-    assert.equal(w.document.querySelector("#hero-name").textContent, "admin");
-    assert.ok(w.document.querySelector('#hero-content a[href="/v2/police"]'));
-    w.document.querySelector('[data-action="logout"]').click();
-    await new Promise((r) => setImmediate(r));
-    assert.ok(w.document.querySelector(".hero-title"));
-    assert.ok(w.document.querySelector('[data-action="login"]'));
-  } finally {
-    d.window.close();
-  }
+test("visitante solo ve acceso Discord, sin campos de usuario ni contraseña", async () => {
+ const d=await page();try{const doc=d.window.document;doc.querySelector('[data-action="login"]').click();assert.equal(doc.querySelector('#loginDialog').open,true);assert.equal(doc.querySelector('#localLogin,input[type="password"]'),null);assert.equal(doc.querySelector('#discordLogin').hidden,false);assert.equal(doc.querySelector('#discordLogin').getAttribute('href'),'/auth/discord');}finally{d.window.close();}
+});
+test("perfil Discord y foto se restauran al cargar la página", async () => {
+ const user={discordId:'123',discordUsername:'MiDiscord',nombreCompleto:'Nombre',mode:'discord',trabajo:'Ciudadano',discordAvatar:'https://cdn.discordapp.com/avatars/123/photo.png'};
+ for(let reload=0;reload<2;reload++){const d=await page({user});assert.equal(d.window.document.querySelector('.profile-trigger-avatar').getAttribute('src'),user.discordAvatar);assert.equal(d.window.document.querySelector('.profile-trigger-username').textContent,'MiDiscord');d.window.close();}
 });
 test("datos de perfil se muestran como texto y el ciudadano ve sus registros sin exigir Roblox", async () => {
   const user = {

@@ -52,7 +52,7 @@ before(async () => {
   const salt = "test-salt",
     hash = scryptSync("prueba-local-123", salt, 64).toString("hex");
   const bootstrap =
-    "global.fetch=async(url,options={})=>({ok:true,status:200,json:async()=>url.endsWith('/oauth2/token')?{access_token:options.body.get('code')==='admin-test-code'?'test-admin-access':'test-access'}:url.endsWith('/users/@me')?{id:'123456789012345678',username:'test-citizen',global_name:'Ciudadano'}:{roles:url.includes('/guilds/test-admin-guild/member')&&options.headers.Authorization==='Bearer test-admin-access'?['test-admin-role']:[]}});const app=require('./server');app.listen(Number(process.env.PORT),'127.0.0.1',()=>console.log('Web lista'));";
+    "global.fetch=async(url,options={})=>({ok:true,status:200,json:async()=>url.endsWith('/oauth2/token')?{access_token:options.body.get('code')==='full-admin-code'?'full-admin-access':options.body.get('code')==='admin-test-code'?'test-admin-access':'test-access'}:url.endsWith('/users/@me')?{id:'123456789012345678',username:options.headers.Authorization==='Bearer full-admin-access'?'admin':'test-citizen',global_name:options.headers.Authorization==='Bearer full-admin-access'?'admin':'Ciudadano'}:{roles:options.headers.Authorization==='Bearer full-admin-access'?['test-admin-role','test-police-role']:options.headers.Authorization==='Bearer test-admin-access'?['test-admin-role']:[]}});const app=require('./server');app.listen(Number(process.env.PORT),'127.0.0.1',()=>console.log('Web lista'));";
   child = spawn(process.execPath, ["-e", bootstrap], {
     cwd: dir,
     env: {
@@ -68,9 +68,9 @@ before(async () => {
       DISCORD_CLIENT_ID: "test-app",
       DISCORD_CLIENT_SECRET: "test-secret",
       DISCORD_GUILD_ID: "test-guild",
-      ADMIN_GUILD_ID: "test-admin-guild",
+      ADMIN_GUILD_ID: "test-guild",
       ADMIN_ROLE_IDS: "test-admin-role",
-      POLICE_ROLE_IDS: "",
+      POLICE_ROLE_IDS: "test-police-role",
       MULTA_CHANNEL_ID: "",
       ARRESTO_CHANNEL_ID: "",
     },
@@ -111,35 +111,16 @@ test("rutas públicas, 404 y protección de consultas", async () => {
   );
   assert.equal((await request("/.env")).status, 404);
 });
-test("login rechaza contraseña y origen incorrectos, crea sesión HttpOnly", async () => {
-  assert.equal(
-    (
-      await request("/api/local/login", {
-        method: "POST",
-        body: { username: "admin", password: "mala" },
-      })
-    ).status,
-    401,
-  );
-  assert.equal(
-    (
-      await request("/api/local/login", {
-        method: "POST",
-        body: { username: "admin", password: "prueba-local-123" },
-        headers: { Origin: "https://otro.example" },
-      })
-    ).status,
-    403,
-  );
-  const r = await request("/api/local/login", {
-    method: "POST",
-    body: { username: "admin", password: "prueba-local-123" },
-  });
-  assert.equal(r.status, 200);
-  const set = r.headers.get("set-cookie");
-  assert.match(set, /HttpOnly/i);
-  cookie = set.split(";")[0];
-  assert.equal((await request("/api/auth/me")).status, 200);
+async function adminLogin() {
+ const begin=await request('/auth/discord',{session:false}),state=new URL(begin.headers.get('location')).searchParams.get('state');
+ const stateCookie=begin.headers.getSetCookie().find(c=>c.startsWith('oauth_state=')).split(';')[0];
+ return request('/auth/discord/callback?state='+state+'&code=full-admin-code',{session:false,headers:{Cookie:stateCookie}});
+}
+function sessionCookie(response){return response.headers.getSetCookie().find(c=>c.startsWith('session=')).split(';')[0];}
+test("solo Discord crea sesión persistente HttpOnly; contraseña y origen ajeno se rechazan", async () => {
+ assert.equal((await request('/api/local/login',{method:'POST',body:{username:'admin',password:'prueba-local-123'}})).status,410);
+ assert.equal((await request('/api/local/login',{method:'POST',body:{},headers:{Origin:'https://otro.example'}})).status,403);
+ const r=await adminLogin();assert.equal(r.status,302);const set=r.headers.getSetCookie().find(c=>c.startsWith('session='));assert.match(set,/HttpOnly/i);assert.match(set,/Max-Age=2592000/);cookie=sessionCookie(r);assert.equal((await request('/api/auth/me')).status,200);
 });
 test("ciudadanos, vehículos, licencias y búsqueda", async () => {
   assert.equal(
@@ -293,11 +274,8 @@ test("OAuth inválido, recuperación de cola y logout revoca sesión", async () 
 });
 
 test("sesión Discord simulada: ciudadano consulta solo su perfil y sus documentos", async () => {
-  const admin = await request("/api/local/login", {
-    method: "POST",
-    body: { username: "admin", password: "prueba-local-123" },
-  });
-  cookie = admin.headers.get("set-cookie").split(";")[0];
+  const admin = await adminLogin();
+  cookie = sessionCookie(admin);
   assert.equal(
     (
       await request("/api/citizens/RP-001", {
@@ -360,11 +338,8 @@ test("admin: permisos, registro de staff, búsqueda y métricas", async () => {
     401,
   );
   assert.equal((await request("/api/admin/staff")).status, 403);
-  const a = await request("/api/local/login", {
-    method: "POST",
-    body: { username: "admin", password: "prueba-local-123" },
-  });
-  cookie = a.headers.get("set-cookie").split(";")[0];
+  const a = await adminLogin();
+  cookie = sessionCookie(a);
   assert.equal((await request("/api/admin/auth/me")).status, 200);
   const id = "987654321098765432";
   assert.equal(
@@ -488,14 +463,12 @@ test("staff y configuración usan sesión real, rechazan anónimo y guardan turn
     (await request("/api/bot/settings", { session: false })).status,
     401,
   );
-  const login = await request("/api/local/login", {
-    method: "POST",
-    body: { username: "admin", password: "prueba-local-123" },
-  });
-  cookie = login.headers.get("set-cookie").split(";")[0];
+  const login = await adminLogin();
+  cookie = sessionCookie(login);
   assert.equal((await request("/api/staff/me")).status, 200);
   let cfg = (await data(await request("/api/bot/settings"))).settings;
   cfg.minimumShiftMinutes = 0;
+  cfg.voiceRequired = false;
   cfg.sanctionCooldownSeconds = 0;
   assert.equal(
     (await request("/api/bot/settings", { method: "PUT", body: cfg })).status,
@@ -507,7 +480,7 @@ test("staff y configuración usan sesión real, rechazan anónimo y guardan turn
       body: { action: "start", staffId: "suplantado" },
     }),
   );
-  assert.equal(start.data.userId, "local:admin");
+  assert.equal(start.data.userId, "123456789012345678");
   assert.equal(start.data.current.state, "active");
   assert.equal(
     (
@@ -538,7 +511,7 @@ test("staff y configuración usan sesión real, rechazan anónimo y guardan turn
       },
     }),
   );
-  assert.equal(loa.data.userId, "local:admin");
+  assert.equal(loa.data.userId, "123456789012345678");
   assert.equal(
     (
       await request("/api/staff/loa/" + loa.data.id + "/decision", {
@@ -554,11 +527,11 @@ test("staff y configuración usan sesión real, rechazan anónimo y guardan turn
       body: { userId: "123456789012345678", motivo: "Prueba de registro" },
     }),
   );
-  assert.equal(sanctions.data.moderadorId, "local:admin");
+  assert.equal(sanctions.data.moderadorId, "123456789012345678");
   const saved = await data(await request("/api/staff/recent"));
   assert.ok(
     saved.sanctions.some(
-      (r) => r.id === sanctions.data.id && r.moderadorId === "local:admin",
+      (r) => r.id === sanctions.data.id && r.moderadorId === "123456789012345678",
     ),
   );
 });

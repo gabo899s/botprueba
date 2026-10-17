@@ -16,3 +16,5 @@ Conservar las funciones existentes salvo cambio solicitado. InfiniteDev usa la d
 Comprobar los cambios con pruebas relevantes, npm test y bash -n cuando cambien scripts Linux. No afirmar que Discord/ER:LC fueron verificados con cuentas reales cuando solamente se usaron respuestas simuladas.
 
 La página de inicio 3.8 usa como fuente el HTML completo adjunto por el usuario. Conservar su composición, filtro SVG metálico, entrada, fuentes y asistente de pedidos. Servir fuentes, estilos compilados y scripts localmente, sin relajar CSP. Los detalles de integración y compilación están en docs/portfolio-upload-3.8.md.
+
+Desde 3.9 el acceso web es exclusivamente Discord OAuth2. No reintroducir login local, usuario ni contraseña. Las sesiones persistidas cifradas de 30 días y la cookie HttpOnly deben conservarse al actualizar. No publicar bot/data/web-sessions.sqlite ni sus tokens. La guía está en docs/discord-login.md; mantener separados los permisos administrativos y policiales.

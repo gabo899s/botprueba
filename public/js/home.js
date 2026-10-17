@@ -44,7 +44,7 @@ function renderGuest() {
   currentUser = null;
   const area = $("#user-area");
   area.replaceChildren();
-  const b = node("button", "INICIAR SESIÓN", "local-login-button");
+  const b = node("button", "ENTRAR CON DISCORD", "local-login-button");
   b.type = "button";
   b.dataset.action = "login";
   area.append(b);
@@ -84,7 +84,7 @@ function renderUser() {
   dropdown.querySelector("#dropdown-username").textContent = u.nombreCompleto;
   dropdown.querySelector("#dropdown-userid").textContent = u.discordId
     ? "ID: " + u.discordId
-    : "Administrador local";
+    : "Cuenta de Discord";
   const connections = dropdown.querySelector("#connections-list");
   if (u.roblox?.username) {
     const item = $("#roblox-connection-template").content.cloneNode(true);
@@ -154,6 +154,7 @@ function openLogin() {
   const d = $("#loginDialog");
   $("#loginError").hidden = true;
   $("#discordLogin").hidden = !configuration.discordOAuth;
+  if(!configuration.discordOAuth){$("#loginError").textContent="El acceso con Discord está pendiente de configuración.";$("#loginError").hidden=false;}
   d.showModal();
 }
 function closeProfile() {
@@ -176,9 +177,7 @@ async function citizen() {
       content.append(
         node(
           "p",
-          currentUser.mode === "local"
-            ? "Tu sesión es de administrador local. Registra y consulta personajes en la plataforma policial."
-            : "Tu personaje aún no está registrado. Pide al administrador que registre tu cédula con tu ID de Discord.",
+          "Tu personaje aún no está registrado. Pide al administrador que registre tu cédula con tu ID de Discord.",
         ),
       );
       if (currentUser.hasPoliceAccess) {
@@ -314,29 +313,6 @@ document.addEventListener("click", (e) => {
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeProfile();
-});
-$("#localLogin").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const form = e.target,
-    b = form.querySelector("button");
-  b.disabled = true;
-  $("#loginError").hidden = true;
-  try {
-    await api("/api/local/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(new FormData(form))),
-    });
-    form.reset();
-    $("#loginDialog").close();
-    await checkAuth();
-    showToast("Sesión iniciada.", "success");
-  } catch (err) {
-    $("#loginError").textContent = err.message;
-    $("#loginError").hidden = false;
-  } finally {
-    b.disabled = false;
-  }
 });
 (async () => {
   try {

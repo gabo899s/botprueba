@@ -34,8 +34,6 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     delete env[k];
   const steps = [
     ["Puerto web", ""],
-    ["Usuario administrador", ""],
-    ["Contraseña local", "contraseña-de-prueba"],
     ["Token del bot", ""],
     ["ID de la aplicación", ""],
     ["Secreto OAuth2 de Discord", ""],
@@ -94,7 +92,8 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
       "B1",
     );
     assert.ok(parsed.JWT_SECRET.length >= 64);
-    assert.ok(parsed.LOCAL_PASSWORD_HASH.includes(":"));
+    assert.equal(parsed.LOCAL_PASSWORD_HASH, undefined);
+    assert.equal(parsed.LOCAL_ADMIN, undefined);
     assert.ok(fs.existsSync(path.join(dir, "bot/data/notifications")));
   } finally {
     child.kill();

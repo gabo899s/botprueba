@@ -317,8 +317,8 @@ $("#retry").addEventListener("click", async () => {
     $("#adminLink").hidden = !user.isAdmin;
     const config = await api("/api/config");
     $("#robloxLink").hidden = !config.robloxOAuth || !user.discordId;
-    $("#citizenTab").hidden = user.mode !== "local";
-    $("#retry").hidden = user.mode !== "local";
+    $("#citizenTab").hidden = !user.isAdmin;
+    $("#retry").hidden = !user.isAdmin;
     if (!user.hasPoliceAccess) {
       $("#restricted").hidden = false;
       return;

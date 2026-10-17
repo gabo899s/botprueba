@@ -85,3 +85,7 @@ El acceso sigue siendo local por defecto. Para un servidor o una IP de red, conf
 La versión 3.5.0 incorpora rotación de sesión, revalidación de roles de Discord y límites de solicitudes/evidencias. La verificación de permisos puede devolver 503 si Discord no responde; los límites por IP se comparten cuando hay un proxy sin configurar. Consulta `docs/AUDITORIA-SEGURIDAD-3.5.0.md` para ver los fallos reproducidos, las correcciones y los límites de esta revisión.
 
 Las páginas `/legal`, `/privacidad`, `/terminos`, `/cookies` y `/derechos` y el comando `/privacidad` explican datos, condiciones y cookies necesarias. Hay descarga de datos propios y solicitudes de privacidad con revisión administrativa. Completa el bloque de información legal pública en `bash configurar-linux.sh` antes de publicar. Consulta `docs/PRIVACIDAD-Y-PUESTA-EN-SERVICIO.md`: los textos mantienen una advertencia de preparación si faltan responsable, correo o país y no garantizan cumplimiento legal integral.
+
+## Inicio de sesión con Discord
+
+Desde 3.9 la web solo admite Discord OAuth2, sin usuario ni contraseña local. La sesión se recuerda hasta 30 días y sobrevive a reinicios del servidor; la foto y el perfil aparecen arriba a la izquierda en Maes RP. Configuración de Discord Developer Portal, callbacks, roles y comandos: [guía completa](docs/discord-login.md).

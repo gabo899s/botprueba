@@ -175,11 +175,6 @@ function bind(selector, handler) {
     }
   });
 }
-bind("#adminLogin", async (f) => {
-  await send("/api/local/login", Object.fromEntries(new FormData(f)));
-  f.reset();
-  await initialize();
-});
 bind("#staffForm", async (f) => {
   const d = Object.fromEntries(new FormData(f));
   await send(
@@ -247,6 +242,7 @@ async function initialize() {
     config = await api("/api/config");
   } catch {}
   $("#adminDiscord").hidden = !config.adminOAuth;
+  $("#adminDiscordHint").hidden = !!config.adminOAuth;
   $("#switchAdmin").hidden = !config.adminOAuth;
   try {
     const { user } = await api("/api/admin/auth/me");

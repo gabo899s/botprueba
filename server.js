@@ -6,13 +6,13 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const compression = require("compression");
-const { root, port, baseUrl, configured, listenHost, allowedHosts } = require("./lib/config");
+const { root, port, baseUrl, configured, listenHost, allowedHosts, dataDir } = require("./lib/config");
 const store = require("./lib/store");
 const { mountAdmin } = require("./lib/admin");
 const { mountStaff } = require("./lib/staff");
 const botSettings = require("./bot/settings");
 const { generate } = require("./lib/pdf");
-const { limiter, verifyPassword, jobGate } = require("./lib/security");
+const { limiter, jobGate } = require("./lib/security");
 store.init();
 const app = express();
 app.disable("x-powered-by");
@@ -67,14 +67,13 @@ app.use((req,res,next)=>{
 });
 app.use(express.json({ limit: "128kb" }));
 app.use(cookieParser());
-const sessions = new Map(),
-  oauth = new Map(),
-  attempts = new Map();
+const { WebSessions, SESSION_MS } = require('./lib/web-sessions');
+const sessions = new WebSessions({ directory:dataDir, secret:process.env.JWT_SECRET || crypto.randomBytes(48).toString('hex') }),
+  oauth = new Map();
 setInterval(() => {
   const now = Date.now();
   for (const [k, v] of sessions) if (v.expires < now) sessions.delete(k);
   for (const [k, v] of oauth) if (v.expires < now) oauth.delete(k);
-  for (const [k, v] of attempts) if (v.until < now) attempts.delete(k);
 }, 60000).unref();
 function issue(res, user, oauthContext = null) {
   // Rotación de la sesión del navegador: la cookie anterior deja de ser válida.
@@ -82,29 +81,46 @@ function issue(res, user, oauthContext = null) {
   for(const [id,s]of sessions)if(s.expires<=Date.now())sessions.delete(id);
   if(sessions.size>=5000)throw Object.assign(Error('El servidor está ocupado. Inténtalo más tarde.'),{status:503});
   const sid = crypto.randomUUID();
-  sessions.set(sid, { user, expires: Date.now() + 8 * 3600000, oauth:oauthContext, permissionsChecked:Date.now() });
+  sessions.set(sid, { user, expires: Date.now() + SESSION_MS, oauth:oauthContext, permissionsChecked:Date.now() });
   res.cookie(
     "session",
-    jwt.sign({ sid }, process.env.JWT_SECRET, { expiresIn: "8h" }),
+    jwt.sign({ sid }, process.env.JWT_SECRET, { expiresIn: "30d" }),
     {
       httpOnly: true,
       sameSite: "lax",
       secure: baseUrl.startsWith("https://"),
-      maxAge: 8 * 3600000,
+      maxAge: SESSION_MS,
       path: "/",
     },
   );
+}
+function discordAdmin(roles,guildId) {
+  const configuredGuild=process.env.ADMIN_GUILD_ID || process.env.DISCORD_GUILD_ID;
+  return botSettings.allowed({roles},'admin') || (guildId===configuredGuild && (process.env.ADMIN_ROLE_IDS||'').split(',').map(v=>v.trim()).filter(Boolean).some(id=>roles.includes(id)));
+}
+async function renewDiscordToken(session) {
+  if(!session.oauth.tokenExpires || session.oauth.tokenExpires>Date.now()+60000)return;
+  if(!session.oauth.refreshToken)throw Object.assign(Error('Inicia sesión de nuevo.'),{status:401});
+  try {
+    const token=await remote('https://discord.com/api/v10/oauth2/token',{method:'POST',body:new URLSearchParams({client_id:process.env.DISCORD_CLIENT_ID,client_secret:process.env.DISCORD_CLIENT_SECRET,grant_type:'refresh_token',refresh_token:session.oauth.refreshToken})});
+    if(!token.access_token)throw Object.assign(Error('Invalid refresh'),{status:401});
+    session.oauth.accessToken=token.access_token;session.oauth.refreshToken=token.refresh_token||session.oauth.refreshToken;
+    session.oauth.tokenExpires=Date.now()+(Number(token.expires_in)||604800)*1000;
+    // Persist rotated refresh tokens even if the following role request fails.
+    for(const [id,value] of sessions)if(value===session){sessions.save(id);break;}
+  } catch(error) {throw Object.assign(Error('No se pudo renovar la sesión de Discord.'),{status:[400,401,403].includes(error.status)?401:503});}
 }
 async function refreshPermissions(session,force){
   if(!session.oauth||(!force&&Date.now()-session.permissionsChecked<30000))return;
   if(!session.refreshing)session.refreshing=(async()=>{
     let member;
+    await renewDiscordToken(session);
     try{member=await remote(`https://discord.com/api/v10/users/@me/guilds/${session.oauth.guildId}/member`,{headers:{Authorization:'Bearer '+session.oauth.accessToken}});}
     catch(error){if([401,403,404].includes(error.status))throw Object.assign(Error('Inicia sesión de nuevo.'),{status:401});throw Object.assign(Error('No se pudieron verificar tus permisos. Inténtalo de nuevo.'),{status:503});}
     const roles=Array.isArray(member.roles)?member.roles:[];
     const adminPortal=session.oauth.adminPortal;
     session.user.roles=roles;
-    session.user.isAdmin=adminPortal?(process.env.ADMIN_ROLE_IDS||'').split(',').map(v=>v.trim()).filter(Boolean).some(id=>roles.includes(id)):botSettings.allowed({roles},'admin');
+    session.user.isAdmin=adminPortal?(process.env.ADMIN_ROLE_IDS||'').split(',').map(v=>v.trim()).filter(Boolean).some(id=>roles.includes(id)):discordAdmin(roles,session.oauth.guildId);
     session.user.hasPoliceAccess=!adminPortal&&[...(process.env.POLICE_ROLE_IDS||'').split(',').map(v=>v.trim()).filter(Boolean),...botSettings.get().policeRoleIds].some(id=>roles.includes(id));
     session.permissionsChecked=Date.now();
   })().finally(()=>{session.refreshing=null;});
@@ -117,9 +133,10 @@ async function auth(req, res, next) {
       process.env.JWT_SECRET,
     );
     const s = sessions.get(sid);
-    if (!s || s.expires < Date.now()) throw Error();
+    if (!s || s.expires < Date.now() || s.user.mode !== "discord") { sessions.delete(sid); throw Error(); }
     try { await refreshPermissions(s,!['GET','HEAD'].includes(req.method)); }
     catch(error){if(error.status===401)sessions.delete(sid);throw error;}
+    sessions.save(sid);
     req.user = s.user;
     req.sid = sid;
     res.setHeader("Cache-Control", "private, no-store");
@@ -131,7 +148,7 @@ async function auth(req, res, next) {
   }
 }
 function police(req, res, next) {
-  if (req.user.mode === "local" || req.user.hasPoliceAccess) return next();
+  if (req.user.hasPoliceAccess) return next();
   res
     .status(403)
     .json({
@@ -140,12 +157,12 @@ function police(req, res, next) {
     });
 }
 function admin(req, res, next) {
-  if (req.user.mode === "local") return next();
+  if (req.user.isAdmin) return next();
   res
     .status(403)
     .json({
       success: false,
-      message: "Solo el administrador local puede editar ciudadanos.",
+      message: "Necesitas un rol administrativo de Discord para editar ciudadanos.",
     });
 }
 function text(v, max = 200) {
@@ -198,47 +215,12 @@ app.get("/api/config", (req, res) =>
     adminOAuth: !!(
       process.env.DISCORD_CLIENT_ID &&
       process.env.DISCORD_CLIENT_SECRET &&
-      process.env.ADMIN_GUILD_ID &&
+      (process.env.ADMIN_GUILD_ID || process.env.DISCORD_GUILD_ID) &&
       process.env.ADMIN_ROLE_IDS
     ),
   }),
 );
-app.post("/api/local/login", wrap(async (req, res) => {
-  const key = req.ip;
-  const previous = attempts.get(key);
-  const a = previous && previous.until > Date.now() ? previous : { count: 0, until: Date.now() + 15 * 60000 };
-  if(!previous&&attempts.size>=5000)return res.status(429).json({success:false,message:'Demasiados intentos. Inténtalo más tarde.'});
-  if (a.count >= 10 && a.until > Date.now())
-    return res
-      .status(429)
-      .json({
-        success: false,
-        message: "Demasiados intentos. Espera 15 minutos.",
-      });
-  const password =
-      typeof req.body.password === "string"
-        ? req.body.password.slice(0, 256)
-        : "",
-    username = text(req.body.username, 40);
-  const ok = await verifyPassword(password,process.env.LOCAL_PASSWORD_HASH) && username === process.env.LOCAL_ADMIN;
-  if (!ok) {
-    a.count++;
-    attempts.set(key, a);
-    return res
-      .status(401)
-      .json({ success: false, message: "Usuario o contraseña incorrectos." });
-  }
-  attempts.delete(key);
-  issue(res, {
-    id: "local:" + username,
-    discordId: null,
-    nombreCompleto: username,
-    mode: "local",
-    hasPoliceAccess: true,
-    roles: [],
-  });
-  res.json({ success: true });
-}));
+app.post("/api/local/login", (req,res) => res.status(410).json({success:false,message:"El acceso con usuario y contraseña se eliminó. Inicia sesión con Discord."}));
 function publicUser(u) {
   const c = u.discordId
     ? Object.values(store.read("cedulas")).find(
@@ -250,19 +232,11 @@ function publicUser(u) {
     nombreCompleto: c
       ? (c.nombre + " " + c.apellidos).trim()
       : u.nombreCompleto,
-    trabajo:
-      u.mode === "local"
-        ? "Administrador local"
-        : u.isAdmin
-          ? "Administración"
-          : u.hasPoliceAccess
-            ? "Personal policial"
-            : "Ciudadano",
+    trabajo: u.isAdmin ? "Administración" : u.hasPoliceAccess ? "Personal policial" : "Ciudadano",
     roblox: c?.roblox || null,
     robloxLinked: !!c?.roblox?.userId,
-    isAdmin: u.mode === "local" || !!u.isAdmin,
+    isAdmin: !!u.isAdmin,
     hasStaffAccess:
-      u.mode === "local" ||
       !!u.isAdmin ||
       botSettings.allowed({ roles: u.roles }, "staff"),
   };
@@ -333,7 +307,7 @@ app.get("/auth/discord", (req, res) => {
     !process.env.DISCORD_GUILD_ID
   )
     return res.redirect(
-      "/?error=" + encodeURIComponent("Configura Discord con npm run setup."),
+      "/maes-rp?error=" + encodeURIComponent("Configura Discord con npm run setup."),
     );
   const state = beginOAuth(req, res, "discord", {
     returnTo: req.query.returnTo === "staff" ? "/staff" : "/maes-rp",
@@ -388,16 +362,16 @@ app.get("/auth/discord/callback", async (req, res) => {
         : u.global_name || u.username,
       discordUsername: u.username,
       discordAvatar: u.avatar
-        ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png`
-        : null,
+        ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith("a_")?"gif":"png"}`
+        : `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(u.id)>>22n)%6n)}.png`,
       mode: "discord",
-      isAdmin: botSettings.allowed({ roles: m.roles }, "admin"),
+      isAdmin: discordAdmin(m.roles || [], process.env.DISCORD_GUILD_ID),
       roles: m.roles || [],
       hasPoliceAccess: allowed.some((x) => (m.roles || []).includes(x)),
-    }, {accessToken:t.access_token,guildId:process.env.DISCORD_GUILD_ID,adminPortal:false});
+    }, {accessToken:t.access_token,refreshToken:t.refresh_token,tokenExpires:Date.now()+(Number(t.expires_in)||604800)*1000,guildId:process.env.DISCORD_GUILD_ID,adminPortal:false});
     res.redirect(flow.user?.returnTo || "/maes-rp");
   } catch (e) {
-    res.redirect("/?error=" + encodeURIComponent(e.message));
+    res.redirect("/maes-rp?error=" + encodeURIComponent(e.message));
   }
 });
 app.get("/auth/roblox", auth, (req, res) => {
@@ -832,10 +806,10 @@ function fileAccess(req, res, next) {
   const filename = path.basename(req.path);
   const ticket=Object.values(store.read('tickets').items||{}).find(t=>t.transcriptFile===filename);
   if(ticket){
-    if(req.user.mode==='local'||req.user.isAdmin||botSettings.allowed({roles:req.user.roles},'staff')||ticket.userId===req.user.discordId)return next();
+    if(req.user.isAdmin||botSettings.allowed({roles:req.user.roles},'staff')||ticket.userId===req.user.discordId)return next();
     return res.status(403).json({success:false,message:'No tienes acceso a esta conversación.'});
   }
-  if (req.user.mode === "local" || req.user.hasPoliceAccess) return next();
+  if (req.user.hasPoliceAccess) return next();
   const citizen = Object.values(store.read("cedulas")).find(
     (c) => c.discordId && c.discordId === req.user.discordId,
   );

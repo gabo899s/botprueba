@@ -17,9 +17,9 @@ async function page(mode) {
       data = { success: true };
     if (url === "/api/config") data.adminOAuth = true;
     else if (url === "/api/admin/auth/me") {
-      status = mode === "local" ? 200 : mode === "guest" ? 401 : 403;
+      status = mode === "discord-admin" ? 200 : mode === "guest" ? 401 : 403;
       data =
-        mode === "local"
+        mode === "discord-admin"
           ? { success: true, user: { nombreCompleto: "admin" } }
           : { success: false, message: "Sin acceso" };
     } else if (url === "/api/admin/staff") {
@@ -52,7 +52,7 @@ async function page(mode) {
   await new Promise((r) => setImmediate(r));
   return d;
 }
-test("admin ofrece acceso local o Discord y restringe sesiones no administrativas", async () => {
+test("admin ofrece solo Discord y restringe sesiones no administrativas", async () => {
   for (const mode of ["guest", "denied"]) {
     const d = await page(mode);
     try {
@@ -69,7 +69,7 @@ test("admin ofrece acceso local o Discord y restringe sesiones no administrativa
   }
 });
 test("admin registra staff y muestra expediente con nombres como texto", async () => {
-  const d = await page("local");
+  const d = await page("discord-admin");
   try {
     const w = d.window;
     assert.equal(w.document.querySelector("#workspace").hidden, false);
