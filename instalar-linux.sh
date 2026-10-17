@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+mkdir -p .runtime
+chmod 700 .runtime
 # Si hay Node compatible en el sistema, úsalo. Si no, instala Node 24
 # dentro del proyecto, sin sudo y sin modificar tu instalación global.
 if [[ -x .runtime/node/bin/node ]]; then export PATH="$PWD/.runtime/node/bin:$PATH"; fi

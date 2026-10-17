@@ -12,3 +12,19 @@ test('operaciones PDF tienen cupo acotado y liberan recursos al terminar o desco
  gate(request,a,()=>admitted++);gate(request,b,()=>admitted++);gate(request,c,()=>admitted++);assert.equal(admitted,2);assert.equal(c.code,429);
  a.emit('finish');a.emit('close');gate(request,response(),()=>admitted++);assert.equal(admitted,3);b.emit('close');
 });
+
+test('desconectar la respuesta no libera el cupo mientras el trabajo real de PDF sigue activo',async()=>{
+ const{jobGate}=require('../lib/security'),{EventEmitter}=require('node:events'),gate=jobGate({maxConcurrent:1});
+ function pair(){const req={user:{id:'fixture-disconnect'}},res=new EventEmitter();res.status=code=>{res.code=code;return res;};res.set=()=>res;res.json=()=>res;return{req,res};}
+ const first=pair();let admitted=0,finishWork;gate(first.req,first.res,()=>admitted++);
+ const running=first.req.runDocumentJob(()=>new Promise(resolve=>{finishWork=resolve;}));first.res.emit('close');
+ const blocked=pair();gate(blocked.req,blocked.res,()=>admitted++);assert.equal(blocked.res.code,429);assert.equal(admitted,1);
+ finishWork();await running;const next=pair();gate(next.req,next.res,()=>admitted++);assert.equal(admitted,2);next.res.emit('finish');
+});
+test('el cupo de documentos se libera si falla el trabajo o se corta antes de empezar',async()=>{
+ const{jobGate}=require('../lib/security'),{EventEmitter}=require('node:events'),gate=jobGate({maxConcurrent:1});
+ function pair(){const req={user:{id:'fixture-error'}},res=new EventEmitter();res.status=code=>{res.code=code;return res;};res.set=()=>res;res.json=()=>res;gate(req,res,()=>{});return{req,res};}
+ const aborted=pair();aborted.res.emit('close');await assert.rejects(aborted.req.runDocumentJob(()=>assert.fail('No debe comenzar')),{status:400});
+ const failing=pair();await assert.rejects(failing.req.runDocumentJob(async()=>{throw Error('fixture');}),/fixture/);
+ const next=pair();assert.equal(next.res.code,undefined);next.res.emit('close');
+});

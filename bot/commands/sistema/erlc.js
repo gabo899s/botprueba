@@ -12,16 +12,22 @@ const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseU
       if (sub === "cola") return respond(i, "Cola", rows(await prc.queue()));
       if (sub === "baneos")
         return respond(i, "Bans de ER:LC", JSON.stringify(await prc.bans()));
-      const selector = str("selector"),
-        target = [str("usuario1"), str("usuario2")].filter(Boolean).join(","),
-        message = str("complemento1") || "";
+      if (sub !== "command") throw Error("Operación ER:LC inválida.");
+      const selector = str("selector"), message = str("complemento1") || "";
+      if (!["pm", "h", "m", "kick", "ban", "unban", "refresh", "kill"].includes(selector))
+        throw Error("Comando ER:LC no autorizado.");
       if (["ban", "unban", "kill"].includes(selector))
         domain.requireScope(c, "admin");
-      if (
-        !["h", "m"].includes(selector) &&
-        !target.split(",").every(value => /^(?:[A-Za-z0-9_]{3,20}|\d{1,20})$/.test(value))
-      )
-        throw Error("Escribe un usuario Roblox válido.");
+      let target = "";
+      if (!["h", "m"].includes(selector)) {
+        const names = [str("usuario1"), str("usuario2")].filter(Boolean);
+        if (!names.length || names.some(value => typeof value !== "string" || !/^(?:[A-Za-z0-9_]{3,20}|\d{1,20})$/.test(value) || /^(all|others|random|me)$/i.test(value)))
+          throw Error("Escribe un usuario Roblox individual. No se admiten selectores masivos.");
+        // ER:LC también interpreta nombres como selectores o coincidencias de
+        // prefijo. Los IDs canónicos mantienen cada acción en usuarios concretos.
+        const users = await Promise.all(names.map(value => require("../../roblox").resolveUser(value)));
+        target = [...new Set(users.map(user => user.id))].join(",");
+      }
       if (["h", "m", "pm"].includes(selector) && !message)
         throw Error("Mensaje requerido.");
       await prc.command(

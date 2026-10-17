@@ -12,6 +12,17 @@ async function resolveUser(value, fetchImpl = global.fetch) {
   if (!user || !Number.isSafeInteger(user.id) || user.id <= 0 || typeof user.name !== 'string') throw Error('El usuario de Roblox no existe.');
   return { id: String(user.id), username: user.name };
 }
+async function individualTarget(value, fetchImpl = global.fetch) {
+  if (typeof value !== 'string') throw Error('Usuario Roblox individual inválido.');
+  const input = value.trim();
+  if (/^(all|others|random|me)$/i.test(input)) throw Error('No se admiten selectores masivos de ER:LC.');
+  if (/^\d{1,20}$/.test(input)) {
+    const id = BigInt(input);
+    if (!id) throw Error('ID Roblox inválido.');
+    return { id: id.toString(), username: null };
+  }
+  return resolveUser(input, fetchImpl);
+}
 function duration(value) {
   if (!value || /^(permanente|permanent|perm)$/i.test(value)) return 0;
   const match = String(value).trim().match(/^(\d+(?:\.\d+)?)\s*(M|s|m|h|d|w|segundos?|minutos?|horas?|dias?|días?|semanas?|mes(?:es)?|a|años?|anos?)$/);
@@ -22,4 +33,4 @@ function duration(value) {
   if (!Number.isFinite(ms) || ms < 1000 || ms > 3650 * 86400000) throw Error('La duración debe ser de 1 segundo a 3650 días.');
   return ms / 86400000;
 }
-module.exports = { resolveUser, duration };
+module.exports = { resolveUser, individualTarget, duration };

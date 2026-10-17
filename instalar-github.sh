@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 REPO_URL='https://github.com/gabo899s/botprueba.git'
 PROJECT_DIR="$HOME/botprueba"
 if ! command -v git >/dev/null || ! command -v xz >/dev/null || ! command -v ffmpeg >/dev/null; then

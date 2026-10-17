@@ -5,7 +5,10 @@ class PRCClient {
     authKey = process.env.PRC_AUTH_KEY || "",
     fetchImpl = global.fetch,
     delay = 1200,
+    maxPending = 32,
   } = {}) {
+    if (!Number.isSafeInteger(maxPending) || maxPending < 1 || maxPending > 1000)
+      throw Error("Límite de cola ER:LC inválido.");
     this.baseURL = baseURL.replace(/\/$/, "");
     this.serverKey = serverKey;
     this.authKey = authKey;
@@ -13,8 +16,13 @@ class PRCClient {
     this.delay = delay;
     this.last = 0;
     this.tail = Promise.resolve();
+    this.pending = 0;
+    this.maxPending = maxPending;
   }
   request(endpoint, method = "GET", data) {
+    if (this.pending >= this.maxPending)
+      return Promise.reject(Object.assign(Error("La cola ER:LC está llena. Espera antes de enviar otra acción."), { status: 429 }));
+    this.pending++;
     const job = async () => {
       if (!this.serverKey)
         throw Error("Configura PRC_SERVER_KEY en el asistente.");
@@ -63,7 +71,7 @@ class PRCClient {
       }
       return body;
     };
-    const task = this.tail.then(job, job);
+    const task = this.tail.then(job, job).finally(() => { this.pending--; });
     this.tail = task.catch(() => {});
     return task;
   }

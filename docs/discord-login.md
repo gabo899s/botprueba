@@ -19,7 +19,7 @@ protegidas requieren Discord y los roles correspondientes.
    http://localhost:3000/admin/auth/discord/callback
    ```
 
-   Si cambias `BASE_URL` o el puerto, actualiza ambas direcciones. Usa siempre
+   Si cambias `BASE_URL` o el puerto, actualiza ambas direcciones. Fuera de localhost la autenticación requiere HTTPS. Usa siempre
    `localhost` al entrar para que coincidan la cookie y el retorno OAuth.
 5. La aplicación solicita automáticamente los scopes `identify` y
    `guilds.members.read`; no necesitas crear a mano un enlace de autorización ni

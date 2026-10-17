@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 PROJECT_DIR="$(pwd -P)"
 source "$PROJECT_DIR/scripts/linux-lib.sh"
@@ -8,6 +9,7 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo 'Esta carpeta no f
 [[ "$(git branch --show-current)" == 'main' ]] || { echo 'La actualización necesita la rama main.' >&2; exit 1; }
 [[ -z "$(git status --porcelain --untracked-files=no)" ]] || { echo 'Hay cambios locales en el código. Se conservan; no se actualizó.' >&2; exit 1; }
 mkdir -p .runtime
+chmod 700 .runtime
 if command -v flock >/dev/null; then exec 9>.runtime/update.lock; flock -n 9 || { echo 'Ya hay una actualización en curso.' >&2; exit 1; }; fi
 remote="$(git config --get remote.origin.url)"
 [[ "$remote" == 'https://github.com/gabo899s/botprueba.git' || "$remote" == 'https://github.com/gabo899s/botprueba' || "$remote" == 'git@github.com:gabo899s/botprueba.git' ]] || { echo 'El origen no es gabo899s/botprueba; no se actualizó.' >&2; exit 1; }

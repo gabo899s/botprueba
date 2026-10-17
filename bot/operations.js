@@ -1,9 +1,13 @@
 const crypto = require("node:crypto");
 const store = require("../lib/store"),
   domain = require("./domain");
-const { generate, identityPdf } = require("../lib/pdf");
+const pdf = require("../lib/pdf");
+const { documentJob } = require("../lib/bot-resource-limits");
 async function record(ctx, type, user, values) {
   domain.requireScope(ctx, "police");
+  return documentJob(ctx.id, () => recordDocument(ctx, type, user, values));
+}
+async function recordDocument(ctx, type, user, values) {
   const c = domain.citizen(user);
   if (!c) throw domain.error("El usuario no tiene cédula registrada.");
   const articles = domain.text(values.articulos, 1500);
@@ -41,7 +45,7 @@ async function record(ctx, type, user, values) {
         }
       : { tiempo: domain.numeric(values.tiempo, 1, 1000000, true) }),
   };
-  r.pdfFileName = await generate(type, r);
+  r.pdfFileName = await pdf.generate(type, r);
   r.pdfUrl = "/pdfs/" + r.pdfFileName;
   store.update(type === "multa" ? "multas" : "arrestos", (list) =>
     list.push(r),
@@ -52,16 +56,19 @@ async function record(ctx, type, user, values) {
 async function ban(ctx, user, roblox, motivo, dias, prc) {
   domain.requireScope(ctx, "moderator");
   domain.discordId(user);
-  if (!/^[A-Za-z0-9_]{3,20}$/.test(roblox))
-    throw domain.error("Usuario Roblox inválido.");
-  if (store.read("bans").some(b => (b.userId === user || b.roblox === roblox) && ["aplicado", "pendiente", "no-confirmado"].includes(b.status))) throw domain.error("Ya existe un ban activo, pendiente o no confirmado para este usuario.", 409);
   const reason = domain.text(motivo);
   if (!reason) throw domain.error("Motivo requerido.");
   const days = domain.numeric(dias || 0, 0, 3650);
+  const resolved = await require("./roblox").individualTarget(roblox);
+  roblox = resolved.id;
+  const matches = record => record.robloxUserId === roblox || record.roblox === roblox || (!!resolved.username && String(record.robloxUsername || record.roblox).toLowerCase() === resolved.username.toLowerCase());
+  if (store.read("bans").some(b => (b.userId === user || matches(b)) && ["aplicado", "pendiente", "no-confirmado"].includes(b.status))) throw domain.error("Ya existe un ban activo, pendiente o no confirmado para este usuario.", 409);
   const r = {
     id: crypto.randomUUID(),
     userId: user,
     roblox,
+    robloxUserId: roblox,
+    robloxUsername: resolved.username,
     motivo: reason,
     moderadorId: ctx.id,
     createdAt: new Date().toISOString(),
@@ -93,22 +100,27 @@ async function ban(ctx, user, roblox, motivo, dias, prc) {
 }
 async function unban(ctx, roblox, prc) {
   domain.requireScope(ctx, "moderator");
-  if (!/^[A-Za-z0-9_]{3,20}$/.test(roblox))
-    throw domain.error("Usuario Roblox inválido.");
+  const resolved = await require("./roblox").individualTarget(roblox);
+  roblox = resolved.id;
   await prc.command(":unban " + roblox);
+  const userIds = new Set();
   store.update("bans", (list) => {
     for (const r of list)
       if (
-        r.roblox === roblox &&
+        (r.robloxUserId === roblox || r.roblox === roblox || (resolved.username && String(r.robloxUsername || r.roblox).toLowerCase() === resolved.username.toLowerCase())) &&
         ["aplicado", "no-confirmado", "pendiente"].includes(r.status)
       ) {
+        r.roblox = roblox;
+        r.robloxUserId = roblox;
+        if (resolved.username) r.robloxUsername = resolved.username;
         r.status = "retirado";
         r.unbannedBy = ctx.id;
         r.unbannedAt = new Date().toISOString();
+        userIds.add(r.userId);
       }
   });
   store.audit(ctx.id, "ban.remove", { roblox });
-  return { success: true, roblox };
+  return { success: true, roblox, userIds: [...userIds] };
 }
 function requestPayment(ctx, fineId) {
   return store.update("multas", (list) => {
@@ -152,11 +164,12 @@ async function approvePunishment(ctx, user, sid, prc) {
   if (!s || s.estado !== "activa" || !s.pendingApproval || s.externallyApplied)
     throw domain.error("No hay castigo pendiente.", 409);
   const c = domain.citizen(user),
-    roblox = c?.roblox?.username;
-  if (!roblox || !/^[A-Za-z0-9_]{3,20}$/.test(roblox))
+    target = c?.roblox?.userId || c?.roblox?.username;
+  if (!target)
     throw domain.error(
       "Vincula un usuario Roblox válido antes de aplicar el castigo.",
     );
+  const { id: roblox } = await require("./roblox").individualTarget(target);
   if (s.nivel === 2) await prc.command(":kick " + roblox);
   else {
     const result = await ban(
@@ -181,6 +194,9 @@ async function approvePunishment(ctx, user, sid, prc) {
     target.approvedAt = new Date().toISOString();
   });
   return { success: true };
+}
+function identityPdf(citizen, actorId = citizen?.discordId) {
+  return documentJob(actorId, () => pdf.identityPdf(citizen));
 }
 module.exports = {
   approvePunishment,

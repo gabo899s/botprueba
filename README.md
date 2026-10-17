@@ -80,7 +80,7 @@ El archivo `docs/INSTALACION-ANTERIOR.md` conserva las instrucciones históricas
 
 Compatibilidad: Node 22.13 o superior de la rama 22, o Node 24 o posterior. Node 20 no incluye la API SQLite que usa el sistema. El instalador de Linux conserva una versión compatible o instala Node 24.
 
-El acceso sigue siendo local por defecto. Para un servidor o una IP de red, configura `BASE_URL` con la dirección completa, por ejemplo `http://192.168.1.50:3000` o `https://panel.ejemplo.com`. Ese host se acepta junto a localhost; los hosts ajenos siguen rechazados. Si necesitas conexiones directas desde otras máquinas, establece también `LISTEN_HOST=0.0.0.0` en `.env`. Con un proxy inverso en el mismo equipo puedes conservar `127.0.0.1`. Reinicia la aplicación después de cambiar `.env` y actualiza las URLs de retorno OAuth en Discord/Roblox cuando cambies la dirección. Esto configura el acceso; no publica ni aloja la web por sí solo.
+El acceso sigue siendo local por defecto. Para un servidor o una IP de red, configura `BASE_URL` con la dirección completa, por ejemplo `https://panel.ejemplo.com`. Desde 3.10, la autenticación fuera de localhost requiere HTTPS; HTTP remoto solo permite las páginas públicas. Ese host se acepta junto a localhost; los hosts ajenos siguen rechazados. Si necesitas conexiones directas desde otras máquinas, establece también `LISTEN_HOST=0.0.0.0` en `.env`. Con un proxy inverso en el mismo equipo puedes conservar `127.0.0.1`. Reinicia la aplicación después de cambiar `.env` y actualiza las URLs de retorno OAuth en Discord/Roblox cuando cambies la dirección. Esto configura el acceso; no publica ni aloja la web por sí solo.
 
 La versión 3.5.0 incorpora rotación de sesión, revalidación de roles de Discord y límites de solicitudes/evidencias. La verificación de permisos puede devolver 503 si Discord no responde; los límites por IP se comparten cuando hay un proxy sin configurar. Consulta `docs/AUDITORIA-SEGURIDAD-3.5.0.md` para ver los fallos reproducidos, las correcciones y los límites de esta revisión.
 
@@ -89,3 +89,7 @@ Las páginas `/legal`, `/privacidad`, `/terminos`, `/cookies` y `/derechos` y el
 ## Inicio de sesión con Discord
 
 Desde 3.9 la web solo admite Discord OAuth2, sin usuario ni contraseña local. La sesión se recuerda hasta 30 días y sobrevive a reinicios del servidor; la foto y el perfil aparecen arriba a la izquierda en Maes RP. Configuración de Discord Developer Portal, callbacks, roles y comandos: [guía completa](docs/discord-login.md).
+
+## Auditoría de seguridad 3.10
+
+Se corrigieron accesos a archivos privados, asociación de registros por cédula, separación de roles, cierre de sesiones y límites de recursos. Consulta [el informe de cambios y verificación](docs/security-audit-3.10.md) y [el alcance real del cifrado](docs/privacy-security.md). Los registros operativos no están cifrados de extremo a extremo ni ocultos al operador del servidor.

@@ -6,8 +6,10 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const compression = require("compression");
-const { root, port, baseUrl, configured, listenHost, allowedHosts, dataDir } = require("./lib/config");
+const { root, port, baseUrl, configured, listenHost, allowedHosts, dataDir, secureAuthentication } = require("./lib/config");
 const store = require("./lib/store");
+const { recordMatchesCitizen, recordBelongsTo } = require("./lib/record-access");
+const { identityFilename } = require("./lib/identity-document");
 const { mountAdmin } = require("./lib/admin");
 const { mountStaff } = require("./lib/staff");
 const botSettings = require("./bot/settings");
@@ -126,17 +128,22 @@ async function refreshPermissions(session,force){
   })().finally(()=>{session.refreshing=null;});
   await session.refreshing;
 }
-async function auth(req, res, next) {
+async function auth(req, res, next, { refresh = true } = {}) {
+  if (!secureAuthentication) return res.status(503).json({success:false,message:"Configura HTTPS para iniciar sesión fuera de localhost."});
   try {
     const { sid } = jwt.verify(
       req.cookies.session || "",
       process.env.JWT_SECRET,
+      { algorithms: ["HS256"] },
     );
     const s = sessions.get(sid);
     if (!s || s.expires < Date.now() || s.user.mode !== "discord") { sessions.delete(sid); throw Error(); }
-    try { await refreshPermissions(s,!['GET','HEAD'].includes(req.method)); }
-    catch(error){if(error.status===401)sessions.delete(sid);throw error;}
-    sessions.save(sid);
+    if (refresh) {
+      try { await refreshPermissions(s,!['GET','HEAD'].includes(req.method)); }
+      catch(error){if(error.status===401)sessions.delete(sid);throw error;}
+      if (sessions.get(sid) !== s || s.expires <= Date.now()) throw Error('Sesión cerrada.');
+      sessions.save(sid);
+    }
     req.user = s.user;
     req.sid = sid;
     res.setHeader("Cache-Control", "private, no-store");
@@ -147,6 +154,7 @@ async function auth(req, res, next) {
       .json({ success: false, message: error.status===503?error.message:"Inicia sesión para continuar." });
   }
 }
+function logoutAuth(req, res, next) { return auth(req, res, next, { refresh: false }); }
 function police(req, res, next) {
   if (req.user.hasPoliceAccess) return next();
   res
@@ -178,7 +186,7 @@ function citizenInput(body) {
       ? { username: text(body.robloxUsername, 40) }
       : null,
   };
-  if (!/^[A-Za-z0-9_-]{2,40}$/.test(c.numeroCedula) || !c.nombre)
+  if (!/^[A-Za-z0-9_-]{2,40}$/.test(c.numeroCedula) || ["__proto__", "prototype", "constructor"].includes(c.numeroCedula) || !c.nombre)
     throw Error("Cédula de 2 a 40 letras/números y nombre son obligatorios.");
   if (c.discordId && !/^\d{17,20}$/.test(c.discordId))
     throw Error("ID de Discord inválido.");
@@ -190,6 +198,7 @@ mountAdmin(app, {
   auth,
   issue,
   publicUser,
+  logoutAuth,
   beginOAuth,
   takeState,
   remote,
@@ -197,7 +206,7 @@ mountAdmin(app, {
   text,
   sessions,
 });
-mountStaff(app, { auth, wrap, sessions });
+mountStaff(app, { auth, logoutAuth, wrap, sessions });
 require("./lib/privacy").mountPrivacy(app,{auth,wrap});
 app.get(["/legal","/privacidad","/terminos","/cookies","/derechos"],(req,res)=>res.sendFile(path.join(root,"public/legal.html")));
 app.get("/health", (req, res) => res.json({ status: "healthy", local: true }));
@@ -252,12 +261,13 @@ app.get("/api/profile", auth, (req, res) => {
     : null;
   res.json({ success: true, citizen: c ? enriched(c) : null });
 });
-app.post("/api/auth/logout", auth, (req, res) => {
+app.post("/api/auth/logout", logoutAuth, (req, res) => {
   sessions.delete(req.sid);
   res.clearCookie("session", { path: "/" });
   res.json({ success: true });
 });
 function beginOAuth(req, res, provider, user = null) {
+  if (!secureAuthentication) throw Object.assign(Error("Configura HTTPS para iniciar sesión fuera de localhost."),{status:503});
   for(const [id,flow]of oauth)if(flow.expires<=Date.now())oauth.delete(id);
   if(oauth.size>=2000)throw Object.assign(Error('Demasiadas sesiones de acceso pendientes.'),{status:429});
   const state = crypto.randomBytes(32).toString("hex");
@@ -446,10 +456,10 @@ function enriched(c) {
     ...c,
     vehiculos: store.read("vehiculos")[key] || [],
     licencias: store.read("licencias")[key] || [],
-    multas: store.read("multas").filter((r) => r.documento === c.numeroCedula),
+    multas: store.read("multas").filter((r) => recordMatchesCitizen(r, c)),
     arrestos: store
       .read("arrestos")
-      .filter((r) => r.documento === c.numeroCedula),
+      .filter((r) => recordMatchesCitizen(r, c)),
   };
 }
 app.get("/api/citizens", auth, police, (req, res) =>
@@ -459,7 +469,7 @@ app.post("/api/citizens", auth, admin, (req, res, next) => {
   try {
     const c = citizenInput(req.body),
       db = store.read("cedulas");
-    if (db[c.numeroCedula])
+    if (Object.hasOwn(db,c.numeroCedula))
       return res
         .status(409)
         .json({ success: false, message: "Ya existe esa cédula." });
@@ -484,7 +494,7 @@ app.post("/api/citizens", auth, admin, (req, res, next) => {
 app.put("/api/citizens/:cedula", auth, admin, (req, res, next) => {
   try {
     const db = store.read("cedulas");
-    const c = db[req.params.cedula];
+    const c = Object.hasOwn(db,req.params.cedula) ? db[req.params.cedula] : null;
     if (!c)
       return res
         .status(404)
@@ -509,7 +519,8 @@ app.put("/api/citizens/:cedula", auth, admin, (req, res, next) => {
   }
 });
 app.post("/api/citizens/:cedula/assets", auth, admin, (req, res) => {
-  const c = store.read("cedulas")[req.params.cedula];
+  const citizens=store.read("cedulas");
+  const c = Object.hasOwn(citizens,req.params.cedula) ? citizens[req.params.cedula] : null;
   if (!c)
     return res
       .status(404)
@@ -641,7 +652,8 @@ async function register(req, res, type) {
   }
   const documento = text(req.body.documento, 40),
     articulos = text(req.body.articulos, 1500);
-  const c = store.read("cedulas")[documento];
+  const citizens=store.read("cedulas");
+  const c = Object.hasOwn(citizens,documento) ? citizens[documento] : null;
   if (!c || !articulos)
     return res
       .status(400)
@@ -737,7 +749,8 @@ app.post(
   "/api/multa",
   auth,
   police,
-  wrap((req, res) => register(req, res, "multa")),
+  documentGate,
+  wrap((req, res) => req.runDocumentJob(() => register(req, res, "multa"))),
 );
 app.post(
   "/api/arresto",
@@ -745,7 +758,7 @@ app.post(
   police,
   documentGate,
   upload.single("foto"),
-  wrap((req, res) => register(req, res, "arresto")),
+  wrap((req, res) => req.runDocumentJob(() => register(req, res, "arresto"))),
 );
 app.get("/api/records", auth, police, (req, res) =>
   res.json({
@@ -802,37 +815,45 @@ app.post("/api/notifications/retry", auth, admin, (req, res) => {
       }
   res.json({ success: true, count });
 });
-function fileAccess(req, res, next) {
-  const filename = path.basename(req.path);
-  const ticket=Object.values(store.read('tickets').items||{}).find(t=>t.transcriptFile===filename);
-  if(ticket){
-    if(req.user.isAdmin||botSettings.allowed({roles:req.user.roles},'staff')||ticket.userId===req.user.discordId)return next();
-    return res.status(403).json({success:false,message:'No tienes acceso a esta conversación.'});
-  }
-  if (req.user.hasPoliceAccess) return next();
-  const citizen = Object.values(store.read("cedulas")).find(
-    (c) => c.discordId && c.discordId === req.user.discordId,
-  );
-  const ownCard =
-    citizen && filename === "cedula_" + citizen.numeroCedula + ".pdf";
-  const mine =
-    ownCard ||
-    [...store.read("multas"), ...store.read("arrestos")].some(
-      (r) =>
-        ((r.userId && r.userId === req.user.discordId) ||
-          (citizen && r.documento === citizen.numeroCedula)) &&
-        (r.pdfFileName === filename || r.imagenFileName === filename),
-    );
-  if (mine) return next();
-  res
-    .status(403)
-    .json({ success: false, message: "No tienes acceso a este archivo." });
+function fileAccess(directory) {
+  return (req, res, next) => {
+    // Autorizar el mismo nombre que express.static decodifica al servir el archivo.
+    // Se rechazan subdirectorios y dobles escapes para evitar aliases de rutas.
+    let filename;
+    try {
+      const pathname = decodeURIComponent(req.path);
+      filename = pathname.slice(1);
+      const pattern = directory === "pdfs"
+        ? /^[A-Za-z0-9_-]+\.pdf$/
+        : /^[A-Za-z0-9_-]+\.(?:png|jpg|jpeg|html)$/;
+      if (pathname !== "/" + filename || !pattern.test(filename)) throw Error();
+    } catch {
+      return res.status(400).json({success:false,message:"Ruta de archivo inválida."});
+    }
+    const tickets = Object.values(store.read("tickets").items || {});
+    const ticket = directory === "uploads" && tickets.find(t => t.transcriptFile === filename);
+    if (ticket) {
+      if (req.user.isAdmin || botSettings.allowed({roles:req.user.roles}, "staff") || ticket.userId === req.user.discordId) return next();
+      return res.status(403).json({success:false,message:"No tienes acceso a esta conversación."});
+    }
+    const citizens = Object.values(store.read("cedulas"));
+    const citizen = citizens.find(c => c?.discordId && c.discordId === req.user.discordId);
+    const identity = directory === "pdfs" && citizens.find(c => { try { return filename === identityFilename(c); } catch { return false; } });
+    const field = directory === "pdfs" ? "pdfFileName" : "imagenFileName";
+    const records = [...store.read("multas"), ...store.read("arrestos")].filter(r => r[field] === filename);
+    const mine = (identity && identity === citizen) || records.some(r =>
+      recordBelongsTo(r,req.user.discordId,new Set(citizen ? [citizen.numeroCedula] : [])));
+    // Un archivo huérfano, una transcripción sin ticket o un archivo de otra
+    // categoría no heredan el acceso policial general a documentos registrados.
+    if (mine || req.user.hasPoliceAccess && (identity || records.length)) return next();
+    return res.status(403).json({success:false,message:"No tienes acceso a este archivo."});
+  };
 }
 for (const d of ["pdfs", "uploads"])
   app.use(
     "/" + d,
     auth,
-    fileAccess,
+    fileAccess(d),
     express.static(path.join(root, "public", d), {
       dotfiles: "deny",
       maxAge: 0,

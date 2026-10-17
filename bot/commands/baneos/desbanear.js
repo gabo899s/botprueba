@@ -1,9 +1,8 @@
 const { v2Payload } = require("./../../presentation");
 module.exports = async function execute(context) {
 const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseUrl, store, domain, settings, operations, prc, commands, economy, respond, rows, safe, embed, member, log, examMessage, createTicket, whitelistApply, syncLicenseRoles, hierarchy, buildMessage, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, client } = context;
-const resolved = await require("../../roblox").resolveUser(str("usuario_roblox"));
-      await operations.unban(c, resolved.id, prc);
-      for (const uid of new Set(store.read("bans").filter(b => b.roblox === resolved.id).map(b => b.userId))) await require("../../ban-membership").sync(i.guild, uid, settings.get());
+const result = await operations.unban(c, str("usuario_roblox"), prc);
+      for (const uid of result.userIds) await require("../../ban-membership").sync(i.guild, uid, settings.get());
       return respond(i, "Ban retirado", "ER:LC confirmó la acción.");
 };
 

@@ -2,17 +2,15 @@ const { v2Payload } = require("./../../presentation");
 module.exports = async function execute(context) {
 const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseUrl, store, domain, settings, operations, prc, commands, economy, respond, rows, safe, embed, member, log, examMessage, createTicket, whitelistApply, syncLicenseRoles, hierarchy, buildMessage, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, client } = context;
 {
-      const { resolveUser, duration } = require("../../roblox");
-      const resolved = await resolveUser(str("usuario_roblox"));
+      const { duration } = require("../../roblox");
       const r = await operations.ban(
         c,
         user,
-        resolved.id,
+        str("usuario_roblox"),
         str("motivo"),
         str("tiempo") ? duration(str("tiempo")) : number("dias"),
         prc,
       );
-      store.update("bans", all => { all.find(b => b.id === r.id).robloxUsername = resolved.username; });
       if (r.status === "aplicado") await require("../../ban-membership").sync(i.guild, user, settings.get()).catch(error => { r.discordError = error.message; });
       return respond(
         i,

@@ -185,7 +185,7 @@ test("una operación ER:LC no confirmada no se reintenta ni se marca aplicada", 
   const r = await operations.ban(
     admin,
     person.id,
-    "RobloxTest",
+    "12345",
     "Motivo",
     1,
     prc,

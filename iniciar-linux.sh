@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 PROJECT_DIR="$(pwd -P)"
 source "$PROJECT_DIR/scripts/linux-lib.sh"
 mkdir -p .runtime
+chmod 700 .runtime
 if pid="$(running_pid)"; then echo "Ya está iniciado (PID $pid). Abre http://localhost:3000"; exit 0; fi
 if command -v flock >/dev/null; then
   exec 8>.runtime/start.lock

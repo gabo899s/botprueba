@@ -27,10 +27,32 @@ const { root, dataDir, baseUrl } = require("../lib/config"),
   { commands } = require("./commands");
 const { buildMessage } = require("./message-builder");
 const economy = require("./economy");
+const { ticketJob, transcriptJob, busy } = require("../lib/bot-resource-limits");
 const prc = new PRCClient();
 let client = null,
   queueBusy = false;
 let maintenanceTimer = null;
+function configuredGuild(guildId) {
+  return [process.env.DISCORD_GUILD_ID, process.env.ADMIN_GUILD_ID].filter(Boolean).includes(guildId);
+}
+async function handleMessage(message) {
+  if (message.author.bot || !configuredGuild(message.guildId)) return;
+  try {
+    if (await require("./message-drafts").receive(message)) return;
+    const ticket = Object.values(store.read("tickets").items || {}).find(t => t.channelId === message.channelId && t.status === "abierto");
+    // Un mensaje ordinario no debe iniciar una transacción ni reescribir todos
+    // los tickets. La actividad se agrupa para resistir ráfagas en un ticket.
+    if (!ticket || Date.now() - Date.parse(ticket.lastActiveAt) < 15000) return;
+    store.update("tickets", db => {
+      const current = db.items?.[ticket.id];
+      if (current?.status === "abierto" && current.channelId === message.channelId)
+        current.lastActiveAt = new Date().toISOString();
+    });
+  } catch (error) {
+    console.error("Mensaje del bot:", error.message);
+    await message.channel.send(v2Payload({ embeds: [embed("No se pudo completar la acción", safe(error.message))] })).catch(() => {});
+  }
+}
 function ctx(i) {
   const m = i.member;
   return {
@@ -135,82 +157,94 @@ async function examMessage(i, type, exam) {
   if (i.isStringSelectMenu?.()) return i.update(v2Payload(payload));
   return i.editReply(v2Payload(payload));
 }
+let ticketCreationPending = 0;
 async function createTicket(i) {
   const c = ctx(i),
     cfg = settings.get();
-  const existing = Object.values(store.read("tickets").items || {}).find(
-    (t) => t.userId === c.id && t.status === "abierto",
-  );
-  if (existing) throw domain.error("Ya tienes un ticket abierto.");
-  const staffRoles = [
-    ...cfg.staffRoleIds,
-    ...cfg.moderatorRoleIds,
-    ...cfg.adminRoleIds,
-  ];
-  if (!staffRoles.length)
-    throw domain.error("Configura al menos un rol de staff para los tickets.");
-  const channel = await i.guild.channels.create({
-    name: "ticket-" + i.user.username.replace(/[^a-z0-9-]/gi, "").slice(0, 40),
-    type: ChannelType.GuildText,
-    rateLimitPerUser: cfg.ticketHighVolume ? 60 : 0,
-    parent: cfg.channels.ticketCategory || undefined,
-    permissionOverwrites: [
-      { id: i.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-      {
-        id: i.user.id,
-        allow: [
-          PermissionFlagsBits.ViewChannel,
-          PermissionFlagsBits.SendMessages,
-          PermissionFlagsBits.ReadMessageHistory,
-        ],
-      },
-      {
-        id: client.user.id,
-        allow: [
-          PermissionFlagsBits.ViewChannel,
-          PermissionFlagsBits.SendMessages,
-          PermissionFlagsBits.ReadMessageHistory,
-        ],
-      },
-      ...staffRoles.map((id) => ({
-        id,
-        allow: [
-          PermissionFlagsBits.ViewChannel,
-          PermissionFlagsBits.SendMessages,
-          PermissionFlagsBits.ReadMessageHistory,
-        ],
-      })),
-    ],
-  });
-  let ticket;
-  try {
-    ticket = domain.ticketCreate(
-      c,
-      i.options?.getString?.("asunto") || "Soporte",
-      channel.id,
+  return ticketJob(i.guildId + ":" + c.id, async () => {
+    const openTickets = Object.values(store.read("tickets").items || {}).filter(t => t.status === "abierto");
+    if (openTickets.length + ticketCreationPending >= 100) throw busy("El soporte tiene demasiados tickets abiertos. Inténtalo más tarde.");
+    const channelCount = [...(i.guild.channels.cache?.values() || [])].filter(channel => !channel.isThread?.()).length;
+    if (channelCount >= 450) throw busy("El soporte está cerca del límite de canales. El staff debe archivar canales antiguos antes de abrir más tickets.");
+    const existing = Object.values(store.read("tickets").items || {}).find(
+      (t) => t.userId === c.id && t.status === "abierto",
     );
-  } catch (e) {
-    await channel.delete("No se pudo crear registro de ticket").catch(() => {});
-    throw e;
-  }
-  await channel.send(v2Payload({
-    content: `Soporte de <@${i.user.id}>`,
-    allowedMentions: { users: [i.user.id] },
-    embeds: [embed("Ticket de soporte", ticket.topic)],
-    components: [
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("ticket:claim:" + ticket.id)
-          .setLabel("Reclamar")
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId("ticket:close:" + ticket.id)
-          .setLabel("Cerrar y guardar")
-          .setStyle(ButtonStyle.Danger),
-      ),
-    ],
-  }));
-  return ticket;
+    if (existing) throw domain.error("Ya tienes un ticket abierto.");
+    const staffRoles = [
+      ...cfg.staffRoleIds,
+      ...cfg.moderatorRoleIds,
+      ...cfg.adminRoleIds,
+    ];
+    if (!staffRoles.length)
+      throw domain.error("Configura al menos un rol de staff para los tickets.");
+    const botId = client?.user?.id || i.client?.user?.id;
+    if (!botId) throw Error("El bot todavía no está disponible.");
+    ticketCreationPending++;
+    try {
+      const channel = await i.guild.channels.create({
+        name: "ticket-" + i.user.username.replace(/[^a-z0-9-]/gi, "").slice(0, 40),
+        type: ChannelType.GuildText,
+        rateLimitPerUser: cfg.ticketHighVolume ? 60 : 0,
+        parent: cfg.channels.ticketCategory || undefined,
+        permissionOverwrites: [
+          { id: i.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+          {
+            id: i.user.id,
+            allow: [
+              PermissionFlagsBits.ViewChannel,
+              PermissionFlagsBits.SendMessages,
+              PermissionFlagsBits.ReadMessageHistory,
+            ],
+          },
+          {
+            id: botId,
+            allow: [
+              PermissionFlagsBits.ViewChannel,
+              PermissionFlagsBits.SendMessages,
+              PermissionFlagsBits.ReadMessageHistory,
+            ],
+          },
+          ...staffRoles.map((id) => ({
+            id,
+            allow: [
+              PermissionFlagsBits.ViewChannel,
+              PermissionFlagsBits.SendMessages,
+              PermissionFlagsBits.ReadMessageHistory,
+            ],
+          })),
+        ],
+      });
+      let ticket;
+      try {
+        ticket = domain.ticketCreate(
+          c,
+          i.options?.getString?.("asunto") || "Soporte",
+          channel.id,
+        );
+      } catch (e) {
+        await channel.delete("No se pudo crear registro de ticket").catch(() => {});
+        throw e;
+      }
+      await channel.send(v2Payload({
+        content: `Soporte de <@${i.user.id}>`,
+        allowedMentions: { users: [i.user.id] },
+        embeds: [embed("Ticket de soporte", ticket.topic)],
+        components: [
+          new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId("ticket:claim:" + ticket.id)
+              .setLabel("Reclamar")
+              .setStyle(ButtonStyle.Primary),
+            new ButtonBuilder()
+              .setCustomId("ticket:close:" + ticket.id)
+              .setLabel("Cerrar y guardar")
+              .setStyle(ButtonStyle.Danger),
+          ),
+        ],
+      }));
+      return ticket;
+    } finally { ticketCreationPending--; }
+  });
 }
 const escape = (s) =>
   String(s).replace(
@@ -220,47 +254,49 @@ const escape = (s) =>
         ch
       ],
   );
-async function transcript(channel, ticket) {
-  let before,
-    all = [];
-  for (;;) {
-    const batch = await channel.messages.fetch({
-      limit: 100,
-      ...(before ? { before } : {}),
-    });
-    if (!batch.size) break;
-    all.push(...batch.values());
-    const next = batch.last().id;
-    if (next === before) throw Error("No se pudo avanzar en la transcripción del ticket.");
-    before = next;
-    if (batch.size < 100) break;
-  }
-  all.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
-  const filename = "ticket_" + ticket.id + ".html";
-  const html =
-    '<!DOCTYPE html><html lang="es"><meta charset="utf-8"><title>Ticket Maes RP</title><h1>Ticket ' +
-    escape(ticket.id) +
-    "</h1>" +
-    all
-      .map(
-        (m) =>
-          "<article><strong>" +
-          escape(m.author.tag) +
-          "</strong> " +
-          escape(m.createdAt.toISOString()) +
-          "<p>" +
-          escape(m.content || "") +
-          "</p><p>" + escape(require("./transcript-content").messageText(m)) +
-          "</p><p>" +
-          escape([...m.attachments.values()].map((a) => a.url).join("\n")) +
-          "</p></article>",
-      )
-      .join("") +
-    "</html>";
-  fs.writeFileSync(path.join(root, "public/uploads", filename), html, {
-    mode: 0o600,
+async function transcript(channel, ticket, options = {}) {
+  if (!/^[\w-]+$/.test(ticket.id)) throw Error("Identificador de ticket inválido.");
+  return transcriptJob(ticket.id, async () => {
+    const maxMessages = options.maxMessages ?? 100000;
+    const maxBytes = options.maxBytes ?? 64 * 1024 * 1024;
+    const maxMs = options.maxMs ?? 120000;
+    const started = Date.now();
+    const dir = path.join(root, "public/uploads");
+    const temporary = await fs.promises.mkdtemp(path.join(dir, ".ticket-"));
+    await fs.promises.chmod(temporary, 0o700);
+    let before, total = 0, bytes = 0, pages = 0;
+    const filename = "ticket_" + ticket.id + ".html";
+    const output = path.join(temporary, "transcript.html");
+    try {
+      for (;;) {
+        if (Date.now() - started > maxMs) throw busy("La transcripción superó el tiempo permitido. El ticket permanece abierto.");
+        const batch = await channel.messages.fetch({ limit: 100, ...(before ? { before } : {}) });
+        if (!batch.size) break;
+        total += batch.size;
+        if (total > maxMessages) throw busy("La conversación es demasiado extensa para archivarla automáticamente. El ticket permanece abierto.");
+        const html = [...batch.values()].sort((a, b) => a.createdTimestamp - b.createdTimestamp).map(m =>
+          "<article><strong>" + escape(m.author.tag) + "</strong> " + escape(m.createdAt.toISOString()) +
+          "<p>" + escape(m.content || "") + "</p><p>" + escape(require("./transcript-content").messageText(m)) +
+          "</p><p>" + escape([...m.attachments.values()].map(a => a.url).join("\n")) + "</p></article>"
+        ).join("");
+        bytes += Buffer.byteLength(html);
+        if (bytes > maxBytes) throw busy("La transcripción supera el tamaño permitido. El ticket permanece abierto.");
+        await fs.promises.writeFile(path.join(temporary, String(pages++)), html, { mode: 0o600 });
+        const next = batch.last().id;
+        if (next === before) throw Error("No se pudo avanzar en la transcripción del ticket.");
+        before = next;
+        if (batch.size < 100) break;
+      }
+      const file = await fs.promises.open(output, "wx", 0o600);
+      try {
+        await file.writeFile('<!DOCTYPE html><html lang="es"><meta charset="utf-8"><title>Ticket Maes RP</title><h1>Ticket ' + escape(ticket.id) + "</h1>");
+        for (let page = pages - 1; page >= 0; page--) await file.writeFile(await fs.promises.readFile(path.join(temporary, String(page))));
+        await file.writeFile("</html>");
+      } finally { await file.close(); }
+      await fs.promises.rename(output, path.join(dir, filename));
+      return filename;
+    } finally { await fs.promises.rm(temporary, { recursive: true, force: true }); }
   });
-  return filename;
 }
 async function whitelistApply(i, user, approve, roblox) {
   const c = ctx(i);
@@ -304,7 +340,8 @@ async function dispatch(i) {
   await i.deferReply({ flags: 64 });
   const handler = require('./handlers')[i.commandName];
   if (!handler) throw Error('Comando sin implementación.');
-  return handler({ i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseUrl, store, domain, settings, operations, prc, commands, economy, respond, rows, safe, embed, member, log, examMessage, createTicket, whitelistApply, syncLicenseRoles, hierarchy, buildMessage, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, client });
+  const actorOperations = { ...operations, identityPdf: record => operations.identityPdf(record, c.id) };
+  return handler({ i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseUrl, store, domain, settings, operations: actorOperations, prc, commands, economy, respond, rows, safe, embed, member, log, examMessage, createTicket, whitelistApply, syncLicenseRoles, hierarchy, buildMessage, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, client });
 }
 async function component(i) {
   const c = ctx(i),
@@ -370,6 +407,8 @@ async function component(i) {
       const t = store.read("tickets").items?.[parts[2]];
       if (!t) throw Error("Ticket no encontrado.");
       if (t.userId !== c.id) domain.requireScope(c, "staff");
+      if (t.status !== "abierto") throw Error("Ticket ya cerrado.");
+      if (t.channelId !== i.channelId) throw Error("Este botón no pertenece al canal del ticket.");
       await i.deferReply({ flags: 64 });
       const filename = await transcript(i.channel, t);
       domain.ticketClose(c, t.id, filename);
@@ -660,12 +699,7 @@ async function start() {
     maintenance().catch(error => console.error("Mantenimiento inicial:", error.message));
   });
   client.on("interactionCreate", async (i) => {
-    if (
-      ![process.env.DISCORD_GUILD_ID, process.env.ADMIN_GUILD_ID]
-        .filter(Boolean)
-        .includes(i.guildId)
-    )
-      return;
+    if (!configuredGuild(i.guildId)) return;
     try {
       if (i.isAutocomplete()) {
         domain.requireScope(ctx(i), "admin");
@@ -685,6 +719,7 @@ async function start() {
     }
   });
   client.on("voiceStateUpdate", (oldState, newState) => {
+    if (!configuredGuild(newState.guild?.id)) return;
     if (!settings.get().voiceRequired) return;
     const s = store.read("shifts")[newState.id];
     if (!s?.current) return;
@@ -697,20 +732,7 @@ async function start() {
         domain.shift({ id: newState.id, local: true }, "pause");
       } catch {}
   });
-  client.on("messageCreate", async (m) => {
-    if (m.author.bot || !m.guildId) return;
-    try { if (await require("./message-drafts").receive(m)) return; }
-    catch(error) {
-      await m.channel.send(v2Payload({ embeds: [embed("No se pudo completar la acción", safe(error.message))] })).catch(() => {});
-      return;
-    }
-    store.update("tickets", (db) => {
-      const t = Object.values(db.items || {}).find(
-        (t) => t.channelId === m.channelId && t.status === "abierto",
-      );
-      if (t) t.lastActiveAt = new Date().toISOString();
-    });
-  });
+  client.on("messageCreate", handleMessage);
   client.on("error", (e) => console.error("Discord:", e.message));
   try {
     await client.login(process.env.DISCORD_TOKEN);
@@ -741,6 +763,8 @@ module.exports = {
   start,
   stop,
   dispatch,
+  createTicket,
+  handleMessage,
   examMessage,
   component,
   ctx,

@@ -2,6 +2,7 @@ const fs = require("node:fs"),
   path = require("node:path");
 const store = require("../lib/store");
 const crypto = require("node:crypto");
+const { privateDirectory } = require("../lib/private-files");
 store.init();
 const [action, input] = process.argv.slice(2);
 function load(file) {
@@ -88,12 +89,11 @@ function normalize(name, data) {
 try {
   if (action === "export") {
     const dest = path.resolve(input || "exportacion-datos");
-    fs.mkdirSync(dest, { recursive: true });
+    privateDirectory(dest);
     for (const name of Object.keys(store.defaults))
-      fs.writeFileSync(
+      store.atomic(
         path.join(dest, name + ".json"),
-        JSON.stringify(store.read(name), null, 2),
-        { mode: 0o600 },
+        store.read(name),
       );
     console.log("Datos exportados a " + dest + " (sin tokens).");
   } else if (action === "import") {
