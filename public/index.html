@@ -1,236 +1,731 @@
-<!DOCTYPE html>
-<html lang="es"><head>
+<!DOCTYPE html><html lang="es" class="dark scroll-smooth"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InfiniteDev | Adamsitoo Portfolio</title>
-  <link rel="icon" type="image/svg+xml" href="/images/infinitedev-logo.svg">
-  
-  
-  
-  
-  
-<link rel="stylesheet" href="/css/fontawesome.css"><link rel="stylesheet" href="/css/portfolio.css?v=3.7.1"><script src="/js/metal-text.js?v=3.7.1" defer></script><script src="/js/portfolio.js?v=3.7.1" defer=""></script><link rel="stylesheet" href="/css/legal-links.css"></head>
-<body class="bg-gradient">
-<div class="ambient-aura" aria-hidden="true"><div class="aura-glow"></div></div>
-<div class="intro-screen" aria-hidden="true" hidden><span class="intro-word">Infinitas</span></div>
-<header class="navbar">
-    <div class="container nav-inner">
-      <div class="brand">
-        <img src="/images/infinitedev-logo.svg" alt="Logo" class="brand-img">
-        <span>InfiniteDev</span>
-      </div>
-      <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="portfolio-navigation"><span aria-hidden="true">☰</span></button>
-      <nav class="nav-links" id="portfolio-navigation" aria-label="Navegación principal">
-        <a href="#experiencia" class="clean-link"><i class="fa-solid fa-briefcase"></i> Experiencia</a>
-        <a href="#planes" class="clean-link"><i class="fa-solid fa-box-open"></i> Servicios</a>
-        <a href="#resenas" class="clean-link"><i class="fa-solid fa-star"></i> Reseñas</a>
-      <details class="products-menu"><summary><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown"><a href="/maes-rp"><span class="product-symbol" aria-hidden="true">↗</span><span><strong>Sistema Completo para Rolplay</strong><small>Explora la demo de Maes RP</small></span></a></div></details><a class="mobile-discord" href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer">Discord</a></nav>
-      <div class="nav-actions">
-        <a href="https://discord.gg/mv2tVKKmqV" target="_blank" class="btn nav-secondary" rel="noopener noreferrer">
-          Discord
+  <title>InfiniteDev — By Adamsitoo | Soluciones Infinitas para tus proyectos</title>
+
+  <!-- Google Fonts: Inter + las 21 tipografías exactas de la secuencia de entrada -->
+
+
+
+
+
+
+
+
+<link rel="icon" href="/images/infinitedev-logo.svg"><link rel="stylesheet" href="/css/portfolio-fonts.css?v=3.8.0"><link rel="stylesheet" href="/css/portfolio-utilities.css?v=3.8.0"><link rel="stylesheet" href="/css/portfolio.css?v=3.8.0"><script src="/js/portfolio.js?v=3.8.0" defer=""></script></head>
+
+<body class="min-h-screen flex flex-col bg-[#040406] text-white selection:bg-blue-600 selection:text-white intro-locked">
+
+  <!-- ===================================================================== -->
+  <!-- DEFINICIÓN SVG OCULTA: FILTRO 3D DE METAL AZUL PULIDO ("Infinitas")   -->
+  <!-- Sigue la curvatura de cada carácter, trazo vertical, curva y serifa   -->
+  <!-- sin crear halo exterior (recortado estrictamente a SourceAlpha).      -->
+  <!-- ===================================================================== -->
+  <svg class="pointer-events-none fixed w-0 h-0 overflow-hidden" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="infinitas-blue-chrome" x="-8%" y="-12%" width="116%" height="124%" color-interpolation-filters="sRGB">
+        <!-- 1. Mapa de altura redondeado fino para serifas, bordes y espacios internos -->
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.45" result="bevelFine"></feGaussianBlur>
+        <!-- 2. Mapa de altura profundo para el volumen redondeado principal del cuerpo de cada letra -->
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3.4" result="bevelDeep"></feGaussianBlur>
+
+        <!-- 3. Iluminación difusa azul real que da cuerpo tridimensional a cada trazo -->
+        <feDiffuseLighting in="bevelDeep" surfaceScale="5.2" diffuseConstant="1.15" lighting-color="#256DFF" result="diffuseBody">
+          <fePointLight id="metal-light-diffuse" x="140" y="30" z="95"></fePointLight>
+        </feDiffuseLighting>
+        <feComposite in="diffuseBody" in2="SourceAlpha" operator="in" result="diffuseClipped"></feComposite>
+
+        <!-- 4. Reflejo especular principal celeste brillante que recorre las curvas de cada carácter -->
+        <feSpecularLighting in="bevelDeep" surfaceScale="6.5" specularConstant="1.35" specularExponent="22" lighting-color="#60DCFF" result="specPrimary">
+          <fePointLight id="metal-light-spec1" x="90" y="25" z="68"></fePointLight>
+        </feSpecularLighting>
+        <feComposite in="specPrimary" in2="SourceAlpha" operator="in" result="specPrimaryClipped"></feComposite>
+
+        <!-- 5. Reflejo especular interior secundario en serifas y contrapunzones (espacios internos) -->
+        <feSpecularLighting in="bevelFine" surfaceScale="4.4" specularConstant="1.18" specularExponent="32" lighting-color="#8CEEFF" result="specInner">
+          <fePointLight id="metal-light-spec2" x="240" y="65" z="52"></fePointLight>
+        </feSpecularLighting>
+        <feComposite in="specInner" in2="SourceAlpha" operator="in" result="specInnerClipped"></feComposite>
+
+        <!-- 6. Sombra interior suave en bordes para dar redondez de metal pulido -->
+        <feComposite in="SourceGraphic" in2="diffuseClipped" operator="arithmetic" k1="0.45" k2="0.72" k3="0.38" k4="0" result="metallicBase"></feComposite>
+        <feComposite in="metallicBase" in2="specPrimaryClipped" operator="arithmetic" k1="0" k2="1" k3="0.88" k4="0" result="withSpec1"></feComposite>
+        <feComposite in="withSpec1" in2="specInnerClipped" operator="arithmetic" k1="0" k2="1" k3="0.72" k4="0" result="withSpec2"></feComposite>
+
+        <!-- 7. Ajuste cromático para asegurar que incluso en el máximo brillo conserve tono azul/celeste y nunca gris o blanco plano -->
+        <feColorMatrix in="withSpec2" type="matrix" values="0.72 0.08 0.04 0 0.01
+                  0.10 0.88 0.16 0 0.03
+                  0.18 0.34 1.18 0 0.12
+                  0    0    0    1 0" result="blueTonedMetal"></feColorMatrix>
+
+        <!-- 8. Recorte estricto a la silueta exacta de las letras (cero halo de neón exterior) -->
+        <feComposite in="blueTonedMetal" in2="SourceAlpha" operator="in"></feComposite>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- ===================================================================== -->
+  <!-- ESCENARIO DE ENTRADA INICIAL: ÚNICAMENTE "Infinitas"                  -->
+  <!-- ===================================================================== -->
+  <div id="intro-curtain" aria-hidden="true"></div>
+  <div id="intro-stage" aria-hidden="true">
+    <div id="intro-word-wrapper">
+      <span id="intro-word">Infinitas</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- NAVEGACIÓN FLOTANTE (Cápsula negra separada del borde superior)       -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-4 sm:top-6 z-40 w-full px-4 sm:px-6 pointer-events-none reveal-item reveal-delay-1" inert="">
+    <div class="max-w-4xl mx-auto pointer-events-auto">
+      <div class="flex items-center justify-between gap-3 px-4 sm:px-6 h-14 rounded-full bg-[#08090D]/85 backdrop-blur-md border border-white/10 shadow-[0_14px_38px_rgba(0,0,0,0.75)]">
+
+        <!-- Marca a la izquierda -->
+        <a href="#inicio" class="font-semibold text-sm sm:text-base tracking-tight text-white hover:text-zinc-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-full px-1">
+          InfiniteDev
         </a>
+
+        <!-- Enlaces hacia el centro y la derecha + Discord en el extremo derecho (Escritorio) -->
+        <div class="hidden lg:flex items-center gap-6">
+          <nav aria-label="Navegación principal" class="flex items-center gap-6 text-sm text-zinc-400">
+            <a href="#experiencia" class="hover:text-white transition-colors">Experiencia</a>
+            <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
+            <a href="#resenas" class="hover:text-white transition-colors">Reseñas</a>
+            <button type="button" id="nav-btn-encargar" class="text-zinc-300 hover:text-white transition-colors">
+              Encargar Servicio
+            </button>
+          <details class="products-menu relative text-zinc-400"><summary class="cursor-pointer list-none hover:text-white transition-colors">Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown absolute right-0 top-full mt-4 w-72 rounded-2xl border border-white/10 bg-[#08090D] p-2 shadow-2xl"><a href="/maes-rp" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Sistema Completo para Rolplay</strong><small class="block mt-1 text-xs text-zinc-400">Explora la demo de Maes RP</small></a></div></details></nav>
+
+          <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-all hover:-translate-y-0.5">
+            Discord
+          </a>
+        </div>
+
+        <!-- Controles compactos en Móvil -->
+        <div class="flex items-center gap-2 lg:hidden">
+          <button type="button" id="mobile-quick-encargar" class="px-3 py-1.5 rounded-full text-xs font-medium text-zinc-200 hover:text-white border border-white/10 bg-white/5">
+            Encargar Servicio
+          </button>
+          <button type="button" id="mobile-menu-toggle" aria-expanded="false" aria-controls="mobile-menu-panel" aria-label="Abrir menú de navegación" class="p-2 rounded-full text-zinc-300 hover:text-white hover:bg-white/5 transition-colors focus:outline-none">
+            <svg id="icon-menu-open" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+            <svg id="icon-menu-close" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Superficie desplegable móvil coherente con la cápsula flotante -->
+      <div id="mobile-menu-panel" class="hidden lg:hidden mt-2 rounded-3xl bg-[#08090D]/95 backdrop-blur-xl border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.85)] px-5 py-4 space-y-2"><details class="products-menu relative text-zinc-400"><summary class="cursor-pointer list-none hover:text-white transition-colors">Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown mt-2 w-full rounded-2xl border border-white/10 bg-[#08090D] p-2 shadow-2xl"><a href="/maes-rp" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Sistema Completo para Rolplay</strong><small class="block mt-1 text-xs text-zinc-400">Explora la demo de Maes RP</small></a></div></details>
+        <a href="#experiencia" class="mobile-nav-link block py-2 text-sm text-zinc-300 hover:text-white transition-colors">
+          Experiencia
+        </a>
+        <a href="#servicios" class="mobile-nav-link block py-2 text-sm text-zinc-300 hover:text-white transition-colors">
+          Servicios
+        </a>
+        <a href="#resenas" class="mobile-nav-link block py-2 text-sm text-zinc-300 hover:text-white transition-colors">
+          Reseñas
+        </a>
+        <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+          <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="w-full text-center py-2.5 rounded-full text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-colors">
+            Discord
+          </a>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="hero">
-    <div class="container hero-content">
-      <div class="hero-text reveal">
-        <div class="badge"><i class="fa-solid fa-code"></i> By Adamsitoo</div>
-        <h1>Soluciones <span class="metal-word">Infinitas</span><br>para tus proyectos</h1>
-        <p>Desarrollo especializado en Bots de Discord, Paneles Web Digitales y Software a medida para las mejores comunidades.</p>
-        
-        <div class="hero-buttons">
-          <button class="btn primary-btn" data-service="bots">
-            Encargar Servicio
-          </button>
-          <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="btn ghost-btn">Discord</a>
+  <main class="relative z-10 flex-1" inert="">
+
+    <!-- ===================================================================== -->
+    <!-- HERO PRINCIPAL (#inicio) CON AURA AZUL EXCLUSIVA DE LA PARTE SUPERIOR -->
+    <!-- ===================================================================== -->
+    <section id="inicio" class="relative pt-14 pb-24 sm:pt-20 sm:pb-32 overflow-hidden">
+
+      <!-- Aura azul ambiental exclusiva del Hero (se desplaza al hacer scroll) -->
+      <div id="hero-aura" class="hero-aura-container" aria-hidden="true">
+        <div class="aura-layer-deep"></div>
+        <div class="aura-layer-celeste"></div>
+      </div>
+
+      <!-- Zona central con márgenes amplios y contenido alineado a la izquierda -->
+      <div class="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-12">
+        <div class="max-w-3xl text-left">
+
+          <!-- 1. Identificación discreta "By Adamsitoo" -->
+          <p class="reveal-item reveal-delay-2 text-xs sm:text-sm font-medium text-zinc-400 tracking-wide mb-4 sm:mb-5">
+            By Adamsitoo
+          </p>
+
+          <!-- 2. Título principal en dos líneas principales -->
+          <h1 class="text-4xl sm:text-6xl lg:text-[4.35rem] font-medium tracking-[-0.03em] text-white leading-[1.07] mb-6">
+            <span class="block">
+              <span class="reveal-item reveal-delay-2 inline-block">Soluciones</span>
+              <span id="hero-infinitas-slot" class="infinitas-metallic">Infinitas</span>
+            </span>
+            <span class="reveal-item reveal-delay-3 block">
+              para tus proyectos
+            </span>
+          </h1>
+
+          <!-- 3. Descripción en color gris y anchura limitada -->
+          <p class="reveal-item reveal-delay-3 text-base sm:text-lg text-zinc-400 leading-relaxed max-w-xl mb-9">
+            Desarrollo especializado en Bots de Discord, Paneles Web Digitales y Software a medida para las mejores comunidades.
+          </p>
+
+          <!-- 4. Botones "Encargar Servicio" y "Discord" sin iconos ni símbolos -->
+          <div class="reveal-item reveal-delay-4 flex flex-wrap items-center gap-3.5">
+            <button type="button" id="hero-btn-encargar" class="px-6 py-3 rounded-full text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+              Encargar Servicio
+            </button>
+
+            <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-full text-sm font-medium bg-[#0B0C10]/90 text-white border border-white/15 hover:border-white/30 hover:bg-white/[0.04] transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+              Discord
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TRAYECTORIA INTEGRADA DIRECTAMENTE SOBRE EL FONDO NEGRO (#experiencia)-->
+    <!-- ===================================================================== -->
+    <section id="experiencia" class="py-20 sm:py-28 bg-[#040406] reveal-item reveal-delay-5">
+      <div class="max-w-5xl mx-auto px-6 sm:px-10 lg:px-12 space-y-12">
+
+        <!-- Identificación pequeña y encabezado de mayor tamaño -->
+        <div class="space-y-3 max-w-2xl">
+          <p class="text-xs sm:text-sm text-zinc-500 font-medium tracking-wide">
+            Trayectoria Profesional
+          </p>
+          <h2 class="text-2xl sm:text-4xl font-medium tracking-tight text-white leading-tight">
+            Comunidades que confían en InfiniteDev.
+          </h2>
+        </div>
+
+        <!-- Nombres de las comunidades distribuidos con espacio entre ellos, sin recuadros ni tarjetas -->
+        <div class="pt-2 pb-4 flex flex-wrap items-baseline justify-between gap-x-10 gap-y-8 border-b border-white/[0.07]">
+          <div class="space-y-1">
+            <h3 class="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-white">
+              Escazu RP
+            </h3>
+          </div>
+
+          <div class="space-y-1">
+            <h3 class="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-white">
+              Costa Rica Life
+            </h3>
+          </div>
+
+          <div class="space-y-1">
+            <h3 class="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-white">
+              La Ruta RP
+            </h3>
+          </div>
+
+          <div class="space-y-1">
+            <h3 class="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-white">
+              Maes RP
+            </h3>
+            <p class="text-xs text-zinc-500">
+              Referencia de experiencia
+            </p>
+          </div>
+        </div>
+
+        <!-- Especialidades presentadas debajo como texto secundario discreto -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-zinc-400">
+          <p class="text-zinc-500">
+            Especialidades de desarrollo:
+          </p>
+          <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-zinc-400">
+            <span>Bots personalizados</span>
+            <span>Paneles digitales</span>
+            <span>Páginas web profesionales</span>
+          </div>
         </div>
 
       </div>
+    </section>
 
-    </div>
+    <!-- ===================================================================== -->
+    <!-- SECCIÓN DE SERVICIOS (#servicios)                                     -->
+    <!-- ===================================================================== -->
+    <section id="servicios" class="py-20 sm:py-28 bg-[#040406]">
+      <div class="max-w-5xl mx-auto px-6 sm:px-10 lg:px-12 space-y-12">
+
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+          <div class="space-y-3 max-w-xl">
+            <p class="text-xs sm:text-sm text-zinc-500 font-medium tracking-wide">
+              Servicios
+            </p>
+            <h2 class="text-2xl sm:text-4xl font-medium tracking-tight text-white">
+              Soluciones adaptadas a cada proyecto
+            </h2>
+            <p class="text-sm sm:text-base text-zinc-400 leading-relaxed">
+              Tres áreas principales de desarrollo con preparación directa de solicitud.
+            </p>
+          </div>
+          <div>
+            <button type="button" id="services-header-encargar" class="px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium text-white bg-[#0A0B0E] hover:bg-[#12141C] border border-white/10 hover:border-white/25 transition-all">
+              Abrir asistente de solicitud
+            </button>
+          </div>
+        </div>
+
+        <!-- Tres tarjetas de servicios oscuras con bordes finos y discretos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- 1. Páginas Web -->
+          <article class="minimal-card minimal-card-interactive p-7 flex flex-col justify-between gap-8">
+            <div class="space-y-4">
+              <span class="text-xs text-zinc-500 font-medium">01</span>
+              <h3 class="text-xl font-medium text-white tracking-tight">Páginas Web</h3>
+              <p class="text-sm text-zinc-400 leading-relaxed">
+                Páginas profesionales, paneles de gestión y aplicaciones adaptadas a las necesidades del cliente.
+              </p>
+            </div>
+            <div>
+              <button type="button" data-service-start="web" class="w-full py-2.5 px-4 rounded-full text-xs sm:text-sm font-medium text-white bg-white/[0.04] hover:bg-white hover:text-black border border-white/10 transition-all">
+                Iniciar solicitud de Página Web
+              </button>
+            </div>
+          </article>
+
+          <!-- 2. Bots de Discord -->
+          <article class="minimal-card minimal-card-interactive p-7 flex flex-col justify-between gap-8">
+            <div class="space-y-4">
+              <span class="text-xs text-zinc-500 font-medium">02</span>
+              <h3 class="text-xl font-medium text-white tracking-tight">Bots de Discord</h3>
+              <p class="text-sm text-zinc-400 leading-relaxed">
+                Automatización, moderación, herramientas para comunidades e integraciones.
+              </p>
+            </div>
+            <div>
+              <button type="button" data-service-start="bots" class="w-full py-2.5 px-4 rounded-full text-xs sm:text-sm font-medium text-black bg-white hover:bg-zinc-200 transition-all">
+                Iniciar solicitud de Bot de Discord
+              </button>
+            </div>
+          </article>
+
+          <!-- 3. Sistemas Personalizados -->
+          <article class="minimal-card minimal-card-interactive p-7 flex flex-col justify-between gap-8">
+            <div class="space-y-4">
+              <span class="text-xs text-zinc-500 font-medium">03</span>
+              <h3 class="text-xl font-medium text-white tracking-tight">Sistemas Personalizados</h3>
+              <p class="text-sm text-zinc-400 leading-relaxed">
+                Software, herramientas y automatizaciones a medida.
+              </p>
+            </div>
+            <div>
+              <button type="button" data-service-start="sistemas" class="w-full py-2.5 px-4 rounded-full text-xs sm:text-sm font-medium text-white bg-white/[0.04] hover:bg-white hover:text-black border border-white/10 transition-all">
+                Iniciar solicitud de Sistema
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ASISTENTE DE SOLICITUD DE SERVICIO (#encargar)                        -->
+    <!-- ===================================================================== -->
+    <section id="encargar" class="py-20 sm:py-28 bg-[#040406]">
+      <div class="max-w-4xl mx-auto px-6 sm:px-10 lg:px-12 space-y-10">
+
+        <div class="space-y-3 max-w-2xl">
+          <p class="text-xs sm:text-sm text-zinc-500 font-medium tracking-wide">
+            Solicitud de servicio
+          </p>
+          <h2 class="text-2xl sm:text-4xl font-medium tracking-tight text-white">
+            Encargar Servicio
+          </h2>
+          <p class="text-sm sm:text-base text-zinc-400 leading-relaxed">
+            Prepara los detalles de tu proyecto paso a paso. Puedes volver a los pasos anteriores en cualquier momento sin perder la información introducida.
+          </p>
+        </div>
+
+        <!-- Contenedor del Asistente con la misma apariencia minimalista oscura -->
+        <div class="minimal-card overflow-hidden">
+
+          <!-- Cabecera de progreso del asistente -->
+          <div class="p-6 sm:p-8 border-b border-white/10 space-y-5 bg-[#07080B]">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-white">Asistente de pedido — InfiniteDev</p>
+                <p id="wizard-service-badge" class="text-xs text-zinc-400 mt-0.5">Servicio: Bots de Discord</p>
+              </div>
+              <span id="wizard-step-counter" class="px-3 py-1 rounded-full text-xs font-medium bg-white/[0.05] border border-white/10 text-zinc-300">
+                Paso 1 de 5
+              </span>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="w-full h-1 rounded-full bg-white/10 overflow-hidden">
+              <div id="wizard-progress-bar" class="h-full bg-white transition-all duration-300 uploaded-style-0"></div>
+            </div>
+
+            <!-- Indicador de pasos interactivo -->
+            <ol id="wizard-stepper-list" class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1" aria-label="Pasos del asistente">
+              <!-- Generado dinámicamente por JS -->
+            </ol>
+          </div>
+
+          <!-- Cuerpo de pasos -->
+          <div class="p-6 sm:p-8 min-h-[320px]">
+
+            <!-- Aviso de validación -->
+            <div id="wizard-feedback" class="hidden mb-6 p-4 rounded-xl bg-white/[0.05] border border-white/20 text-zinc-200 text-sm flex items-center justify-between gap-3" role="status">
+              <span id="wizard-feedback-text"></span>
+              <button type="button" id="wizard-feedback-close" class="text-xs underline text-zinc-400 hover:text-white">Cerrar</button>
+            </div>
+
+            <!-- PASO 1: Categoría de Servicio -->
+            <div id="wizard-panel-service" class="space-y-6">
+              <div class="space-y-1">
+                <h3 class="text-lg sm:text-xl font-medium text-white">1. Selecciona el servicio</h3>
+                <p class="text-sm text-zinc-400">Elige el tipo de desarrollo que deseas preparar.</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4" role="radiogroup" aria-label="Categoría de servicio">
+                <button type="button" data-select-service="bots" class="wizard-service-card text-left p-5 rounded-xl border transition-all flex flex-col justify-between gap-4">
+                  <div class="space-y-2">
+                    <h4 class="font-medium text-base text-white">Bots de Discord</h4>
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                      Automatización, moderación, herramientas para comunidades e integraciones.
+                    </p>
+                  </div>
+                  <span class="text-xs text-zinc-500">5 categorías y funciones</span>
+                </button>
+
+                <button type="button" data-select-service="web" class="wizard-service-card text-left p-5 rounded-xl border transition-all flex flex-col justify-between gap-4">
+                  <div class="space-y-2">
+                    <h4 class="font-medium text-base text-white">Páginas Web</h4>
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                      Páginas profesionales, paneles de gestión y aplicaciones adaptadas a las necesidades del cliente.
+                    </p>
+                  </div>
+                  <span class="text-xs text-zinc-500">Descripción del proyecto</span>
+                </button>
+
+                <button type="button" data-select-service="sistemas" class="wizard-service-card text-left p-5 rounded-xl border transition-all flex flex-col justify-between gap-4">
+                  <div class="space-y-2">
+                    <h4 class="font-medium text-base text-white">Sistemas Personalizados</h4>
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                      Software, herramientas y automatizaciones a medida.
+                    </p>
+                  </div>
+                  <span class="text-xs text-zinc-500">Descripción del proyecto</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- PASO 2 (BOTS): Categoría del Bot -->
+            <div id="wizard-panel-bot-category" class="hidden space-y-6">
+              <div class="space-y-1">
+                <h3 class="text-lg sm:text-xl font-medium text-white">2. Categoría del Bot de Discord</h3>
+                <p class="text-sm text-zinc-400">Selecciona la categoría principal para ver sus funciones disponibles.</p>
+              </div>
+
+              <div id="bot-category-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" role="radiogroup" aria-label="Categoría del bot">
+                <!-- Generado por JS -->
+              </div>
+            </div>
+
+            <!-- PASO 3 (BOTS): Funciones según la categoría -->
+            <div id="wizard-panel-bot-features" class="hidden space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="space-y-1">
+                  <h3 class="text-lg sm:text-xl font-medium text-white">
+                    3. Funciones para <span id="current-bot-cat-title" class="text-zinc-300">Bot personalizado</span>
+                  </h3>
+                  <p class="text-sm text-zinc-400">Selecciona las funciones que necesitas incluir.</p>
+                </div>
+                <button type="button" id="btn-select-all-features" class="self-start sm:self-auto px-3.5 py-1.5 rounded-full text-xs font-medium bg-white/[0.05] hover:bg-white/10 text-zinc-200 border border-white/10 transition-colors">
+                  Seleccionar todas
+                </button>
+              </div>
+
+              <div id="bot-features-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Generado por JS -->
+              </div>
+            </div>
+
+            <!-- PASO 2 (WEB / SISTEMAS): Descripción directa del proyecto -->
+            <div id="wizard-panel-project-desc" class="hidden space-y-6">
+              <div class="space-y-1">
+                <h3 id="project-desc-heading" class="text-lg sm:text-xl font-medium text-white">
+                  2. Descripción del proyecto
+                </h3>
+                <p id="project-desc-subtext" class="text-sm text-zinc-400">
+                  Describe la página web, panel de gestión, aplicación o sistema personalizado que necesitas.
+                </p>
+              </div>
+
+              <div class="space-y-2">
+                <label for="input-project-description" class="block text-xs sm:text-sm font-medium text-zinc-300">
+                  Descripción del proyecto
+                </label>
+                <textarea id="input-project-description" rows="5" placeholder="Explica en qué consiste tu proyecto, qué secciones o herramientas necesitas y cómo deseas utilizarlo..." class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-4 py-3 text-sm text-white placeholder-zinc-600 leading-relaxed"></textarea>
+              </div>
+            </div>
+
+            <!-- PASO: Detalles, necesidades y dudas -->
+            <div id="wizard-panel-details" class="hidden space-y-6">
+              <div class="space-y-1">
+                <h3 id="details-step-heading" class="text-lg sm:text-xl font-medium text-white">
+                  Detalles, necesidades y dudas
+                </h3>
+                <p class="text-sm text-zinc-400">
+                  Añade cualquier información adicional, necesidades específicas o dudas que quieras comentar por Discord.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <label for="input-client-name" class="block text-xs font-medium text-zinc-400">
+                    Tu nombre o usuario de Discord (opcional)
+                  </label>
+                  <input id="input-client-name" type="text" placeholder="Ej. Usuario o alias" class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-3.5 py-2.5 text-sm text-white placeholder-zinc-600">
+                </div>
+                <div class="space-y-1.5">
+                  <label for="input-community-name" class="block text-xs font-medium text-zinc-400">
+                    Comunidad o proyecto (opcional)
+                  </label>
+                  <input id="input-community-name" type="text" placeholder="Nombre de tu comunidad o proyecto" class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-3.5 py-2.5 text-sm text-white placeholder-zinc-600">
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label for="input-extra-details" class="block text-xs sm:text-sm font-medium text-zinc-300">
+                  Detalles adicionales, necesidades y dudas
+                </label>
+                <textarea id="input-extra-details" rows="4" placeholder="Añade aquí detalles adicionales, necesidades particulares o cualquier duda sobre el desarrollo..." class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-4 py-3 text-sm text-white placeholder-zinc-600 leading-relaxed"></textarea>
+              </div>
+            </div>
+
+            <!-- PASO FINAL: Resumen de la solicitud -->
+            <div id="wizard-panel-summary" class="hidden space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="space-y-1">
+                  <h3 class="text-lg sm:text-xl font-medium text-white">
+                    Resumen de la solicitud
+                  </h3>
+                  <p class="text-sm text-zinc-400">
+                    Revisa tu solicitud antes de continuar. Puedes volver a cualquier paso anterior sin perder los datos introducidos.
+                  </p>
+                </div>
+                <button type="button" id="btn-copy-summary" class="self-start sm:self-auto px-4 py-2 rounded-full text-xs font-medium bg-white/[0.06] hover:bg-white/15 text-white border border-white/15 transition-colors">
+                  <span id="copy-summary-label">Copiar resumen para Discord</span>
+                </button>
+              </div>
+
+              <div class="rounded-xl border border-white/10 bg-[#050608] p-5">
+                <dl id="summary-dl-list" class="divide-y divide-white/10 text-sm">
+                  <!-- Generado por JS -->
+                </dl>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-zinc-500">Texto listo para compartir en Discord:</span>
+                  <span id="copy-toast-badge" class="hidden text-xs text-zinc-200">Resumen copiado al portapapeles</span>
+                </div>
+                <pre id="summary-text-preview" class="p-4 rounded-xl bg-[#050608] border border-white/10 font-mono text-xs text-zinc-300 whitespace-pre-wrap overflow-x-auto leading-relaxed"></pre>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                <strong class="text-white font-medium block mb-1">Información antes de continuar</strong>
+                El pedido no se envía automáticamente ni implica una contratación confirmada. Al pulsar la acción final se abrirá Discord para que puedas contactar con InfiniteDev y compartir tu solicitud.
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Pie del Asistente -->
+          <div class="px-6 py-5 sm:px-8 border-t border-white/10 bg-[#07080B] flex flex-wrap items-center justify-between gap-4">
+            <button type="button" id="wizard-btn-prev" class="px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 disabled:opacity-35 disabled:pointer-events-none transition-colors">
+              Paso anterior
+            </button>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" id="wizard-btn-next" class="px-6 py-2.5 rounded-full text-xs sm:text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-all">
+                <span id="wizard-btn-next-label">Siguiente paso</span>
+              </button>
+
+              <a id="wizard-btn-discord-final" href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="hidden items-center justify-center px-6 py-2.5 rounded-full text-xs sm:text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-all">
+                Abrir Discord y compartir solicitud
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECCIÓN DE RESEÑAS (#resenas)                                         -->
+    <!-- ===================================================================== -->
+    <section id="resenas" class="py-20 sm:py-28 bg-[#040406]">
+      <div class="max-w-5xl mx-auto px-6 sm:px-10 lg:px-12 space-y-10">
+
+        <div class="space-y-3 max-w-xl">
+          <p class="text-xs sm:text-sm text-zinc-500 font-medium tracking-wide">
+            Opiniones de clientes
+          </p>
+          <h2 class="text-2xl sm:text-4xl font-medium tracking-tight text-white">
+            Reseñas
+          </h2>
+        </div>
+
+        <div class="minimal-card p-8 sm:p-12 text-left max-w-3xl">
+          <div class="space-y-4">
+            <h3 class="text-lg sm:text-xl font-medium text-white">
+              Todavía no hay reseñas disponibles
+            </h3>
+            <p class="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl">
+              Esta sección está reservada para las opiniones de clientes sobre desarrollos realizados por InfiniteDev. Por el momento no se han registrado testimonios publicados.
+            </p>
+            <div class="pt-2">
+              <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium text-white bg-white/[0.05] hover:bg-white/10 border border-white/15 transition-colors">
+                Consultar en Discord
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECCIÓN DE INFORMACIÓN LEGAL (#legal)                                 -->
+    <!-- ===================================================================== -->
+    <section id="legal" class="py-20 sm:py-24 bg-[#040406] border-t border-white/[0.07]">
+      <div class="max-w-5xl mx-auto px-6 sm:px-10 lg:px-12 space-y-8">
+
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div class="space-y-2">
+            <p class="text-xs text-zinc-500 font-medium tracking-wide">Transparencia</p>
+            <h2 class="text-2xl sm:text-3xl font-medium tracking-tight text-white">Información legal</h2>
+          </div>
+
+          <div class="flex flex-wrap gap-2" role="tablist" aria-label="Secciones de información legal">
+            <button type="button" data-legal-tab="privacidad" class="legal-tab-btn px-4 py-2 rounded-full text-xs font-medium border transition-colors">
+              Privacidad
+            </button>
+            <button type="button" data-legal-tab="terminos" class="legal-tab-btn px-4 py-2 rounded-full text-xs font-medium border transition-colors">
+              Términos del servicio
+            </button>
+            <button type="button" data-legal-tab="cookies" class="legal-tab-btn px-4 py-2 rounded-full text-xs font-medium border transition-colors">
+              Información sobre cookies
+            </button>
+            <button type="button" data-legal-tab="derechos" class="legal-tab-btn px-4 py-2 rounded-full text-xs font-medium border transition-colors">
+              Ejercicio de derechos
+            </button>
+          </div>
+        </div>
+
+        <div class="minimal-card p-6 sm:p-8 space-y-6">
+          <!-- Datos del responsable identificados como pendientes sin inventar información -->
+          <div class="p-4 rounded-xl bg-[#050608] border border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div>
+              <span class="text-zinc-500 block">Marca</span>
+              <span class="text-white font-medium mt-0.5 block">InfiniteDev (By Adamsitoo)</span>
+            </div>
+            <div>
+              <span class="text-zinc-500 block">Identidad legal del responsable</span>
+              <span class="text-zinc-300 font-medium mt-0.5 block">Pendiente de completar</span>
+            </div>
+            <div>
+              <span class="text-zinc-500 block">País y dirección</span>
+              <span class="text-zinc-300 font-medium mt-0.5 block">Pendiente de completar</span>
+            </div>
+            <div>
+              <span class="text-zinc-500 block">Correo de contacto legal</span>
+              <span class="text-zinc-300 font-medium mt-0.5 block">Pendiente de completar</span>
+            </div>
+          </div>
+
+          <!-- Privacidad -->
+          <div id="legal-panel-privacidad" class="legal-panel space-y-3 text-sm text-zinc-400 leading-relaxed">
+            <h3 class="text-base font-medium text-white">Privacidad</h3>
+            <p>
+              Este portafolio presenta los servicios de desarrollo de InfiniteDev (By Adamsitoo) y permite preparar un resumen de solicitud para compartirlo voluntariamente por Discord.
+            </p>
+            <p>
+              Los datos introducidos en el asistente permanecen en la sesión local del navegador para facilitar la preparación del pedido y no se envían automáticamente a servidores externos. Los datos de identidad legal del responsable, país, dirección y correo electrónico se encuentran actualmente identificados como <strong>Pendiente de completar</strong>.
+            </p>
+          </div>
+
+          <!-- Términos del servicio -->
+          <div id="legal-panel-terminos" class="legal-panel hidden space-y-3 text-sm text-zinc-400 leading-relaxed">
+            <h3 class="text-base font-medium text-white">Términos del servicio</h3>
+            <p>
+              La utilización del asistente de solicitud tiene carácter orientativo y preparatorio. Completar los pasos no genera un envío automático ni supone una contratación confirmada.
+            </p>
+            <p>
+              Cualquier acuerdo sobre alcance, plazos y condiciones se realiza directamente a través del canal oficial de Discord (<a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="text-white underline underline-offset-4">https://discord.gg/mv2tVKKmqV</a>). Este portafolio no incluye pasarelas de pago ni registro de cuentas de usuario.
+            </p>
+          </div>
+
+          <!-- Información sobre cookies -->
+          <div id="legal-panel-cookies" class="legal-panel hidden space-y-3 text-sm text-zinc-400 leading-relaxed">
+            <h3 class="text-base font-medium text-white">Información sobre cookies</h3>
+            <p>El portafolio no utiliza cookies publicitarias ni de seguimiento comercial. Las opciones del asistente se mantienen en memoria durante la navegación. Al acceder a las áreas autenticadas de Maes RP pueden utilizarse cookies técnicas de sesión; consulta la política completa de cookies.</p>
+          </div>
+
+          <!-- Ejercicio de derechos -->
+          <div id="legal-panel-derechos" class="legal-panel hidden space-y-3 text-sm text-zinc-400 leading-relaxed">
+            <h3 class="text-base font-medium text-white">Ejercicio de derechos sobre los datos personales</h3>
+            <p>
+              Las personas titulares de datos personales pueden solicitar el acceso, rectificación, limitación o supresión de la información que hayan facilitado en sus consultas.
+            </p>
+            <p>
+              Mientras la identidad legal, dirección y correo electrónico del responsable figuran como <strong>Pendiente de completar</strong>, cualquier solicitud o consulta puede canalizarse mediante el enlace oficial de Discord (<a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="text-white underline underline-offset-4">https://discord.gg/mv2tVKKmqV</a>).
+            </p>
+          </div>
+
+        <div class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-400" aria-label="Políticas completas"><a href="/legal" class="hover:text-white underline underline-offset-4">Información legal completa</a><a href="/privacidad" class="hover:text-white underline underline-offset-4">Política de privacidad</a><a href="/cookies" class="hover:text-white underline underline-offset-4">Política de cookies</a><a href="/derechos" class="hover:text-white underline underline-offset-4">Ejercer mis derechos</a></div></div>
+      </div>
+    </section>
+
   </main>
 
-  <section class="trajectory container" aria-label="Trayectoria profesional">
-      <div class="trajectory-content reveal" id="experiencia">
-        <p class="trajectory-eyebrow">Trayectoria Profesional</p>
-        <h2>Comunidades que confían<br>en InfiniteDev.</h2>
-        <div class="client-slider">
-          <div class="client-track">
-            <span>Escazu RP</span>
-            <span>Costa Rica Life</span>
-            <span>La Ruta RP</span>
-            <span>Maes RP</span>
-          </div>
-        </div>
-        <div class="skills-list">
-          <div class="skill-tag">Bots Personalizados</div>
-          <div class="skill-tag">Paneles Digitales</div>
-          <div class="skill-tag">Webs Pro</div>
-        </div>
+  <!-- ===================================================================== -->
+  <!-- PIE DE PÁGINA                                                         -->
+  <!-- ===================================================================== -->
+  <footer class="border-t border-white/[0.07] bg-[#040406] py-10 text-xs text-zinc-500" inert="">
+    <div class="max-w-5xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <span class="font-medium text-white">InfiniteDev</span>
+        <span>·</span>
+        <span class="text-zinc-400">By Adamsitoo</span>
       </div>
-  </section>
 
-  <section class="stats container">
-    <div class="stats-grid reveal">
-      <div class="stat-card">
-        <div class="stat-icon purple"><i class="fa-solid fa-robot"></i></div>
-        <h3><span class="counter" data-target="100">0</span>%</h3>
-        <p>Bots Completados</p>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon yellow"><i class="fa-solid fa-desktop"></i></div>
-        <h3><span class="counter" data-target="100">0</span>%</h3>
-        <p>Paneles Web</p>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green"><i class="fa-solid fa-code"></i></div>
-        <h3><span class="counter" data-target="100">0</span>%</h3>
-        <p>Código Limpio</p>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon pink"><i class="fa-solid fa-headset"></i></div>
-        <h3><span class="counter" data-target="100">0</span>%</h3>
-        <p>Soporte Activo</p>
+      <div class="flex flex-wrap items-center justify-center gap-5">
+        <a href="#experiencia" class="hover:text-white transition-colors">Experiencia</a>
+        <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
+        <a href="#resenas" class="hover:text-white transition-colors">Reseñas</a>
+        <button type="button" data-footer-legal="privacidad" class="hover:text-white transition-colors">Privacidad</button>
+        <button type="button" data-footer-legal="terminos" class="hover:text-white transition-colors">Términos</button>
+        <button type="button" data-footer-legal="cookies" class="hover:text-white transition-colors">Cookies</button>
+        <button type="button" data-footer-legal="derechos" class="hover:text-white transition-colors">Derechos de datos</button>
+        <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="text-white hover:text-zinc-300 font-medium transition-colors">
+          Discord
+        </a>
       </div>
     </div>
-  </section>
+  </footer>
 
-  <section class="container" id="planes">
-    <div class="section-header reveal">
-      <h2>Nuestros Servicios</h2>
-      <p>Elige la solución tecnológica perfecta para tu comunidad</p>
-    </div>
-    
-    <!-- GRID REORDENADO: Web - Bots (Centro/Popular) - Sistemas -->
-    <div class="grid reveal">
-      
-      <!-- 1. Páginas Web (Izquierda) -->
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fa-solid fa-globe"></i></div>
-        <h4>Páginas Web</h4>
-        <p>Diseños modernos, paneles administrativos y aplicaciones web de alto rendimiento.</p>
-        <button class="btn ghost-btn full-width" data-service="web">Encargar</button>
-      </div>
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DE LA SECUENCIA DE ENTRADA, METAL AZUL Y ASISTENTE             -->
+  <!-- ===================================================================== -->
 
-      <!-- 2. Bots de Discord (Centro - Popular) -->
-      <div class="feature-card popular-card">
-        <div class="popular-badge">Más Comprado</div>
-        <div class="feature-icon"></div>
-        <h4>Bots de Discord</h4>
-        <p>Sistemas automatizados, moderación avanzada y herramientas exclusivas para servidores.</p>
-        <button class="btn primary-btn full-width" data-service="bots">Encargar</button>
-      </div>
-
-      <!-- 3. Sistemas Personalizados (Derecha) -->
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fa-solid fa-gears"></i></div>
-        <h4>Sistemas Personalizados</h4>
-        <p>Software a medida y automatizaciones complejas según las necesidades de tu proyecto.</p>
-        <button class="btn ghost-btn full-width" data-service="apps">Encargar</button>
-      </div>
-
-    </div>
-  </section>
-
-  <section class="reviews-section reveal" id="resenas">
-    <div class="container">
-      <div class="section-header">
-        <h2>Lo que dicen de nosotros</h2>
-        <p>Opiniones verificadas de nuestra comunidad</p>
-      </div>
-      <div class="reviews-container" id="draggable-reviews">
-        <div class="reviews-track">
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>Usuario Anonimo</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"Excelente servicio, muy profesional."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>thegoatreall</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"El panel web superó mis expectativas."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>677guy_83</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"Bots de calidad, sin caídas."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>itznot_josueep</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"Adamsitoo es el mejor dev."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>gyealit09</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"Seguridad y confianza total."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>Bayron Camilo Perez</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"Muy rápido y seguro."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-          <div class="review-card">
-            <div class="review-user">
-              <img src="/images/avatar.svg" alt="User">
-              <div><h5>MATIAS BACCA</h5><p>Verificado</p></div>
-            </div>
-            <p class="review-text">"Código limpio y sin errores."</p>
-            <div class="stars">★★★★★</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <div class="container footer-bottom">
-      <p>© 2025 InfiniteDev - Adamsitoo. Todos los derechos reservados.</p>
-    </div>
-  <nav class="legal-links" aria-label="Información legal"><a href="/privacidad">Privacidad</a><a href="/terminos">Condiciones de uso</a><a href="/cookies">Cookies</a><a href="/derechos">Mis datos y derechos</a></nav></footer>
-
-  <!-- WIZARD MODAL MEJORADO -->
-  <dialog id="wizard-dialog" class="wizard-modal" aria-labelledby="wizard-title">
-      <div class="wizard-progress">
-        <div class="progress-bar" id="wizard-progress-bar"></div>
-      </div>
-      
-      <div class="wizard-header">
-        <h3 id="wizard-title">Configurar <span class="gradient-text">Pedido</span></h3>
-        <button class="icon-btn" data-wizard-close="" aria-label="Cerrar formulario"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="wizard-body" id="wizard-step-content">
-        <!-- Contenido dinámico -->
-      </div>
-
-      <div class="wizard-footer">
-        <!-- Orden solicitado: Izquierda = Acción (Primary), Derecha = Regresar (Ghost) -->
-        <button class="btn primary-btn small" id="btn-next" type="button">Siguiente</button>
-        <button class="btn ghost-btn small" id="btn-back" type="button">Volver</button>
-      </div>
-    </dialog>
-
-  
 
 </body></html>

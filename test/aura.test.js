@@ -1,27 +1,25 @@
-const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom');
+const{test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom');
 const root=path.resolve(__dirname,'..');
-function page(reduced){const d=new JSDOM(fs.readFileSync(path.join(root,'public/index.html'),'utf8'),{url:'http://localhost:3000',runScripts:'outside-only',pretendToBeVisual:true});d.window.matchMedia=()=>({matches:reduced});return d;}
+function page(reduced){const d=new JSDOM(fs.readFileSync(path.join(root,'public/index.html'),'utf8'),{url:'http://localhost:3000',runScripts:'outside-only',pretendToBeVisual:true});d.window.matchMedia=()=>({matches:reduced});d.window.scrollTo=()=>{};d.window.HTMLElement.prototype.scrollIntoView=function(){};return d;}
 function run(w){w.eval(fs.readFileSync(path.join(root,'public/js/portfolio.js'),'utf8'));}
-test('movimiento reducido omite entrada y conserva navegación y texto accesible',()=>{
- const d=page(true),w=d.window;run(w);
- assert.equal(w.document.querySelector('.intro-screen').hidden,true);assert.ok(w.document.body.classList.contains('aura-settled'));assert.equal(w.document.querySelector('.products-menu a').getAttribute('href'),'/maes-rp');assert.ok(!w.document.querySelector('.navbar').inert);assert.equal(w.document.querySelector('.hero .metal-word').textContent,'Infinitas');w.close();
+test('movimiento reducido omite la cortina y libera controles, manteniendo el hero adjunto',()=>{
+ const d=page(true),w=d.window;run(w);assert.ok(w.document.body.classList.contains('portfolio-revealed'));assert.equal(w.document.querySelector('#intro-stage').style.display,'none');assert.equal(w.document.querySelectorAll('[inert]').length,0);assert.equal(w.document.querySelector('#hero-infinitas-slot').textContent,'Infinitas');assert.ok(w.document.querySelector('.products-menu a[href="/maes-rp"]'));d.window.close();
 });
-test('entrada mantiene Infinitas, espera, acelera caras únicas, revela metal y libera controles',()=>{
- const d=page(false),w=d.window;let callback;w.requestAnimationFrame=fn=>{callback=fn;return 1;};w.cancelAnimationFrame=()=>{};run(w);
- const body=w.document.body,overlay=w.document.querySelector('.intro-screen');
- assert.equal(overlay.hidden,false);assert.ok(w.document.querySelector('.navbar').inert);
- callback(0);const initial=body.dataset.introTypeface;callback(1600);assert.equal(body.dataset.introTypeface,initial);assert.ok(!body.classList.contains('intro-colored'));
- const faces=[initial];for(const ms of [1750,3000,4000,4800,5450,5980,6400,6750,7020,7240,7420,7560,7670,7760,7830,7895,7940,7985,8025,8060]){callback(ms);faces.push(body.dataset.introTypeface);assert.equal(w.document.querySelector('.intro-word').textContent,'Infinitas');}
- assert.equal(new Set(faces).size,21);callback(8450);assert.ok(body.classList.contains('intro-colored'));callback(9000);assert.ok(body.classList.contains('intro-flight'));
- callback(10100);assert.equal(overlay.hidden,true);assert.ok(!w.document.querySelector('.navbar').inert);assert.ok(body.classList.contains('intro-done'));w.close();
+test('entrada adjunta conserva 21 fuentes únicas, metal, vuelo y desbloqueo final',()=>{
+ const d=page(false),w=d.window;let callback,now=0;w.Date.now=()=>now;w.requestAnimationFrame=fn=>{callback=fn;return 1;};w.cancelAnimationFrame=()=>{};run(w);
+ const word=w.document.querySelector('#intro-word'),faces=[word.style.fontFamily];assert.ok(w.document.querySelector('main').hasAttribute('inert'));
+ now=1600;callback();assert.equal(word.style.fontFamily,faces[0]);
+ let time=1700;for(const interval of [620,530,450,380,320,268,222,182,148,120,96,78,64,54,48,45,42,40,38,36]){
+  now=time;callback();faces.push(word.style.fontFamily);assert.equal(word.textContent,'Infinitas');time+=interval;
+ }
+ assert.equal(new Set(faces).size,21);now=5600;callback();assert.ok(word.classList.contains('infinitas-metallic'));
+ now=7600;callback();assert.ok(w.document.body.classList.contains('portfolio-revealed'));
+ now=10000;callback();assert.equal(w.document.querySelector('#intro-stage').style.display,'none');assert.equal(w.document.querySelectorAll('[inert]').length,0);assert.ok(w.document.querySelector('#hero-infinitas-slot').classList.contains('slot-visible'));d.window.close();
 });
-test('ocultar pestaña durante entrada desbloquea la interfaz',()=>{
- const d=page(false),w=d.window;w.requestAnimationFrame=()=>1;w.cancelAnimationFrame=()=>{};run(w);
- Object.defineProperty(w.document,'hidden',{value:true,configurable:true});w.document.dispatchEvent(new w.Event('visibilitychange'));
- assert.equal(w.document.querySelector('.intro-screen').hidden,true);assert.ok(!w.document.querySelector('.navbar').inert);w.close();
+test('ocultar la pestaña durante la entrada libera el contenido y cancela el ciclo',()=>{
+ const d=page(false),w=d.window;let cancelled=0;w.requestAnimationFrame=()=>1;w.cancelAnimationFrame=()=>cancelled++;run(w);Object.defineProperty(w.document,'hidden',{value:true,configurable:true});w.document.dispatchEvent(new w.Event('visibilitychange'));
+ assert.equal(w.document.querySelectorAll('[inert]').length,0);assert.equal(w.document.querySelector('#intro-stage').style.display,'none');assert.equal(cancelled,1);d.window.close();
 });
-test('trayectoria no usa tarjeta; scroll conserva fondo negro sin capa violeta ni bordes luminosos',()=>{
- const d=page(true),w=d.window;run(w);assert.equal(w.document.querySelector('.violet-field'),null);assert.equal(w.document.querySelector('.intro-edge'),null);
- assert.equal(w.document.querySelector('#experiencia').classList.contains('hero-form-card'),false);
- const before=w.document.body.style.cssText;w.dispatchEvent(new w.Event('scroll'));assert.equal(w.document.body.style.cssText,before);w.close();
+test('aura pertenece al hero, trayectoria no usa tarjeta y no existe transición violeta',()=>{
+ const d=page(true),w=d.window;run(w);assert.ok(w.document.querySelector('#inicio #hero-aura'));assert.equal(w.document.querySelector('.violet-field,.intro-edge'),null);assert.equal(w.document.querySelector('#experiencia .minimal-card'),null);const before=w.document.body.style.cssText;w.dispatchEvent(new w.Event('scroll'));assert.equal(w.document.body.style.cssText,before);d.window.close();
 });

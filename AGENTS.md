@@ -14,3 +14,5 @@ Nunca publicar .env, bot/config.json, bot/data, public/pdfs, public/uploads, .ru
 Conservar las funciones existentes salvo cambio solicitado. InfiniteDev usa la dirección visual azul/celeste; Maes RP mantiene negro, rojo y blanco. El aura azul de InfiniteDev se ancla a la parte superior del documento y se desplaza fuera de la vista al bajar; el resto de la página conserva el fondo negro. Infinitas usa reflejos metálicos azules y una entrada blanca con tipografías distintas que aceleran, sin neón ni luces de borde. Trayectoria se integra sin tarjeta. Respetar prefers-reduced-motion.
 
 Comprobar los cambios con pruebas relevantes, npm test y bash -n cuando cambien scripts Linux. No afirmar que Discord/ER:LC fueron verificados con cuentas reales cuando solamente se usaron respuestas simuladas.
+
+La página de inicio 3.8 usa como fuente el HTML completo adjunto por el usuario. Conservar su composición, filtro SVG metálico, entrada, fuentes y asistente de pedidos. Servir fuentes, estilos compilados y scripts localmente, sin relajar CSP. Los detalles de integración y compilación están en docs/portfolio-upload-3.8.md.

@@ -1,18 +1,25 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom');
 const root=path.resolve(__dirname,'..');
-function page(file,script){const d=new JSDOM(fs.readFileSync(path.join(root,'public',file),'utf8'),{url:'http://localhost:3000/',runScripts:'outside-only'});d.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};d.window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new d.window.Event('close'));};return d;}
+function page(file,script){const d=new JSDOM(fs.readFileSync(path.join(root,'public',file),'utf8'),{url:'http://localhost:3000/',runScripts:'outside-only'});d.window.matchMedia=()=>({matches:true});d.window.HTMLElement.prototype.scrollIntoView=function(){};d.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};d.window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new d.window.Event('close'));};return d;}
 test('portfolio mantiene contenido adjunto y enlaza el producto a la demo de Maes RP',()=>{
  const d=page('index.html');const doc=d.window.document;
- assert.match(doc.body.textContent,/Soluciones Infinitas/);assert.match(doc.body.textContent,/Trayectoria Profesional/);
+ assert.match(doc.body.textContent.replace(/\s+/g,' '),/Soluciones Infinitas/);assert.match(doc.body.textContent,/Trayectoria Profesional/);
  const menu=doc.querySelector('.products-menu');assert.match(menu.textContent,/Productos digitales/);assert.equal(menu.querySelector('a').getAttribute('href'),'/maes-rp');assert.equal(menu.querySelectorAll('a').length,1);
- assert.equal(doc.querySelectorAll('[onclick],[onerror],script:not([src])').length,0);
+ assert.equal(doc.querySelectorAll('[onclick],[onerror],[style],script:not([src])').length,0);
  for(const node of doc.querySelectorAll('link[rel="stylesheet"],script[src]'))assert.ok(fs.existsSync(path.join(root,'public',(node.getAttribute('href')||node.getAttribute('src')).split('?')[0])));
  d.window.close();
 });
-test('asistente conserva notas como texto y vuelve al paso correcto después de confirmar',()=>{
- const d=page('index.html');const w=d.window;let opens=0;w.open=()=>{opens++;};w.eval(fs.readFileSync(path.join(root,'public/js/portfolio.js'),'utf8'));
- const doc=w.document;doc.querySelector('[data-service="web"]').click();const notes=doc.querySelector('#order-notes');notes.value='</textarea><img src=x onerror=alert(1)>';notes.dispatchEvent(new w.Event('input'));doc.querySelector('#btn-next').click();assert.equal(doc.querySelector('.confirm-details img'),null);
- doc.querySelector('#btn-back').click();assert.equal(doc.querySelector('#order-notes').value,notes.value);doc.querySelector('#btn-next').click();assert.equal(opens,0);doc.querySelector('#btn-next').click();assert.equal(opens,1);d.window.close();
+test('nuevo asistente conserva descripciones y notas, escapa HTML y prepara el resumen sin enviarlo',async()=>{
+ const d=page('index.html'),w=d.window,doc=w.document;let copied='';Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async text=>{copied=text;}}});
+ w.eval(fs.readFileSync(path.join(root,'public/js/portfolio.js'),'utf8'));
+ doc.querySelector('[data-service-start="web"]').click();doc.querySelector('#wizard-btn-next').click();assert.ok(!doc.querySelector('#wizard-feedback').classList.contains('hidden'));
+ const description=doc.querySelector('#input-project-description'),unsafe='</textarea><img src=x onerror=alert(1)>';
+ description.value=unsafe;description.dispatchEvent(new w.Event('input'));doc.querySelector('#wizard-btn-next').click();
+ const notes=doc.querySelector('#input-extra-details');notes.value='Conservar estas notas';notes.dispatchEvent(new w.Event('input'));doc.querySelector('#wizard-btn-next').click();
+ assert.equal(doc.querySelector('#summary-dl-list img'),null);assert.ok(doc.querySelector('#summary-dl-list').textContent.includes(unsafe));
+ doc.querySelector('#wizard-btn-prev').click();assert.equal(notes.value,'Conservar estas notas');doc.querySelector('#wizard-btn-prev').click();assert.equal(description.value,unsafe);
+ doc.querySelector('#wizard-btn-next').click();doc.querySelector('#wizard-btn-next').click();doc.querySelector('#btn-copy-summary').click();await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(copied.includes(unsafe));assert.ok(copied.includes('Conservar estas notas'));assert.equal(doc.querySelector('#wizard-btn-discord-final').getAttribute('href'),'https://discord.gg/mv2tVKKmqV');d.window.close();
 });
 test('visitante explora perfil de ejemplo y botones sin función no cambian la vista',async()=>{
  const d=page('citizen.html');const w=d.window;let requests=0;w.fetch=async()=>{requests++;return{ok:false,status:401,json:async()=>({message:'Inicia sesión'})};};w.eval(fs.readFileSync(path.join(root,'public/js/citizen.js'),'utf8'));await new Promise(resolve=>setImmediate(resolve));
@@ -29,8 +36,8 @@ test('perfil autenticado conserva multas, PDF y solicitud real de validación',a
 
 test('navbar móvil conserva enlaces, alterna el menú y restaura foco con Escape',()=>{
  const d=page('index.html'),w=d.window;w.matchMedia=()=>({matches:true});w.eval(fs.readFileSync(path.join(root,'public/js/portfolio.js'),'utf8'));
- const button=w.document.querySelector('.nav-toggle'),nav=w.document.querySelector('.navbar');
- assert.equal(button.getAttribute('aria-expanded'),'false');button.click();assert.ok(nav.classList.contains('menu-open'));assert.equal(button.getAttribute('aria-expanded'),'true');
+ const button=w.document.querySelector('#mobile-menu-toggle'),panel=w.document.querySelector('#mobile-menu-panel');
+ assert.equal(button.getAttribute('aria-expanded'),'false');button.click();assert.ok(!panel.classList.contains('hidden'));assert.equal(button.getAttribute('aria-expanded'),'true');
  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape'}));assert.equal(button.getAttribute('aria-expanded'),'false');assert.equal(w.document.activeElement,button);
- button.click();w.document.querySelector('.nav-links a').click();assert.equal(button.getAttribute('aria-expanded'),'false');assert.ok(w.document.querySelector('.mobile-discord'));w.close();
+ button.click();panel.querySelector('.mobile-nav-link').click();assert.equal(button.getAttribute('aria-expanded'),'false');assert.ok(panel.querySelector('a[href="/maes-rp"]'));w.close();
 });
