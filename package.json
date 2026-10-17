@@ -13,9 +13,12 @@
     "bot": "node bot/index.js",
     "test": "node --test test/*.test.js",
     "data": "node scripts/data-tools.js",
-    "pdf:refresh": "node scripts/refresh-pdfs.js"
+    "pdf:refresh": "node scripts/refresh-pdfs.js",
+    "hash-password": "node scripts/generate-password-hash.js"
   },
   "dependencies": {
+    "argon2": "^0.33.0",
+    "helmet": "^7.0.0",
     "@discordjs/voice": "0.19.2",
     "compression": "1.8.2",
     "cookie-parser": "1.4.7",
