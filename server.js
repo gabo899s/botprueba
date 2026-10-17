@@ -9,7 +9,7 @@ const compression = require("compression");
 const { root, port, baseUrl, configured, listenHost, allowedHosts, dataDir, secureAuthentication } = require("./lib/config");
 const store = require("./lib/store");
 const { recordMatchesCitizen, recordBelongsTo } = require("./lib/record-access");
-const { identityFilename } = require("./lib/identity-document");
+const { identityFilename, identityImageKey } = require("./lib/identity-document");
 const { mountAdmin } = require("./lib/admin");
 const { mountStaff } = require("./lib/staff");
 const botSettings = require("./bot/settings");
@@ -269,8 +269,21 @@ app.get("/api/profile", auth, (req, res) => {
         (c) => c.discordId === req.user.discordId,
       )
     : null;
-  res.json({ success: true, citizen: c ? enriched(c) : null });
+  res.json({ success: true, citizen: c ? { ...enriched(c), identityImageRevision: identityImageKey(c) } : null });
 });
+// Images contain character data: authorize before generation and recheck after I/O.
+app.get("/api/profile/identity.png", auth, jobGate(), wrap(async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  const owner = req.user.discordId;
+  const c = Object.values(store.read("cedulas")).find(c => c.discordId && c.discordId === owner);
+  if (!c) return res.status(404).json({success:false,message:"No tienes una cédula registrada."});
+  const key = identityImageKey(c);
+  const image = await req.runDocumentJob(() => require("./lib/identity-image").identityImage(c));
+  assertSession(req);
+  const current = Object.values(store.read("cedulas")).find(c => c.discordId === owner);
+  if (!current || identityImageKey(current) !== key) return res.status(409).json({success:false,message:"La cédula cambió. Recarga el panel."});
+  res.set({"Cache-Control":"private, no-store", "Content-Disposition":'inline; filename="cedula-personaje.png"'}).type("png").send(image);
+}));
 app.post("/api/auth/logout", logoutAuth, (req, res) => {
   sessions.delete(req.sid);
   res.clearCookie("session", { path: "/" });

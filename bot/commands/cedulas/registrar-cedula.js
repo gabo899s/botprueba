@@ -14,9 +14,12 @@ const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseU
           "sexo",
         ].map((k) => [k, str(k)]),
       );
+      values.grupoSanguineo = str("grupo-sanguineo");
+      values.lugarNacimiento = str("lugar-nacimiento");
       const r = domain.registerCitizen(c, values);
-      const file = await operations.identityPdf(r);
+      const { image, file } = await operations.identityDocuments(r);
       return respond(i, "Cédula registrada", r.numeroCedula, [
+        new AttachmentBuilder(image, { name: "cedula-personaje.png" }),
         new AttachmentBuilder(path.join(root, "public/pdfs", file)),
       ]);
     }
@@ -40,6 +43,20 @@ module.exports.metadata = {
         "description": "apellidos",
         "required": true,
         "max_length": 100
+      },
+      {
+        "type": 3,
+        "name": "grupo-sanguineo",
+        "description": "Grupo sanguíneo del personaje (opcional)",
+        "required": false,
+        "max_length": 8
+      },
+      {
+        "type": 3,
+        "name": "lugar-nacimiento",
+        "description": "Lugar de nacimiento del personaje (opcional)",
+        "required": false,
+        "max_length": 80
       },
       {
         "type": 3,

@@ -5,12 +5,12 @@ const { i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseU
       domain.ownOr(c, user, "police");
       const r = domain.citizen(user);
       if (!r) throw Error("Cédula no encontrada.");
-      const file = await operations.identityPdf(r);
+      const { image, file } = await operations.identityDocuments(r);
       return respond(
         i,
         "Identidad",
         `${r.nombre} ${r.apellidos}\nCédula: ${r.numeroCedula}\nRoblox: ${r.roblox?.username || "sin vincular"}`,
-        [new AttachmentBuilder(path.join(root, "public/pdfs", file))],
+        [new AttachmentBuilder(image, { name: "cedula-personaje.png" }), new AttachmentBuilder(path.join(root, "public/pdfs", file))],
       );
     }
 };

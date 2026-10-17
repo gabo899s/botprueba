@@ -64,6 +64,20 @@ function renderProfile(c, demo=false) {
  const heading=el("div");heading.append(el("strong",name),el("small",c?.numeroCedula || "Sin cédula registrada"));summary.append(photo,heading);$("#profile").append(summary);
  const fields=[["Nacimiento",c?.fechaNacimiento],["Nacionalidad",c?.nacionalidad],["Sexo",c?.sexo],["Estatura",c?.estatura],["Provincia",c?.provincia],["Grupo sanguíneo",c?.grupoSanguineo]];
  for(const [label,value] of fields){detail($("#profile"),label,value);detail($("#identityFields"),label,value);}
+ const identityImage=$("#identityImage");
+ $("#identityImageView").hidden=!c || demo;
+ $("#identityFallback").hidden=!!c && !demo;
+ if(c && !demo){
+   const url="/api/profile/identity.png?v="+encodeURIComponent(c.identityImageRevision || c.numeroCedula);
+   if(identityImage.getAttribute("src")!==url){
+     $("#identityImageStatus").textContent="Preparando imagen de tu cédula…";
+     identityImage.hidden=false;
+     identityImage.onload=()=>{if(identityImage.getAttribute("src")!==url)return;$("#identityFallback").hidden=true;$("#identityImageStatus").textContent="Documento de ficción · Sin validez legal";};
+     identityImage.onerror=()=>{if(identityImage.getAttribute("src")!==url)return;identityImage.onload=null;identityImage.onerror=null;identityImage.removeAttribute("src");identityImage.hidden=true;$("#identityImageStatus").textContent="No se pudo cargar la imagen. Intenta actualizar el panel.";$("#identityFallback").hidden=false;};
+     identityImage.src=url;
+     $("#identityDownload").href=url;
+   }
+ }else{identityImage.onload=null;identityImage.onerror=null;identityImage.removeAttribute("src");$("#identityImageStatus").textContent="";}
  $("#idName").textContent=name;$("#idNumber").textContent=c?.numeroCedula || "—";
  const avatar=c?.roblox?.avatarUrl || me?.discordAvatar;
  for(const id of ["#heroAvatar","#idAvatar"])picture(id,avatar);

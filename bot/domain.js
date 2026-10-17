@@ -72,6 +72,8 @@ function registerCitizen(ctx, data) {
       nombre,
       apellidos,
       sexo: text(data.sexo, 20),
+      grupoSanguineo: text(data.grupoSanguineo, 8),
+      lugarNacimiento: text(data.lugarNacimiento, 80),
       estatura: text(data.estatura, 20),
       nacionalidad: text(data.nacionalidad, 50),
       provincia: text(data.provincia, 50),

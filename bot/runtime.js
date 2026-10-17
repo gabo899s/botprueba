@@ -368,7 +368,7 @@ async function dispatch(i) {
   await i.deferReply({ flags: 64 });
   const handler = require('./handlers')[i.commandName];
   if (!handler) throw Error('Comando sin implementación.');
-  const actorOperations = { ...operations, identityPdf: record => operations.identityPdf(record, c.id) };
+  const actorOperations = { ...operations, identityDocuments: record => operations.identityDocuments(record, c.id), identityPdf: record => operations.identityPdf(record, c.id) };
   return handler({ i, c, user, str, number, integer, fs, path, crypto, root, dataDir, baseUrl, store, domain, settings, operations: actorOperations, prc, commands, economy, respond, rows, safe, embed, member, log, examMessage, createTicket, whitelistApply, syncLicenseRoles, hierarchy, buildMessage, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, client });
 }
 async function component(i) {

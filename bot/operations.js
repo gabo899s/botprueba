@@ -198,7 +198,19 @@ async function approvePunishment(ctx, user, sid, prc) {
 function identityPdf(citizen, actorId = citizen?.discordId) {
   return documentJob(actorId, () => pdf.identityPdf(citizen));
 }
+function identityDocuments(citizen, actorId = citizen?.discordId) {
+  return documentJob(actorId, async () => {
+    const {identityImage,identityImageKey} = require("../lib/identity-image");
+    const snapshot=structuredClone(citizen),key=identityImageKey(snapshot);
+    const image=await identityImage(snapshot);
+    const file=await pdf.identityPdf(snapshot);
+    const current=domain.citizen(snapshot.discordId);
+    if(!current || identityImageKey(current)!==key)throw domain.error("La cédula cambió durante la generación. Vuelve a consultarla.",409);
+    return {image,file};
+  });
+}
 module.exports = {
+  identityDocuments,
   approvePunishment,
   record,
   ban,
