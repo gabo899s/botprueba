@@ -31,6 +31,7 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     "ARRESTO_CHANNEL_ID",
     "ROBLOX_CLIENT_ID",
     "ROBLOX_CLIENT_SECRET",
+    "COOKIE_API_KEY",
     "ADMIN_GUILD_ID",
     "ADMIN_ROLE_IDS",
   ])
@@ -52,6 +53,7 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     ["IDs de roles administrativos", ""],
     ["ID de aplicación Roblox", ""],
     ["Secreto OAuth2 Roblox", ""],
+    ["Clave Cookie API", ""],
     ["Clave del servidor ER:LC", ""],
     ["Clave global PRC", ""],
     ["Token de economía", ""],
@@ -92,6 +94,7 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     const parsed = require("dotenv").parse(fs.readFileSync(file));
     assert.equal(parsed.DISCORD_TOKEN, "");
     assert.equal(parsed.POLICE_ROLE_IDS, "");
+    assert.equal(parsed.COOKIE_API_KEY, "");
     for(const key of ["DOT_ROLE_IDS","FIRE_ROLE_IDS","GANG_ROLE_IDS"])assert.equal(parsed[key],"");
     assert.equal(parsed.BASE_URL, "http://localhost:3000");
     assert.equal(

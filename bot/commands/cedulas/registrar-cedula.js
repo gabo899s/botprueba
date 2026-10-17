@@ -61,7 +61,8 @@ module.exports.metadata = {
       {
         "type": 3,
         "name": "roblox",
-        "description": "roblox",
+        "description": "Busca y selecciona tu usuario de Roblox",
+        "autocomplete": true,
         "required": false,
         "max_length": 40
       },

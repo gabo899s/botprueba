@@ -412,19 +412,25 @@ app.get("/auth/roblox", auth, (req, res) => {
   if (!process.env.ROBLOX_CLIENT_ID || !process.env.ROBLOX_CLIENT_SECRET)
     return res.redirect(
       returnTo+"?error=" +
-        encodeURIComponent("Configura Roblox con npm run setup."),
+        encodeURIComponent("Configura Roblox con bash configurar-roblox-linux.sh."),
     );
   if (!req.user.discordId)
     return res.redirect(
       returnTo+"?error=" +
         encodeURIComponent("Inicia sesión con Discord para vincular Roblox."),
     );
-  const state = beginOAuth(req, res, "roblox", {discordId:req.user.discordId,returnTo});
+  const entry=Object.values(store.read("cedulas")).find(c=>c.discordId===req.user.discordId);
+  if(!entry)return res.redirect(returnTo+"?error="+encodeURIComponent("Registra primero tu cédula con el bot o el staff."));
+  const verifier=crypto.randomBytes(32).toString("base64url");
+  const state = beginOAuth(req, res, "roblox", {discordId:req.user.discordId,returnTo,citizenRevision:identityImageKey(entry)});
+  oauth.get(state).codeVerifier=verifier;
   const q = new URLSearchParams({
     client_id: process.env.ROBLOX_CLIENT_ID,
     redirect_uri: baseUrl + "/auth/roblox/callback",
     response_type: "code",
     scope: "openid profile",
+    code_challenge: crypto.createHash("sha256").update(verifier).digest("base64url"),
+    code_challenge_method: "S256",
     state,
   });
   res.redirect("https://apis.roblox.com/oauth/v1/authorize?" + q);
@@ -435,7 +441,7 @@ app.get("/auth/roblox/callback", auth, async (req, res) => {
     const s = takeState(req, res, "roblox");
     returnTo=s.user?.returnTo==="/ciudadano"?"/ciudadano":"/v2/police";
     if (s.sid !== req.sid || s.user?.discordId !== req.user.discordId || !sessions.has(s.sid)) throw Error("La vinculación debe completarse en la misma sesión que la inició.");
-    if (!req.query.code || req.query.error)
+    if (typeof req.query.code!=="string" || !req.query.code || req.query.code.length>4096 || req.query.error)
       throw Error("Vinculación cancelada.");
     const t = await remote("https://apis.roblox.com/oauth/v1/token", {
       method: "POST",
@@ -443,26 +449,29 @@ app.get("/auth/roblox/callback", auth, async (req, res) => {
         client_id: process.env.ROBLOX_CLIENT_ID,
         client_secret: process.env.ROBLOX_CLIENT_SECRET,
         grant_type: "authorization_code",
+        code_verifier: s.codeVerifier,
         code: req.query.code,
         redirect_uri: baseUrl + "/auth/roblox/callback",
       }),
     });
+    if(typeof t.access_token!=="string" || !t.access_token || t.access_token.length>16384)throw Error("Roblox no devolvió una autorización válida.");
     const u = await remote("https://apis.roblox.com/oauth/v1/userinfo", {
       headers: { Authorization: "Bearer " + t.access_token },
     });
     assertSession(req);
     const robloxId=String(u.sub||''),username=u.preferred_username||u.name;
     if(!/^[1-9]\d{0,19}$/.test(robloxId)||typeof username!=='string'||!/^[A-Za-z0-9_]{3,20}$/.test(username))throw Error('Roblox devolvió un perfil inválido.');
-    let avatarUrl;
-    try {const image=new URL(u.picture);if(image.protocol==='https:'&&image.hostname==='tr.rbxcdn.com'&&!image.username&&!image.password)avatarUrl=image.href;}catch{}
+    const avatarUrl=await require("./lib/roblox-public").headshot({roblox:{userId:robloxId,username}});
+    assertSession(req);
     const db = store.read("cedulas");
     const entry = Object.values(db).find(
       (c) => c.discordId === s.user.discordId,
     );
     if (!entry)
       throw Error(
-        "El administrador debe registrar primero tu ciudadano e ID de Discord.",
+        "Registra primero tu cédula con el bot o el staff.",
       );
+    if(identityImageKey(entry)!==s.user.citizenRevision)throw Error("Tu cédula cambió durante la vinculación. Vuelve a intentarlo.");
     if (
       Object.values(db).some(
         (c) => c !== entry && String(c.roblox?.userId) === String(u.sub),
@@ -473,11 +482,13 @@ app.get("/auth/roblox/callback", auth, async (req, res) => {
       userId: robloxId,
       username,
       displayName: typeof u.name==="string"?u.name.slice(0,50):username,
-      ...(avatarUrl?{avatarUrl}:{}),
+      ...(avatarUrl?{avatarUrl,avatarType:"headshot"}:{}),
       linkedAt: new Date().toISOString(),
     };
-    store.write("cedulas", db);
-    store.audit(req.user.discordId,"profile.roblox.link",{userId:robloxId});
+    store.transaction(()=>{
+      store.write("cedulas", db);
+      store.audit(req.user.discordId,"profile.roblox.link",{userId:robloxId});
+    });
     res.redirect(returnTo+"?message=Cuenta%20Roblox%20vinculada");
   } catch (e) {
     res.redirect(returnTo+"?error=" + encodeURIComponent(e.message));

@@ -152,6 +152,7 @@ async function ask(
   );
   await ask("ROBLOX_CLIENT_ID", "ID de aplicación Roblox");
   await ask("ROBLOX_CLIENT_SECRET", "Secreto OAuth2 Roblox", { secret: true });
+  await ask("COOKIE_API_KEY", "Clave Cookie API (opcional, respaldo de perfil Roblox)", { secret: true });
   await ask("PRC_SERVER_KEY", "Clave del servidor ER:LC (API Pass, opcional)", {
     secret: true,
   });
@@ -223,7 +224,7 @@ async function ask(
   fs.chmodSync(file, 0o600);
   require("../lib/store").init();
   console.log(
-    `\nConfiguración guardada. Inicia con npm start y abre ${settings.BASE_URL}\nCallback Discord: ${settings.BASE_URL}/auth/discord/callback\nCallback Admin: ${settings.BASE_URL}/admin/auth/discord/callback`,
+    `\nConfiguración guardada. Inicia con npm start y abre ${settings.BASE_URL}\nCallback Discord: ${settings.BASE_URL}/auth/discord/callback\nCallback Admin: ${settings.BASE_URL}/admin/auth/discord/callback\nCallback Roblox: ${settings.BASE_URL}/auth/roblox/callback`,
   );
 })()
   .catch((e) => {

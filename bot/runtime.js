@@ -355,6 +355,25 @@ async function whitelistApply(i, user, approve, roblox) {
   }
   return r;
 }
+const autocompleteLimit = require("../lib/security").limiter({limit:30,windowMs:60000});
+const autocompletePending = new Map();
+async function autocomplete(i) {
+  const focused=i.options.getFocused(true);
+  if(i.commandName==="registrar-cedula" && focused?.name==="roblox"){
+    if(!autocompleteLimit(i.user.id))return i.respond([]);
+    const previous=autocompletePending.get(i.user.id);if(previous)clearTimeout(previous.timer);
+    if(previous)previous.resolve(false);
+    const ready=await new Promise(resolve=>{const timer=setTimeout(()=>{autocompletePending.delete(i.user.id);resolve(true);},100);autocompletePending.set(i.user.id,{timer,resolve});});
+    if(!ready)return i.respond([]);
+    const users=await require("../lib/roblox-public").searchUsers(focused.value);
+    return i.respond(users.map(user=>({name:(user.username+" · "+user.displayName+" · "+user.id).slice(0,100),value:user.username})));
+  }
+  if(i.commandName==="enviar-mensaje" && focused?.name==="nombre"){
+    domain.requireScope(ctx(i),"admin");
+    return i.respond(require("./message-drafts").choices(String(focused.value)));
+  }
+  return i.respond([]);
+}
 async function dispatch(i) {
   const c = ctx(i),
     command = commands.find((c) => c.name === i.commandName);
@@ -730,8 +749,7 @@ async function start() {
     if (!configuredGuild(i.guildId)) return;
     try {
       if (i.isAutocomplete()) {
-        domain.requireScope(ctx(i), "admin");
-        await i.respond(require("./message-drafts").choices(String(i.options.getFocused())));
+        await autocomplete(i);
       }
       else if (i.isChatInputCommand()) await dispatch(i);
       else if (i.isButton() || i.isStringSelectMenu()) await component(i);
@@ -791,6 +809,7 @@ module.exports = {
   start,
   stop,
   dispatch,
+  autocomplete,
   createTicket,
   handleMessage,
   examMessage,

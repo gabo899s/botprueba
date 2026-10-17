@@ -83,7 +83,7 @@ function renderProfile(c, demo=false) {
  for(const id of ["#heroAvatar","#idAvatar"])picture(id,avatar);
  picture("#discordAvatar",me?.discordAvatar);picture("#robloxAvatar",c?.roblox?.avatarUrl);
  $("#discordName").textContent=me?.discordUsername || me?.nombreCompleto || "Sin vincular";$("#discordId").textContent=me?.discordId || me?.id || "—";$("#discordStatus").textContent=me?.mode==='discord' || me?.discordId ? "Conectado" : "Sin conexión";
- $("#robloxName").textContent=c?.roblox?.username || "Sin vincular";$("#robloxStatus").textContent=c?.roblox?.username ? "Conectado" : "Sin conexión";
+ $("#robloxName").textContent=c?.roblox?.username || "Sin vincular";$("#robloxStatus").textContent=c?.roblox?.userId ? "Vinculado" : c?.roblox?.username ? "Sin verificar" : "Sin conexión";
  if(c){$("#vehiclesLicenses").append(el("p","Vehículos: "+((c.vehiculos||[]).map(v=>v.placa+" · "+v.modelo).join(", ")||"sin registros")),el("p","Licencias: "+((c.licencias||[]).map(l=>l.tipo+" · "+l.estado).join(", ")||"sin registros")));}
  else empty($("#vehiclesLicenses"),demo?"Aquí verás los vehículos y licencias de tu personaje.":"No hay un personaje asociado a esta sesión. Registra tu cédula con el bot o pide al administrador que asocie tu ID Discord.");
 }

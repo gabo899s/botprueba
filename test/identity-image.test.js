@@ -24,7 +24,7 @@ test('URLs externas, imágenes enormes, respuestas inválidas y XML inyectado qu
  await identityImage({...card,roblox:{avatarUrl:'http://localhost/private'}},{fetchImpl:async()=>{calls++;throw Error();},useCache:false});assert.equal(calls,0);
  const hostile=cardSvg({...card,nombre:'<script>alert(1)</script>&"'},null);assert.ok(!hostile.includes('<script>'));assert.ok(hostile.includes('&lt;script&gt;'));
  for(const response of [new Response('<svg></svg>',{headers:{'content-type':'image/svg+xml'}}),new Response('bad',{headers:{'content-type':'image/png','content-length':'99999999'}}),new Response('bad',{headers:{'content-type':'image/png'}})]){
- const got=await identityImage({...card,roblox:{avatarUrl:'https://tr.rbxcdn.com/a'}},{fetchImpl:async()=>response,useCache:false});assert.equal((await sharp(got).metadata()).format,'png');
+ const got=await identityImage({...card,roblox:{userId:'123'}},{fetchImpl:async url=>url.startsWith('https://thumbnails.roblox.com/')?Response.json({data:[{targetId:123,state:'Completed',imageUrl:'https://tr.rbxcdn.com/AvatarHeadshot/a'}]}):response,useCache:false});assert.equal((await sharp(got).metadata()).format,'png');
  }
  await assert.rejects(identityImage({...card,numeroCedula:'../private'}),{status:400});
 });

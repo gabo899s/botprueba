@@ -99,3 +99,7 @@ Desde 3.9 la web solo admite Discord OAuth2, sin usuario ni contraseña local. L
 ## Auditoría de seguridad 3.10
 
 Se corrigieron accesos a archivos privados, asociación de registros por cédula, separación de roles, cierre de sesiones y límites de recursos. Consulta [el informe de cambios y verificación](docs/security-audit-3.10.md) y [el alcance real del cifrado](docs/privacy-security.md). Los registros operativos no están cifrados de extremo a extremo ni ocultos al operador del servidor.
+
+## Roblox: sugerencias, vinculación y foto de cabeza (3.11.2)
+
+El campo Roblox de `/registrar-cedula` ofrece autocompletado con la API pública. La cédula usa miniaturas de cabeza y la web vincula Roblox mediante OAuth con PKCE. Cookie API puede actuar como respaldo opcional de perfiles/fotos. [Configuración de Roblox, callback, claves locales y comandos](docs/roblox-autocomplete-oauth.md).
