@@ -1,6 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom');
 const root=path.resolve(__dirname,'..');
 function page(file,script){const d=new JSDOM(fs.readFileSync(path.join(root,'public',file),'utf8'),{url:'http://localhost:3000/',runScripts:'outside-only'});d.window.matchMedia=()=>({matches:true});d.window.HTMLElement.prototype.scrollIntoView=function(){};d.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};d.window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new d.window.Event('close'));};return d;}
+function loadCitizen(w){for(const script of w.document.querySelectorAll('script[src]'))w.eval(fs.readFileSync(path.join(root,'public',script.getAttribute('src')),'utf8'));}
 test('portfolio mantiene contenido adjunto y enlaza el producto a la demo de Maes RP',()=>{
  const d=page('index.html');const doc=d.window.document;
  assert.match(doc.body.textContent.replace(/\s+/g,' '),/Soluciones Infinitas/);assert.match(doc.body.textContent,/Trayectoria Profesional/);
@@ -21,17 +22,17 @@ test('nuevo asistente conserva descripciones y notas, escapa HTML y prepara el r
  doc.querySelector('#wizard-btn-next').click();doc.querySelector('#wizard-btn-next').click();doc.querySelector('#btn-copy-summary').click();await new Promise(resolve=>setImmediate(resolve));
  assert.ok(copied.includes(unsafe));assert.ok(copied.includes('Conservar estas notas'));assert.equal(doc.querySelector('#wizard-btn-discord-final').getAttribute('href'),'https://discord.gg/mv2tVKKmqV');d.window.close();
 });
-test('visitante explora perfil de ejemplo y botones sin función no cambian la vista',async()=>{
- const d=page('citizen.html');const w=d.window;let requests=0;w.fetch=async()=>{requests++;return{ok:false,status:401,json:async()=>({message:'Inicia sesión'})};};w.eval(fs.readFileSync(path.join(root,'public/js/citizen.js'),'utf8'));await new Promise(resolve=>setImmediate(resolve));
- const doc=w.document;assert.equal(doc.querySelectorAll('.tile').length,12);assert.equal(doc.querySelector('#demoNotice').hidden,false);assert.match(doc.querySelector('#profile').textContent,/Ciudadano de ejemplo/);
- doc.querySelector('.tile[aria-disabled]').click();assert.equal(doc.querySelector('[data-view="personal"]').hidden,false);assert.equal(requests,1);
+test('visitante explora perfil de ejemplo y módulos pendientes con estado explícito',async()=>{
+ const d=page('citizen.html');const w=d.window;let requests=0;w.fetch=async()=>{requests++;return{ok:false,status:401,json:async()=>({message:'Inicia sesión'})};};loadCitizen(w);await new Promise(resolve=>setImmediate(resolve));
+ const doc=w.document;assert.equal(doc.querySelectorAll('.tile').length,14);assert.equal(doc.querySelector('#demoNotice').hidden,false);assert.match(doc.querySelector('#profile').textContent,/Ciudadano de ejemplo/);
+ doc.querySelector('.tile[data-module=store]').click();assert.equal(doc.querySelector('[data-view="module"]').hidden,false);assert.match(doc.querySelector('#moduleDetails').textContent,/Próximamente/);assert.equal(requests,1);
  doc.querySelector('.tile[data-panel="identity"]').click();assert.equal(doc.querySelector('[data-view="identity"]').hidden,false);d.window.close();
 });
 test('perfil autenticado conserva multas, PDF y solicitud real de validación',async()=>{
  const d=page('citizen.html');const w=d.window;let submitted=false;
- w.fetch=async(url,options)=>({ok:true,status:200,json:async()=>url==='/api/auth/me'?{user:{id:'123',nombreCompleto:'Ana',mode:'discord'}}:url==='/api/profile'?{citizen:{nombre:'Ana',apellidos:'Prueba',numeroCedula:'RP-1',multas:[{id:'m1',estado:'REGISTRADA',articulos:'Art. 1',monto:100,pdfUrl:'/pdfs/m1.pdf'}]}}:url==='/api/profile/sanctions'?{sanctions:[]}:url==='/api/tickets'?{items:[]}:(submitted=true,{success:true})});
- w.eval(fs.readFileSync(path.join(root,'public/js/citizen.js'),'utf8'));await new Promise(resolve=>setImmediate(resolve));assert.ok(w.document.querySelector('#records a[href="/pdfs/m1.pdf"]'));assert.equal(w.document.querySelector('#demoNotice').hidden,true);
- w.document.querySelector('#records button').click();await new Promise(resolve=>setImmediate(resolve));assert.equal(submitted,true);d.window.close();
+ w.fetch=async(url,options)=>({ok:true,status:200,json:async()=>url==='/api/auth/me'?{user:{id:'123',nombreCompleto:'Ana',mode:'discord'}}:url==='/api/profile'?{citizen:{nombre:'Ana',apellidos:'Prueba',numeroCedula:'RP-1',multas:[{id:'m1',estado:'REGISTRADA',articulos:'Art. 1',monto:100,pdfUrl:'/pdfs/m1.pdf'}]}}:url==='/api/profile/sanctions'?{sanctions:[]}:url==='/api/tickets?scope=mine'?{items:[]}:url==='/api/profile/corrections'?{items:[]}:url==='/api/profile/modules'?{modules:[]}:url==='/api/profile/support'?{available:false,message:'Sin bot'}:url==='/api/profile/notifications'?{items:[],unread:0}:(submitted=true,{success:true})});
+ loadCitizen(w);await new Promise(resolve=>setImmediate(resolve));assert.ok(w.document.querySelector('#records a[href="/pdfs/m1.pdf"]'));assert.equal(w.document.querySelector('#demoNotice').hidden,true);
+ [...w.document.querySelectorAll('#records button')].find(b=>b.textContent==='Solicitar validación de pago').click();await new Promise(resolve=>setImmediate(resolve));assert.equal(submitted,true);d.window.close();
 });
 
 test('navbar móvil conserva enlaces, alterna el menú y restaura foco con Escape',()=>{

@@ -42,11 +42,26 @@ async function handleMessage(message) {
     const ticket = Object.values(store.read("tickets").items || {}).find(t => t.channelId === message.channelId && t.status === "abierto");
     // Un mensaje ordinario no debe iniciar una transacción ni reescribir todos
     // los tickets. La actividad se agrupa para resistir ráfagas en un ticket.
-    if (!ticket || Date.now() - Date.parse(ticket.lastActiveAt) < 15000) return;
+    if (!ticket) return;
+    const staffReply = message.author.id !== ticket.userId && message.member &&
+      ["staff", "moderator", "admin"].some(scope => settings.allowed(message.member, scope));
+    const owner = message.guild?.members?.cache?.get(ticket.userId);
+    const ownerCanRead = owner && message.channel?.permissionsFor?.(owner)?.has(PermissionFlagsBits.ViewChannel);
+    const at = Date.now();
+    const activityDue = at - Date.parse(ticket.lastActiveAt) >= 15000;
+    const replyDue = staffReply && ownerCanRead &&
+      (!ticket.lastReplyRecordedAt || at - Date.parse(ticket.lastReplyRecordedAt) >= 15000);
+    if (!activityDue && !replyDue) return;
     store.update("tickets", db => {
       const current = db.items?.[ticket.id];
-      if (current?.status === "abierto" && current.channelId === message.channelId)
-        current.lastActiveAt = new Date().toISOString();
+      if (current?.status !== "abierto" || current.channelId !== message.channelId) return;
+      current.lastActiveAt = new Date().toISOString();
+      if (replyDue) {
+        current.lastReplyRecordedAt = new Date(at).toISOString();
+        current.lastReplyAt = message.createdAt?.toISOString() || new Date().toISOString();
+        current.lastReplyBy = message.author.id;
+        current.lastReplySource = "discord";
+      }
     });
   } catch (error) {
     console.error("Mensaje del bot:", error.message);
@@ -158,7 +173,9 @@ async function examMessage(i, type, exam) {
   return i.editReply(v2Payload(payload));
 }
 let ticketCreationPending = 0;
-async function createTicket(i) {
+async function createTicket(i, options = {}) {
+  const assertSession = options.assertSession || (() => {});
+  assertSession();
   const c = ctx(i),
     cfg = settings.get();
   return ticketJob(i.guildId + ":" + c.id, async () => {
@@ -179,6 +196,7 @@ async function createTicket(i) {
       throw domain.error("Configura al menos un rol de staff para los tickets.");
     const botId = client?.user?.id || i.client?.user?.id;
     if (!botId) throw Error("El bot todavía no está disponible.");
+    assertSession();
     ticketCreationPending++;
     try {
       const channel = await i.guild.channels.create({
@@ -216,15 +234,25 @@ async function createTicket(i) {
       });
       let ticket;
       try {
+        assertSession();
         ticket = domain.ticketCreate(
           c,
           i.options?.getString?.("asunto") || "Soporte",
           channel.id,
         );
+        if (options.requestId) {
+          store.update("tickets", db => {
+            db.items[ticket.id].webRequestId = options.requestId;
+            db.items[ticket.id].guildId = i.guildId;
+          });
+          ticket.webRequestId = options.requestId;
+          ticket.guildId = i.guildId;
+        }
       } catch (e) {
         await channel.delete("No se pudo crear registro de ticket").catch(() => {});
         throw e;
       }
+      assertSession();
       await channel.send(v2Payload({
         content: `Soporte de <@${i.user.id}>`,
         allowedMentions: { users: [i.user.id] },

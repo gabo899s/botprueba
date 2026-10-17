@@ -23,6 +23,9 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     "DISCORD_CLIENT_SECRET",
     "DISCORD_GUILD_ID",
     "POLICE_ROLE_IDS",
+    "DOT_ROLE_IDS",
+    "FIRE_ROLE_IDS",
+    "GANG_ROLE_IDS",
     "LICENSE_ROLE_MAP",
     "MULTA_CHANNEL_ID",
     "ARRESTO_CHANNEL_ID",
@@ -39,6 +42,9 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     ["Secreto OAuth2 de Discord", ""],
     ["ID del servidor", ""],
     ["IDs de roles", ""],
+    ["Roles de DOT", ""],
+    ["Roles de bomberos", ""],
+    ["Roles de bandas", ""],
     ["ID del canal de multas", ""],
     ["ID del canal de arrestos", ""],
     ["Licencias por rol", '{"123456789012345678":"B1"}'],
@@ -86,6 +92,7 @@ test("asistente genera .env privado, secretos y JSON de roles válido", async ()
     const parsed = require("dotenv").parse(fs.readFileSync(file));
     assert.equal(parsed.DISCORD_TOKEN, "");
     assert.equal(parsed.POLICE_ROLE_IDS, "");
+    for(const key of ["DOT_ROLE_IDS","FIRE_ROLE_IDS","GANG_ROLE_IDS"])assert.equal(parsed[key],"");
     assert.equal(parsed.BASE_URL, "http://localhost:3000");
     assert.equal(
       JSON.parse(parsed.LICENSE_ROLE_MAP)["123456789012345678"],

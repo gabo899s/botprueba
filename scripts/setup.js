@@ -108,6 +108,8 @@ async function ask(
   await ask("POLICE_ROLE_IDS", "IDs de roles policiales separados por comas", {
     validate: (v) => v.split(",").every((x) => id(x.trim())),
   });
+  for (const [key,label] of [["DOT_ROLE_IDS","Roles de DOT"],["FIRE_ROLE_IDS","Roles de bomberos"],["GANG_ROLE_IDS","Roles de bandas"]])
+    await ask(key,label+" separados por comas (opcional; vacío oculta el módulo)",{validate:v=>v.split(",").every(x=>id(x.trim()))});
   await ask("MULTA_CHANNEL_ID", "ID del canal de multas", { validate: id });
   await ask("ARRESTO_CHANNEL_ID", "ID del canal de arrestos", { validate: id });
   await ask(

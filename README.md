@@ -58,9 +58,15 @@ Los cambios futuros solicitados por el usuario se suben a este repositorio despu
 
 InfiniteDev tiene un aura azul/celeste que aparece desde negro. Se mueve lentamente hasta terminar la carga, desacelera y queda fija sin saltar de posición. `prefers-reduced-motion` muestra una versión estática. No requiere servicios externos de efectos ni bibliotecas de UI adicionales. Tipografías, iconos y recursos gráficos están incluidos localmente.
 
-Maes RP conserva sus funciones y su identidad roja/blanca/negra. Los botones ciudadanos sin backend son intencionalmente inactivos. El banco no inventa saldos. Los visitantes sin sesión ven una demo sin acceder a datos reales.
+Maes RP conserva sus funciones y su identidad roja/blanca/negra. Los módulos ciudadanos pendientes muestran «Próximamente» y una explicación. DOT, bomberos y bandas se muestran solo con sus roles autorizados; su contenido sigue en preparación. El banco no inventa saldos. Los visitantes sin sesión ven una demo sin acceder a datos reales.
 
 Discord y ER:LC necesitan tus credenciales. Las imágenes locales ausentes no se inventaron; los mensajes pueden usar `public/images/wlaceptada.png` y `wlrechazada.png` si se aportan. La bienvenida por voz necesita FFmpeg y permisos Conectar/Hablar.
+
+## Panel ciudadano · 3.11
+
+Perfil de Discord actualizable, vinculación Roblox verificada por OAuth y correcciones de datos del personaje revisadas por administración. El expediente separa multas y arrestos, incorpora filtros y permite presentar y seguir apelaciones. Las notificaciones personales conservan su estado de lectura. El soporte permite abrir tickets y leer/responder conversaciones que se sincronizan con Discord.
+
+El bot debe estar conectado y tener sus roles/permisos de soporte configurados para crear tickets y acceder a las conversaciones. Los avisos informan cuando no está disponible. No se habilitan saldos, compras, casas ni transferencias ficticias. Los detalles de configuración y límites están en [docs/citizen-panel-3.11.md](docs/citizen-panel-3.11.md).
 
 ## Verificación y documentación
 

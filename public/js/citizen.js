@@ -4,24 +4,16 @@ const el = (tag, text) => {
   n.textContent = text;
   return n;
 };
-let me;
-async function api(url, body) {
-  const r = await fetch(
-    url,
-    body
-      ? {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Local-Request": "1",
-          },
-          body: JSON.stringify(body),
-        }
-      : {},
-  );
-  const d = await r.json();
-  if (!r.ok) { const error = Error(d.message || "Solicitud fallida."); error.status = r.status; throw error; }
-  return d;
+let me, citizen = null;
+let state = { me:null,citizen:null,demo:true,sanctions:[],tickets:[] }, refreshTask, authRevision=0;
+async function api(url, body, options = {}) {
+  const method = options.method || (body !== undefined ? "POST" : "GET");
+  const response = await fetch(url, { ...options, method,
+    headers: { ...(body !== undefined ? { "Content-Type":"application/json" } : {}), ...(!["GET","HEAD"].includes(method.toUpperCase()) ? { "X-Local-Request":"1" } : {}), ...options.headers },
+    ...(body !== undefined ? { body:JSON.stringify(body) } : {}) });
+  const data = await response.json();
+  if (!response.ok) { const error=Error(data.message || "Solicitud fallida."); error.status=response.status; throw error; }
+  return data;
 }
 function notice(text) {
   $("#notice").textContent = text;
@@ -50,7 +42,7 @@ function link(parent, url, text) {
   parent.append(a);
 }
 function picture(id, source) {
- const image=$(id); image.src=source || "/images/avatar.svg";
+ const image=$(id); if(!image)return; image.src=source || "/images/avatar.svg";
  image.addEventListener("error",()=>{image.src="/images/avatar.svg";},{once:true});
 }
 function detail(parent,label,value) {
@@ -63,6 +55,9 @@ function renderProfile(c, demo=false) {
  $("#heroHandle").textContent=c?.roblox?.username ? "@"+c.roblox.username : demo ? "Explora el sistema ciudadano de Maes RP" : "Tu vida en la ciudad, en un solo lugar.";
  $("#demoNotice").hidden=!demo;
  $("#profileMode").textContent=demo ? "Vista de ejemplo" : "Ciudadano";
+ $("#sessionAvatar").hidden=demo; picture("#sessionAvatar",me?.discordAvatar); $("#citizenLogout").hidden=demo;
+ $("#sessionLink").textContent=demo ? "Entrar con Discord ↗" : me?.discordUsername || "Mi cuenta";
+ $("#sessionLink").href=demo ? "/auth/discord?returnTo=citizen" : "#personalPanel";
  $("#profile").replaceChildren();$("#identityFields").replaceChildren();$("#vehiclesLicenses").replaceChildren();
  const summary=el("div", "");summary.className="person-summary";
  const photo=el("img");photo.src=c?.roblox?.avatarUrl || me?.discordAvatar || "/images/avatar.svg";photo.alt="";photo.addEventListener("error",()=>{photo.src="/images/avatar.svg";},{once:true});
@@ -81,70 +76,56 @@ function renderProfile(c, demo=false) {
 function selectPanel(name) {
  const panel=document.querySelector('[data-view="'+name+'"]');if(!panel)return;
  document.querySelectorAll('[data-view]').forEach(n=>{n.hidden=n!==panel;});
- document.querySelectorAll('.tile[data-panel]').forEach(n=>{const active=n.dataset.panel===name;n.classList.toggle('active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
+ document.querySelectorAll('.tile').forEach(n=>{const active=n.dataset.panel===name;n.classList.toggle('active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
 }
 document.querySelectorAll('[data-panel]').forEach(n=>n.addEventListener('click',()=>selectPanel(n.dataset.panel)));
-async function refresh() {
-  try { me = (await api("/api/auth/me")).user; }
+function publish(next) {
+  state=next;
+  document.dispatchEvent(new CustomEvent("citizen:updated",{detail:state,bubbles:true}));
+}
+function clearSession() {
+  authRevision++;me=null;citizen=null;renderProfile(null,true);publish({me,citizen,demo:true,sanctions:[],tickets:[]});
+}
+async function load() {
+  const revision=authRevision;
+  $("#notice").hidden=true;
+  const previousId=me?.discordId||me?.id;
+  try { const result=await api("/api/auth/me");if(revision!==authRevision)return;me=result.user; }
   catch(error) {
-    me=null;renderProfile(null,true);
-    for(const id of ["#records","#sanctions","#tickets"]){$(id).replaceChildren();empty($(id),"No hay registros para mostrar en esta vista de ejemplo.");}
+    if(revision!==authRevision)return;clearSession();
     if(error.status!==401)notice("No se pudo consultar la sesión. Puedes recorrer la vista de ejemplo.");
     return;
   }
-  $("#sessionLink").textContent=me.nombreCompleto || "Mi cuenta";
-  const { citizen: c } = await api("/api/profile");
-  renderProfile(c);
-  $("#records").replaceChildren();
-  if(c) for (const r of [...(c.multas||[]), ...(c.arrestos||[])]) {
-    const row = el("div", "");row.className = "record";
-    row.append(el("strong", r.estado + " · " + r.articulos));
-    link(row, r.pdfUrl, "Abrir PDF");
-    if (r.imagenUrl) link(row, r.imagenUrl, "Ver evidencia");
-    if (r.monto !== undefined && r.estado !== "PAGADA" && !r.paymentRequested)
-      button(row, "Solicitar validación de pago", async () => {
-        await api("/api/profile/payments", { id: r.id });
-        notice("Solicitud de pago enviada. Aún no se marcó como pagada.");
-      });
-    $("#records").append(row);
-  }
-  if(!$("#records").children.length)empty($("#records"),"No tienes multas ni arrestos registrados.");
-  const s = await api("/api/profile/sanctions");
-  $("#sanctions").replaceChildren();
-  for (const r of s.sanctions) {
-    const row = el("div", "");
-    row.className = "record";
-    row.append(el("p", r.motivo + " · " + r.estado));
-    if (r.appeal) row.append(el("p", "Apelación: " + r.appeal.status));
-    else
-      button(row, "Apelar", async () => {
-        const reason = prompt("Motivo de la apelación");
-        if (reason)
-          await api(
-            "/api/staff/sanctions/" +
-              (me.discordId || me.id) +
-              "/" +
-              r.id +
-              "/appeal",
-            { reason },
-          );
-      });
-    $("#sanctions").append(row);
-  }
-  if(!$("#sanctions").children.length)empty($("#sanctions"),"No tienes sanciones registradas.");
-  const tickets = await api("/api/tickets");
-  $("#tickets").replaceChildren();
-  for (const t of tickets.items) {
-    const row = el("div", t.topic + " · " + t.status);
-    row.className = "record";
-    if (t.transcriptFile)
-      link(
-        row,
-        "/api/tickets/" + t.id + "/transcript",
-        "Descargar transcripción",
-      );
-    $("#tickets").append(row);
-  }
-  if(!$("#tickets").children.length)empty($("#tickets"),"No tienes tickets registrados.");
+  if(previousId && previousId!==(me.discordId||me.id)){citizen=null;renderProfile(null);publish({me,citizen,demo:false,sanctions:[],tickets:[]});}
+  try { const result=await api("/api/profile");if(revision!==authRevision)return;citizen=result.citizen; }
+  catch(error){if(revision!==authRevision)return;if(error.status===401){clearSession();return;}citizen=null;renderProfile(null);publish({me,citizen,demo:false,sanctions:[],tickets:[],sanctionsError:error.message,ticketsError:error.message});throw error;}
+  renderProfile(citizen);
+  const results=await Promise.allSettled([api("/api/profile/sanctions"),api("/api/tickets?scope=mine")]);
+  if(revision!==authRevision)return;
+  if(results.some(r=>r.status==='rejected'&&r.reason.status===401)){clearSession();return;}
+  const sanctions=results[0].status==='fulfilled'?results[0].value.sanctions||[]:[];
+  const tickets=results[1].status==='fulfilled'?results[1].value.items||[]:[];
+  publish({me,citizen,demo:false,sanctions,tickets,
+    sanctionsError:results[0].status==='rejected'?results[0].reason.message:null,
+    ticketsError:results[1].status==='rejected'?results[1].reason.message:null});
+  if(results.some(r=>r.status==='rejected'))notice("Algunos registros no se pudieron cargar. Actualiza el panel para volver a intentarlo.");
 }
-refresh().catch((e) => notice(e.message));
+function refresh() {
+  if(!refreshTask)refreshTask=load().catch(error=>{notice(error.message);throw error;}).finally(()=>{refreshTask=null;});
+  return refreshTask;
+}
+window.CitizenApp={api,notice,el,link,refresh,selectPanel,get me(){return me;},get citizen(){return citizen;},get state(){return state;}};
+$("#citizenLogout").addEventListener('click',async event=>{
+ const control=event.currentTarget;control.disabled=true;
+ try{await api('/api/auth/logout',{});clearSession();}catch(error){notice(error.message);}finally{control.disabled=false;}
+});
+$("#refreshCitizen").addEventListener('click',async event=>{
+ const control=event.currentTarget;control.disabled=true;control.textContent='Actualizando…';
+ try{await refresh();}catch{}finally{control.disabled=false;control.textContent='Actualizar panel';}
+});
+function boot(){
+ const query=new URLSearchParams(location.search),message=query.get('error')||query.get('message');
+ refresh().then(()=>{if(message)notice(message);}).catch(()=>{});
+ if(message)history.replaceState(null,'',location.pathname);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

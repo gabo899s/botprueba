@@ -39,6 +39,10 @@
       accountHelp(roblox, demo || !me ? 'Inicia sesión para vincular tu cuenta.' : !citizen ? 'Registra tu personaje con el bot o el staff antes de vincular Roblox.' : 'Comprobando la vinculación de Roblox…', false);
     }
     if (demo || !me) { host.replaceChildren(node('p', 'Inicia sesión con Discord para solicitar correcciones de tu personaje.')); delete host.dataset.owner; return; }
+    const owner = `${me.discordId || me.id}:${citizen?.numeroCedula || ''}`;
+    // Discard another account's history and draft before starting any request.
+    // Failed or delayed responses must never leave the preceding account visible.
+    if (host.dataset.owner !== owner) { host.replaceChildren(node('p', 'Cargando tus solicitudes…')); delete host.dataset.owner; }
     if (citizen && roblox) {
       configTask ||= app.api('/api/config').catch(() => { configTask = null; return null; });
       configTask.then(config => {
@@ -50,7 +54,6 @@
     try {
       const { items } = await app.api('/api/profile/corrections');
       if (mine !== revision) return;
-      const owner = `${me.discordId}:${citizen?.numeroCedula || ''}`;
       if (host.dataset.owner !== owner) {
         host.replaceChildren(); host.dataset.owner = owner;
         if (citizen) buildCorrectionForm(host, citizen, app);

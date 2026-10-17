@@ -154,6 +154,12 @@ async function auth(req, res, next, { refresh = true } = {}) {
       .json({ success: false, message: error.status===503?error.message:"Inicia sesión para continuar." });
   }
 }
+function assertSession(req) {
+  const session=sessions.get(req.sid);
+  if(!session || session.expires<=Date.now() || session.user!==req.user || session.user.mode!=='discord')
+    throw Object.assign(Error('La sesión se cerró. Inicia sesión de nuevo.'),{status:401});
+  return session;
+}
 function logoutAuth(req, res, next) { return auth(req, res, next, { refresh: false }); }
 function police(req, res, next) {
   if (req.user.hasPoliceAccess) return next();
@@ -207,6 +213,10 @@ mountAdmin(app, {
   sessions,
 });
 mountStaff(app, { auth, logoutAuth, wrap, sessions });
+require('./lib/citizen-profile').mountCitizenProfile(app,{auth,wrap,sessions,remote,renewDiscordToken,publicUser,assertSession});
+require('./lib/citizen-notifications').mountCitizenNotifications(app,{auth,wrap});
+require('./lib/citizen-support').mountCitizenSupport(app,{auth,wrap,assertSession});
+require('./lib/citizen-modules').mountCitizenModules(app,{auth});
 require("./lib/privacy").mountPrivacy(app,{auth,wrap});
 app.get(["/legal","/privacidad","/terminos","/cookies","/derechos"],(req,res)=>res.sendFile(path.join(root,"public/legal.html")));
 app.get("/health", (req, res) => res.json({ status: "healthy", local: true }));
@@ -320,7 +330,7 @@ app.get("/auth/discord", (req, res) => {
       "/maes-rp?error=" + encodeURIComponent("Configura Discord con npm run setup."),
     );
   const state = beginOAuth(req, res, "discord", {
-    returnTo: req.query.returnTo === "staff" ? "/staff" : "/maes-rp",
+    returnTo: req.query.returnTo === "staff" ? "/staff" : req.query.returnTo === "citizen" ? "/ciudadano" : "/maes-rp",
   });
   const q = new URLSearchParams({
     client_id: process.env.DISCORD_CLIENT_ID,
@@ -385,17 +395,18 @@ app.get("/auth/discord/callback", async (req, res) => {
   }
 });
 app.get("/auth/roblox", auth, (req, res) => {
+  const returnTo=req.query.returnTo==="citizen"?"/ciudadano":"/v2/police";
   if (!process.env.ROBLOX_CLIENT_ID || !process.env.ROBLOX_CLIENT_SECRET)
     return res.redirect(
-      "/v2/police?error=" +
+      returnTo+"?error=" +
         encodeURIComponent("Configura Roblox con npm run setup."),
     );
   if (!req.user.discordId)
     return res.redirect(
-      "/v2/police?error=" +
+      returnTo+"?error=" +
         encodeURIComponent("Inicia sesión con Discord para vincular Roblox."),
     );
-  const state = beginOAuth(req, res, "roblox", req.user);
+  const state = beginOAuth(req, res, "roblox", {discordId:req.user.discordId,returnTo});
   const q = new URLSearchParams({
     client_id: process.env.ROBLOX_CLIENT_ID,
     redirect_uri: baseUrl + "/auth/roblox/callback",
@@ -406,8 +417,10 @@ app.get("/auth/roblox", auth, (req, res) => {
   res.redirect("https://apis.roblox.com/oauth/v1/authorize?" + q);
 });
 app.get("/auth/roblox/callback", auth, async (req, res) => {
+  let returnTo="/v2/police";
   try {
     const s = takeState(req, res, "roblox");
+    returnTo=s.user?.returnTo==="/ciudadano"?"/ciudadano":"/v2/police";
     if (s.sid !== req.sid || s.user?.discordId !== req.user.discordId || !sessions.has(s.sid)) throw Error("La vinculación debe completarse en la misma sesión que la inició.");
     if (!req.query.code || req.query.error)
       throw Error("Vinculación cancelada.");
@@ -424,6 +437,11 @@ app.get("/auth/roblox/callback", auth, async (req, res) => {
     const u = await remote("https://apis.roblox.com/oauth/v1/userinfo", {
       headers: { Authorization: "Bearer " + t.access_token },
     });
+    assertSession(req);
+    const robloxId=String(u.sub||''),username=u.preferred_username||u.name;
+    if(!/^[1-9]\d{0,19}$/.test(robloxId)||typeof username!=='string'||!/^[A-Za-z0-9_]{3,20}$/.test(username))throw Error('Roblox devolvió un perfil inválido.');
+    let avatarUrl;
+    try {const image=new URL(u.picture);if(image.protocol==='https:'&&image.hostname==='tr.rbxcdn.com'&&!image.username&&!image.password)avatarUrl=image.href;}catch{}
     const db = store.read("cedulas");
     const entry = Object.values(db).find(
       (c) => c.discordId === s.user.discordId,
@@ -439,15 +457,17 @@ app.get("/auth/roblox/callback", auth, async (req, res) => {
     )
       throw Error("Esa cuenta Roblox ya está vinculada.");
     entry.roblox = {
-      userId: String(u.sub),
-      username: u.preferred_username || u.name,
-      displayName: u.name,
+      userId: robloxId,
+      username,
+      displayName: typeof u.name==="string"?u.name.slice(0,50):username,
+      ...(avatarUrl?{avatarUrl}:{}),
       linkedAt: new Date().toISOString(),
     };
     store.write("cedulas", db);
-    res.redirect("/v2/police?message=Cuenta%20Roblox%20vinculada");
+    store.audit(req.user.discordId,"profile.roblox.link",{userId:robloxId});
+    res.redirect(returnTo+"?message=Cuenta%20Roblox%20vinculada");
   } catch (e) {
-    res.redirect("/v2/police?error=" + encodeURIComponent(e.message));
+    res.redirect(returnTo+"?error=" + encodeURIComponent(e.message));
   }
 });
 function enriched(c) {

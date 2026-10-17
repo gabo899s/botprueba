@@ -128,3 +128,21 @@ test('errores de sesión ocultan revisiones que ya se habían mostrado', async (
   const reviews = window.document.querySelector('#profileCorrectionReviews'); assert.equal(reviews.hidden, false);
   authorized = false; window.document.dispatchEvent(new window.Event('staff:updated')); await flush(); assert.equal(reviews.hidden, true); dom.window.close();
 });
+test('cambio de cuenta borra historial y borradores anteriores antes de esperar una API fallida', async () => {
+  const dom = new JSDOM('<section id="profileCorrections"></section>', { runScripts: 'outside-only', url: 'http://localhost' });
+  const { window } = dom; let rejectNew;
+  window.CitizenApp = { api: async () => ({ items: [{ status: 'rejected', createdAt: '2026-01-01', changes: { nombre: 'Dato privado de Ana' }, previous: { nombre: 'Ana' }, reason: 'Motivo privado de Ana' }] }), notice() {} };
+  window.eval(profileScript());
+  const update = (id, nombre) => window.document.dispatchEvent(new window.CustomEvent('citizen:updated', { detail: { me: { discordId: id }, citizen: { numeroCedula: 'RP-123', nombre }, demo: false } }));
+  update(owner, 'Ana'); await flush();
+  assert.ok(window.document.body.textContent.includes('Motivo privado de Ana'));
+  const draft = window.document.querySelector('#correction-nombre'); draft.value = 'Borrador privado de Ana'; draft.dispatchEvent(new window.Event('input', { bubbles: true }));
+  window.CitizenApp.api = () => new Promise((resolve, reject) => { rejectNew = reject; });
+  update(outsider, 'Otro personaje');
+  // This assertion intentionally precedes settling the new account's request.
+  assert.ok(!window.document.body.textContent.includes('Motivo privado de Ana'));
+  assert.equal(window.document.querySelector('#correction-nombre'), null);
+  rejectNew(Error('Servidor no disponible.')); await flush();
+  assert.ok(!window.document.body.textContent.includes('Dato privado de Ana'));
+  assert.equal(window.document.querySelector('#correction-nombre'), null); dom.window.close();
+});

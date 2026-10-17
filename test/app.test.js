@@ -52,7 +52,7 @@ before(async () => {
   const salt = "test-salt",
     hash = scryptSync("prueba-local-123", salt, 64).toString("hex");
   const bootstrap =
-    "global.fetch=async(url,options={})=>({ok:true,status:200,json:async()=>url.endsWith('/oauth2/token')?{access_token:options.body.get('code')==='full-admin-code'?'full-admin-access':options.body.get('code')==='admin-test-code'?'test-admin-access':'test-access'}:url.endsWith('/users/@me')?{id:'123456789012345678',username:options.headers.Authorization==='Bearer full-admin-access'?'admin':'test-citizen',global_name:options.headers.Authorization==='Bearer full-admin-access'?'admin':'Ciudadano'}:{roles:options.headers.Authorization==='Bearer full-admin-access'?['test-admin-role','test-police-role']:options.headers.Authorization==='Bearer test-admin-access'?['test-admin-role']:[]}});const app=require('./server');app.listen(Number(process.env.PORT),'127.0.0.1',()=>console.log('Web lista'));";
+    "global.fetch=async(url,options={})=>({ok:true,status:200,json:async()=>url==='https://apis.roblox.com/oauth/v1/token'?{access_token:'roblox-access'}:url==='https://apis.roblox.com/oauth/v1/userinfo'?{sub:'987654321',preferred_username:'CiudadanoRoblox',name:'Ciudadano RP',picture:'https://tr.rbxcdn.com/test.png'}:url.endsWith('/oauth2/token')?{access_token:options.body.get('code')==='full-admin-code'?'full-admin-access':options.body.get('code')==='admin-test-code'?'test-admin-access':'test-access'}:url.endsWith('/users/@me')?{id:'123456789012345678',username:options.headers.Authorization==='Bearer full-admin-access'?'admin':'test-citizen',global_name:options.headers.Authorization==='Bearer full-admin-access'?'admin':'Ciudadano'}:{roles:options.headers.Authorization==='Bearer full-admin-access'?['test-admin-role','test-police-role']:options.headers.Authorization==='Bearer test-admin-access'?['test-admin-role']:[]}});const app=require('./server');app.listen(Number(process.env.PORT),'127.0.0.1',()=>console.log('Web lista'));";
   child = spawn(process.execPath, ["-e", bootstrap], {
     cwd: dir,
     env: {
@@ -65,6 +65,8 @@ before(async () => {
       LOCAL_PASSWORD_HASH: salt + ":" + hash,
       JWT_SECRET: "test-secret-with-48-randomish-characters-123456789",
       DISCORD_TOKEN: "",
+      ROBLOX_CLIENT_ID:"fixture-roblox",
+      ROBLOX_CLIENT_SECRET:"fixture-roblox-secret",
       DISCORD_CLIENT_ID: "test-app",
       DISCORD_CLIENT_SECRET: "test-secret",
       DISCORD_GUILD_ID: "test-guild",
@@ -534,4 +536,40 @@ test("staff y configuración usan sesión real, rechazan anónimo y guardan turn
       (r) => r.id === sanctions.data.id && r.moderadorId === "123456789012345678",
     ),
   );
+});
+
+test('panel ciudadano integra rutas propias, correcciones, notificaciones y soporte desconectado', async () => {
+  for (const route of ['/api/profile/corrections','/api/profile/notifications','/api/profile/modules','/api/profile/support','/api/tickets/missing/messages'])
+    assert.equal((await request(route,{session:false})).status,401,route);
+  cookie=sessionCookie(await adminLogin());
+  const manifest=await data(await request('/api/profile/modules'));
+  assert.ok(manifest.modules.some(m=>m.id==='store'));
+  assert.ok(!manifest.modules.some(m=>['dot','fire','gangs'].includes(m.id)));
+  const created=await request('/api/profile/corrections',{method:'POST',body:{changes:{nombre:'Ana revisada'},reason:'Corregir el nombre ficticio del personaje'}});
+  assert.equal(created.status,201);const correction=(await data(created)).item;
+  assert.equal(correction.userId,'123456789012345678');assert.equal(correction.baseline,undefined);
+  assert.equal((await request('/api/staff/profile-corrections/'+correction.id+'/decision',{method:'POST',body:{approve:true,note:'Mi propia aprobación'}})).status,403);
+  const profile=await data(await request('/api/profile'));assert.notEqual(profile.citizen.nombre,'Ana revisada');
+  const exportData=await data(await request('/api/privacy/export'));assert.ok(exportData.profileCorrections.some(r=>r.id===correction.id));assert.ok(!JSON.stringify(exportData.profileCorrections).includes('baseline'));
+  const notifications=await data(await request('/api/profile/notifications'));assert.ok(Array.isArray(notifications.items));
+  assert.equal((await request('/api/profile/notifications/read',{method:'POST',body:{all:true}})).status,200);
+  const availability=await data(await request('/api/profile/support'));assert.equal(availability.available,false);
+  assert.equal((await request('/api/tickets',{method:'POST',body:{topic:'Necesito ayuda',requestId:'fixture-ticket-001'}})).status,503);
+  assert.equal((await request('/api/tickets/missing/messages')).status,404);
+  assert.equal((await request('/api/profile/discord/refresh',{method:'POST',body:{}})).status,200);
+  assert.equal((await request('/api/profile/discord/refresh',{method:'POST',body:{}})).status,429);
+});
+
+test('OAuth Roblox del ciudadano vuelve al panel y actualiza únicamente el perfil verificado',async()=>{
+  const start=await request('/auth/roblox?returnTo=citizen');assert.equal(start.status,302);
+  const state=new URL(start.headers.get('location')).searchParams.get('state');
+  const oauthCookie=start.headers.getSetCookie().find(c=>c.startsWith('oauth_state=')).split(';')[0];
+  const callback=await request('/auth/roblox/callback?state='+state+'&code=fixture-code',{headers:{Cookie:cookie+'; '+oauthCookie}});
+  assert.equal(callback.status,302);assert.match(callback.headers.get('location'),/^\/ciudadano\?message=/);
+  const {citizen}=await data(await request('/api/profile'));assert.equal(citizen.roblox.userId,'987654321');assert.equal(citizen.roblox.username,'CiudadanoRoblox');assert.equal(citizen.roblox.avatarUrl,'https://tr.rbxcdn.com/test.png');
+  const loginStart=await request('/auth/discord?returnTo=citizen',{session:false});
+  const loginState=new URL(loginStart.headers.get('location')).searchParams.get('state');
+  const stateCookie=loginStart.headers.getSetCookie().find(c=>c.startsWith('oauth_state=')).split(';')[0];
+  const loginCallback=await request('/auth/discord/callback?state='+loginState+'&code=full-admin-code',{session:false,headers:{Cookie:stateCookie}});
+  assert.equal(loginCallback.headers.get('location'),'/ciudadano');
 });
