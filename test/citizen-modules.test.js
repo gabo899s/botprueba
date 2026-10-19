@@ -19,7 +19,7 @@ test("los módulos departamentales requieren su rol exacto y no conceden privile
   assert.deepEqual(ids(citizenModules({ roles: dotRole }, env)), expected);
   const manifest = JSON.stringify(citizenModules({ roles: [dotRole, fireRole, gangRole] }, env));
   for (const secret of [dotRole, fireRole, gangRole, "ROLE_IDS", "roleVariable"]) assert.ok(!manifest.includes(secret));
-  assert.ok(citizenModules({ roles: [dotRole] }, env).every((module) => module.status === "pending"));
+  assert.ok(citizenModules({ roles: [dotRole] }, env).every((module) => module.status === (["assets","transactions"].includes(module.id)?"available":"pending")));
 });
 
 test("el manifiesto exige sesión, no se almacena en caché y no crea operaciones de departamento", async () => {

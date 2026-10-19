@@ -103,3 +103,7 @@ Se corrigieron accesos a archivos privados, asociación de registros por cédula
 ## Roblox: sugerencias, vinculación y foto de cabeza (3.11.2)
 
 El campo Roblox de `/registrar-cedula` ofrece autocompletado con la API pública. La cédula usa miniaturas de cabeza y la web vincula Roblox mediante OAuth con PKCE. Cookie API puede actuar como respaldo opcional de perfiles/fotos. [Configuración de Roblox, callback, claves locales y comandos](docs/roblox-autocomplete-oauth.md).
+
+## Operaciones, ciudadano y demo · 3.12.0
+
+Mesa policial, expedientes por incidente, rectificaciones con PDF histórico, bienes/licencias y renovaciones, sesiones, soporte continuo y economía configurada; portafolio con pedidos recuperables y demo pública aislada. [Alcance, límites y actualización](docs/release-3.12.md). Demo: `/demo/maes`.

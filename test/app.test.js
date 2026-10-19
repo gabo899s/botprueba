@@ -57,7 +57,7 @@ before(async () => {
     cwd: dir,
     env: {
       ...process.env,
-      MAESRP_DATA_DIR: path.join(dir, 'bot/data'),
+      MAESRP_DATA_DIR: path.join(dir, 'isolated-private-data'),
       NODE_PATH: path.join(source, "node_modules"),
       PORT: String(port),
       BASE_URL: url,
@@ -263,11 +263,17 @@ test("OAuth inválido, recuperación de cola y logout revoca sesión", async () 
   );
   const s = await data(await request("/api/bot/status"));
   assert.equal(s.queue.notifications, 2);
+  const queueDir = path.join(dir, 'isolated-private-data');
+  const notification = fs.readdirSync(path.join(queueDir, 'notifications')).find(name => name.endsWith('.json'));
+  fs.renameSync(path.join(queueDir, 'notifications', notification), path.join(queueDir, 'errors', notification));
   assert.equal(
     (await request("/api/notifications/retry", { method: "POST", body: {} }))
       .status,
     200,
   );
+  assert.equal(fs.existsSync(path.join(queueDir, 'errors', notification)), false);
+  assert.equal(fs.existsSync(path.join(queueDir, 'notifications', notification)), true);
+  assert.equal((await data(await request('/api/bot/status'))).queue.notifications, 2);
   assert.equal(
     (await request("/api/auth/logout", { method: "POST", body: {} })).status,
     200,

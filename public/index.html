@@ -2,6 +2,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>InfiniteDev — By Adamsitoo | Soluciones Infinitas para tus proyectos</title>
+  <meta name="description" content="InfiniteDev, por Adamsitoo: bots de Discord, páginas web y sistemas personalizados. Explora servicios, prepara tu solicitud y descubre la demostración de Maes RP.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="InfiniteDev — Soluciones Infinitas para tus proyectos">
+  <meta property="og:description" content="Bots de Discord, páginas web y sistemas personalizados por Adamsitoo. Explora una demostración con datos ficticios de Maes RP.">
+  <meta name="twitter:card" content="summary">
+  <link rel="preload" href="/fonts/Inter-Variable.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/AveriaSerifLibre-Italic.ttf" as="font" type="font/ttf" crossorigin>
 
   <!-- Google Fonts: Inter + las 21 tipografías exactas de la secuencia de entrada -->
 
@@ -12,9 +19,9 @@
 
 
 
-<link rel="icon" href="/images/infinitedev-logo.svg"><link rel="stylesheet" href="/css/portfolio-fonts.css?v=3.8.0"><link rel="stylesheet" href="/css/portfolio-utilities.css?v=3.8.0"><link rel="stylesheet" href="/css/portfolio.css?v=3.8.0"><script src="/js/portfolio.js?v=3.8.0" defer=""></script></head>
+<link rel="icon" href="/images/infinitedev-logo.svg"><link rel="stylesheet" href="/css/portfolio-fonts.css?v=3.8.0"><link rel="stylesheet" href="/css/portfolio-utilities.css?v=3.8.0"><link rel="stylesheet" href="/css/portfolio.css?v=3.12.0"><script src="/js/portfolio.js?v=3.12.0" defer=""></script></head>
 
-<body class="min-h-screen flex flex-col bg-[#040406] text-white selection:bg-blue-600 selection:text-white intro-locked">
+<body class="min-h-screen flex flex-col bg-[#040406] text-white selection:bg-blue-600 selection:text-white">
 
   <!-- ===================================================================== -->
   <!-- DEFINICIÓN SVG OCULTA: FILTRO 3D DE METAL AZUL PULIDO ("Infinitas")   -->
@@ -67,6 +74,8 @@
   <!-- ===================================================================== -->
   <!-- ESCENARIO DE ENTRADA INICIAL: ÚNICAMENTE "Infinitas"                  -->
   <!-- ===================================================================== -->
+  <button id="intro-skip" class="intro-skip" type="button" hidden>Omitir presentación</button>
+  <noscript><p class="portfolio-noscript">La presentación y el asistente necesitan JavaScript. Puedes explorar los servicios y contactar por <a href="https://discord.gg/mv2tVKKmqV" rel="noopener noreferrer">Discord</a>.</p></noscript>
   <div id="intro-curtain" aria-hidden="true"></div>
   <div id="intro-stage" aria-hidden="true">
     <div id="intro-word-wrapper">
@@ -77,7 +86,7 @@
   <!-- ===================================================================== -->
   <!-- NAVEGACIÓN FLOTANTE (Cápsula negra separada del borde superior)       -->
   <!-- ===================================================================== -->
-  <header class="sticky top-4 sm:top-6 z-40 w-full px-4 sm:px-6 pointer-events-none reveal-item reveal-delay-1" inert="">
+  <header class="sticky top-4 sm:top-6 z-40 w-full px-4 sm:px-6 pointer-events-none reveal-item reveal-delay-1">
     <div class="max-w-4xl mx-auto pointer-events-auto">
       <div class="flex items-center justify-between gap-3 px-4 sm:px-6 h-14 rounded-full bg-[#08090D]/85 backdrop-blur-md border border-white/10 shadow-[0_14px_38px_rgba(0,0,0,0.75)]">
 
@@ -95,7 +104,7 @@
             <button type="button" id="nav-btn-encargar" class="text-zinc-300 hover:text-white transition-colors">
               Encargar Servicio
             </button>
-          <details class="products-menu relative text-zinc-400"><summary class="cursor-pointer list-none hover:text-white transition-colors">Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown absolute right-0 top-full mt-4 w-72 rounded-2xl border border-white/10 bg-[#08090D] p-2 shadow-2xl"><a href="/maes-rp" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Sistema Completo para Rolplay</strong><small class="block mt-1 text-xs text-zinc-400">Explora la demo de Maes RP</small></a></div></details></nav>
+          <details class="products-menu relative text-zinc-400"><summary class="cursor-pointer list-none hover:text-white transition-colors">Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown absolute right-0 top-full mt-4 w-72 rounded-2xl border border-white/10 bg-[#08090D] p-2 shadow-2xl"><a href="/demo/maes" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Sistema Completo para Rolplay</strong><small class="block mt-1 text-xs text-zinc-400">Demostración pública · datos ficticios</small></a><a href="/maes-rp" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Maes RP · comunidad</strong><small class="block mt-1 text-xs text-zinc-400">Acceso real mediante Discord</small></a></div></details></nav>
 
           <a href="https://discord.gg/mv2tVKKmqV" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-all hover:-translate-y-0.5">
             Discord
@@ -120,7 +129,7 @@
       </div>
 
       <!-- Superficie desplegable móvil coherente con la cápsula flotante -->
-      <div id="mobile-menu-panel" class="hidden lg:hidden mt-2 rounded-3xl bg-[#08090D]/95 backdrop-blur-xl border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.85)] px-5 py-4 space-y-2"><details class="products-menu relative text-zinc-400"><summary class="cursor-pointer list-none hover:text-white transition-colors">Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown mt-2 w-full rounded-2xl border border-white/10 bg-[#08090D] p-2 shadow-2xl"><a href="/maes-rp" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Sistema Completo para Rolplay</strong><small class="block mt-1 text-xs text-zinc-400">Explora la demo de Maes RP</small></a></div></details>
+      <div id="mobile-menu-panel" class="hidden lg:hidden mt-2 rounded-3xl bg-[#08090D]/95 backdrop-blur-xl border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.85)] px-5 py-4 space-y-2"><details class="products-menu relative text-zinc-400"><summary class="cursor-pointer list-none hover:text-white transition-colors">Productos digitales <span aria-hidden="true">⌄</span></summary><div class="products-dropdown mt-2 w-full rounded-2xl border border-white/10 bg-[#08090D] p-2 shadow-2xl"><a href="/demo/maes" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Sistema Completo para Rolplay</strong><small class="block mt-1 text-xs text-zinc-400">Demostración pública · datos ficticios</small></a><a href="/maes-rp" class="block rounded-xl p-3 hover:bg-white/5"><strong class="block text-sm font-medium text-white">Maes RP · comunidad</strong><small class="block mt-1 text-xs text-zinc-400">Acceso real mediante Discord</small></a></div></details>
         <a href="#experiencia" class="mobile-nav-link block py-2 text-sm text-zinc-300 hover:text-white transition-colors">
           Experiencia
         </a>
@@ -139,7 +148,7 @@
     </div>
   </header>
 
-  <main class="relative z-10 flex-1" inert="">
+  <main class="relative z-10 flex-1">
 
     <!-- ===================================================================== -->
     <!-- HERO PRINCIPAL (#inicio) CON AURA AZUL EXCLUSIVA DE LA PARTE SUPERIOR -->
@@ -236,6 +245,13 @@
               Referencia de experiencia
             </p>
           </div>
+        </div>
+
+        <div class="portfolio-cases" aria-label="Detalles de los proyectos">
+          <details class="portfolio-case"><summary>Escazu RP <span>Ver ficha</span></summary><p>Referencia incluida en la trayectoria. La descripción del encargo, los resultados y las capturas autorizadas están pendientes de completar.</p><button type="button" data-case-start="Escazu RP" data-case-service="bots">Quiero algo parecido</button></details>
+          <details class="portfolio-case"><summary>Costa Rica Life <span>Ver ficha</span></summary><p>Referencia incluida en la trayectoria. La descripción del encargo, los resultados y las capturas autorizadas están pendientes de completar.</p><button type="button" data-case-start="Costa Rica Life" data-case-service="bots">Quiero algo parecido</button></details>
+          <details class="portfolio-case"><summary>La Ruta RP <span>Ver ficha</span></summary><p>Referencia incluida en la trayectoria. La descripción del encargo, los resultados y las capturas autorizadas están pendientes de completar.</p><button type="button" data-case-start="La Ruta RP" data-case-service="bots">Quiero algo parecido</button></details>
+          <details class="portfolio-case"><summary>Maes RP <span>Ver sistema de ejemplo</span></summary><p>El proyecto reúne una web, panel ciudadano, herramientas policiales y un bot de Discord para una comunidad de rol. La demostración pública utiliza datos ficticios y no emite actuaciones reales.</p><div class="portfolio-case-actions"><a href="/demo/maes">Explorar demostración</a><button type="button" data-case-start="Maes RP" data-case-service="sistemas">Quiero algo parecido</button></div></details>
         </div>
 
         <!-- Especialidades presentadas debajo como texto secundario discreto -->
@@ -381,6 +397,13 @@
           <div class="p-6 sm:p-8 min-h-[320px]">
 
             <!-- Aviso de validación -->
+            <div class="wizard-draft" aria-labelledby="draft-heading">
+              <h3 id="draft-heading">Tu borrador, bajo tu control</h3>
+              <p>No se guarda nada automáticamente. Guardar conserva el pedido solo en este navegador durante 7 días; cualquier persona que use este navegador podría leerlo. Evita contraseñas, tokens y datos sensibles. Restaurar sustituye lo que hayas escrito ahora.</p>
+              <div class="wizard-draft-actions"><button type="button" id="draft-save">Guardar borrador aquí</button><button type="button" id="draft-restore" disabled>Restaurar borrador</button><button type="button" id="draft-delete" disabled>Borrar borrador guardado</button></div>
+              <p id="draft-status" role="status" aria-live="polite">No hay borrador guardado.</p>
+            </div>
+
             <div id="wizard-feedback" class="hidden mb-6 p-4 rounded-xl bg-white/[0.05] border border-white/20 text-zinc-200 text-sm flex items-center justify-between gap-3" role="status">
               <span id="wizard-feedback-text"></span>
               <button type="button" id="wizard-feedback-close" class="text-xs underline text-zinc-400 hover:text-white">Cerrar</button>
@@ -472,7 +495,7 @@
                 <label for="input-project-description" class="block text-xs sm:text-sm font-medium text-zinc-300">
                   Descripción del proyecto
                 </label>
-                <textarea id="input-project-description" rows="5" placeholder="Explica en qué consiste tu proyecto, qué secciones o herramientas necesitas y cómo deseas utilizarlo..." class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-4 py-3 text-sm text-white placeholder-zinc-600 leading-relaxed"></textarea>
+                <textarea id="input-project-description" maxlength="5000" rows="5" placeholder="Explica en qué consiste tu proyecto, qué secciones o herramientas necesitas y cómo deseas utilizarlo..." class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-4 py-3 text-sm text-white placeholder-zinc-600 leading-relaxed"></textarea>
               </div>
             </div>
 
@@ -492,13 +515,13 @@
                   <label for="input-client-name" class="block text-xs font-medium text-zinc-400">
                     Tu nombre o usuario de Discord (opcional)
                   </label>
-                  <input id="input-client-name" type="text" placeholder="Ej. Usuario o alias" class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-3.5 py-2.5 text-sm text-white placeholder-zinc-600">
+                  <input id="input-client-name" maxlength="120" type="text" placeholder="Ej. Usuario o alias" class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-3.5 py-2.5 text-sm text-white placeholder-zinc-600">
                 </div>
                 <div class="space-y-1.5">
                   <label for="input-community-name" class="block text-xs font-medium text-zinc-400">
                     Comunidad o proyecto (opcional)
                   </label>
-                  <input id="input-community-name" type="text" placeholder="Nombre de tu comunidad o proyecto" class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-3.5 py-2.5 text-sm text-white placeholder-zinc-600">
+                  <input id="input-community-name" maxlength="160" type="text" placeholder="Nombre de tu comunidad o proyecto" class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-3.5 py-2.5 text-sm text-white placeholder-zinc-600">
                 </div>
               </div>
 
@@ -506,7 +529,7 @@
                 <label for="input-extra-details" class="block text-xs sm:text-sm font-medium text-zinc-300">
                   Detalles adicionales, necesidades y dudas
                 </label>
-                <textarea id="input-extra-details" rows="4" placeholder="Añade aquí detalles adicionales, necesidades particulares o cualquier duda sobre el desarrollo..." class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-4 py-3 text-sm text-white placeholder-zinc-600 leading-relaxed"></textarea>
+                <textarea id="input-extra-details" maxlength="5000" rows="4" placeholder="Añade aquí detalles adicionales, necesidades particulares o cualquier duda sobre el desarrollo..." class="w-full rounded-xl bg-[#050608] border border-white/15 focus:border-white/40 focus:outline-none px-4 py-3 text-sm text-white placeholder-zinc-600 leading-relaxed"></textarea>
               </div>
             </div>
 
@@ -525,6 +548,8 @@
                   <span id="copy-summary-label">Copiar resumen para Discord</span>
                 </button>
               </div>
+
+              <button type="button" id="btn-download-summary" class="portfolio-action">Descargar resumen (.txt)</button>
 
               <div class="rounded-xl border border-white/10 bg-[#050608] p-5">
                 <dl id="summary-dl-list" class="divide-y divide-white/10 text-sm">
@@ -659,7 +684,7 @@
               Este portafolio presenta los servicios de desarrollo de InfiniteDev (By Adamsitoo) y permite preparar un resumen de solicitud para compartirlo voluntariamente por Discord.
             </p>
             <p>
-              Los datos introducidos en el asistente permanecen en la sesión local del navegador para facilitar la preparación del pedido y no se envían automáticamente a servidores externos. Los datos de identidad legal del responsable, país, dirección y correo electrónico se encuentran actualmente identificados como <strong>Pendiente de completar</strong>.
+              Los datos introducidos en el asistente permanecen en memoria y no se envían automáticamente a servidores externos. Solo si pulsas «Guardar borrador aquí» se conservan en el almacenamiento local de este navegador durante un máximo de 7 días. Puedes restaurarlos o eliminarlos en el propio asistente; no se sincronizan entre dispositivos y cualquier persona con acceso al navegador podría leerlos. Los datos de identidad legal del responsable, país, dirección y correo electrónico se encuentran actualmente identificados como <strong>Pendiente de completar</strong>.
             </p>
           </div>
 
@@ -677,7 +702,7 @@
           <!-- Información sobre cookies -->
           <div id="legal-panel-cookies" class="legal-panel hidden space-y-3 text-sm text-zinc-400 leading-relaxed">
             <h3 class="text-base font-medium text-white">Información sobre cookies</h3>
-            <p>El portafolio no utiliza cookies publicitarias ni de seguimiento comercial. Las opciones del asistente se mantienen en memoria durante la navegación. Al acceder a las áreas autenticadas de Maes RP pueden utilizarse cookies técnicas de sesión; consulta la política completa de cookies.</p>
+            <p>El portafolio no utiliza cookies publicitarias ni de seguimiento comercial. Las opciones del asistente se mantienen en memoria durante la navegación. El borrador opcional utiliza localStorage únicamente cuando pulsas «Guardar borrador aquí», caduca a los 7 días y se puede borrar desde el asistente. No es una cookie de seguimiento. Al acceder a las áreas autenticadas de Maes RP pueden utilizarse cookies técnicas de sesión; consulta la política completa de cookies.</p>
           </div>
 
           <!-- Ejercicio de derechos -->
@@ -700,7 +725,7 @@
   <!-- ===================================================================== -->
   <!-- PIE DE PÁGINA                                                         -->
   <!-- ===================================================================== -->
-  <footer class="border-t border-white/[0.07] bg-[#040406] py-10 text-xs text-zinc-500" inert="">
+  <footer class="border-t border-white/[0.07] bg-[#040406] py-10 text-xs text-zinc-500">
     <div class="max-w-5xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-6">
       <div class="flex items-center gap-2.5">
         <span class="font-medium text-white">InfiniteDev</span>

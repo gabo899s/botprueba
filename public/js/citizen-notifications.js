@@ -27,8 +27,11 @@
       const actions = node('div',null,'citizen-actions');
       const open = node('button','Ver detalle'); open.type = 'button';
       open.addEventListener('click', async () => {
+        const expectedOwner = owner, expectedEpoch = epoch;
         if(!item.read) await mutate({ids:[item.id]},open);
+        if (!owner || expectedOwner !== owner || expectedEpoch !== epoch) return;
         window.CitizenApp?.selectPanel(item.panel);
+        document.dispatchEvent(new CustomEvent('citizen:navigate', { detail: { panel: item.panel, target: item.target }, bubbles: true }));
       });
       actions.append(open);
       if(!item.read) {

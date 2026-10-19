@@ -300,3 +300,15 @@
 header nav{gap:1rem!important;font-size:.75rem!important}
 @media(prefers-reduced-motion:reduce){#intro-curtain,#intro-stage{display:none!important}}
 @media(max-width:380px){#intro-word{font-size:clamp(2rem,7.6vw,5.1rem)}}
+
+/* Progressive enhancement: failed scripts never leave a black screen. */
+body:not(.intro-active) #intro-curtain,body:not(.intro-active) #intro-stage{display:none}
+body:not(.intro-active) .reveal-item{opacity:1;transform:none}
+body:not(.intro-active) #hero-infinitas-slot{opacity:1;visibility:visible}
+body:not(.intro-active) .hero-aura-container{opacity:1}
+.intro-skip{position:fixed;right:1.25rem;bottom:1.25rem;z-index:80;border:1px solid #ffffff45;border-radius:999px;padding:.7rem 1rem;color:#e4e4e7;background:#08090de6;font:inherit;font-size:.8rem;cursor:pointer}
+.intro-skip[hidden]{display:none}
+.intro-skip:focus-visible,.portfolio-action:focus-visible,.portfolio-case button:focus-visible,.wizard-draft button:focus-visible{outline:2px solid #7dd3fc;outline-offset:4px}
+.portfolio-noscript{margin:1rem auto;max-width:60rem;padding:1rem;color:#a1a1aa}.portfolio-noscript a{color:#7dd3fc}
+.portfolio-cases{border-top:1px solid #ffffff12}.portfolio-case{padding:1.25rem 0;border-bottom:1px solid #ffffff12}.portfolio-case summary{display:flex;justify-content:space-between;gap:1rem;cursor:pointer;font-size:.95rem;color:#f4f4f5}.portfolio-case summary span{color:#a1a1aa;font-size:.75rem}.portfolio-case p{max-width:42rem;font-size:.875rem;line-height:1.7;color:#a1a1aa;margin:.9rem 0}.portfolio-case button,.portfolio-case a,.portfolio-action,.wizard-draft button{display:inline-flex;align-items:center;border:1px solid #ffffff24;background:#0a0b0e;color:#e4e4e7;border-radius:999px;padding:.6rem .9rem;font:inherit;font-size:.75rem;cursor:pointer;text-decoration:none}.portfolio-case button:hover,.portfolio-case a:hover,.portfolio-action:hover,.wizard-draft button:hover{border-color:#7dd3fc88;color:#fff}.portfolio-case-actions,.wizard-draft-actions{display:flex;flex-wrap:wrap;gap:.65rem}.wizard-draft{padding:1rem;margin-bottom:1.5rem;background:#07080b;border:1px solid #ffffff17;border-radius:.85rem}.wizard-draft h3{font-size:.85rem;margin:0 0 .4rem}.wizard-draft p{font-size:.75rem;color:#a1a1aa;line-height:1.65;margin:.4rem 0 .75rem}.wizard-draft button:disabled{opacity:.35;cursor:default}.wizard-draft #draft-status{margin-bottom:0;color:#bae6fd}
+@media(prefers-reduced-motion:reduce){.hero-aura-container *{animation:none!important}}

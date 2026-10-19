@@ -49,6 +49,12 @@
       const elHeroSlot = document.getElementById('hero-infinitas-slot');
       const elHeroAura = document.getElementById('hero-aura');
 
+      const elIntroSkip = document.getElementById('intro-skip');
+      // The static document is usable without JavaScript. Lock it only while this presentation runs.
+      document.body.classList.add('intro-active', 'intro-locked');
+      document.querySelectorAll('header, main, footer').forEach(node => { node.inert = true; node.setAttribute('inert', ''); });
+      elIntroSkip.hidden = false;
+
       const elLightDiffuse = document.getElementById('metal-light-diffuse');
       const elLightSpec1 = document.getElementById('metal-light-spec1');
       const elLightSpec2 = document.getElementById('metal-light-spec2');
@@ -73,7 +79,7 @@
       let auraActivated = false;
       let revealTriggered = false;
       let sequenceCompleted = false;
-      let animationFrame, disposed = false;
+      let animationFrame, disposed = false, introWatchdog;
 
       function applyIntroFont(index) {
         if (index === lastAppliedFontIndex || index < 0 || index >= INTRO_FONTS.length) return;
@@ -149,7 +155,9 @@
       function finishIntroImmediately() {
         document.querySelectorAll('header, main, footer').forEach(node => { node.inert = false; node.removeAttribute('inert'); });
         sequenceCompleted = true;
-        document.body.classList.remove('intro-locked');
+        clearTimeout(introWatchdog);
+        elIntroSkip.hidden = true;
+        document.body.classList.remove('intro-locked', 'intro-active');
         document.body.classList.add('portfolio-revealed');
         elHeroAura.classList.add('aura-visible');
         elHeroSlot.classList.add('slot-visible');
@@ -157,6 +165,14 @@
         elStage.style.display = 'none';
         elCurtain.style.display = 'none';
       }
+
+      elIntroSkip.addEventListener('click', function () {
+        metallicActivated = true;
+        finishIntroImmediately();
+        document.querySelector('header a')?.focus({ preventScroll: true });
+      });
+      // Even a failed font, interrupted frame loop or later script error cannot trap the visitor.
+      introWatchdog = setTimeout(finishIntroImmediately, 15000);
 
       function startExperience() {
         if (prefersReducedMotion) {
@@ -171,13 +187,21 @@
 
         applyIntroFont(0);
         const startWallTime = Date.now();
+        let heroVisible = true;
+        const heroObserver = window.IntersectionObserver ? new IntersectionObserver(function (entries) {
+          heroVisible = entries.some(entry => entry.isIntersecting);
+          document.querySelectorAll('.aura-layer-deep, .aura-layer-celeste').forEach(node => { node.style.animationPlayState = heroVisible ? 'running' : 'paused'; });
+          cancelAnimationFrame(animationFrame);
+          if (!document.hidden && !disposed && (!sequenceCompleted || heroVisible)) animationFrame = requestAnimationFrame(tick);
+        }, { threshold: 0 }) : null;
+        heroObserver?.observe(document.getElementById('inicio'));
 
         function tick() {
           const nowWall = Date.now();
           const elapsed = nowWall - startWallTime;
 
           // Actualizar siempre los reflejos del acabado metálico cuando ya está activo
-          if (metallicActivated || sequenceCompleted) {
+          if ((metallicActivated || sequenceCompleted) && (!sequenceCompleted || heroVisible)) {
             updateLiquidBlueMetal(nowWall);
           }
 
@@ -249,24 +273,25 @@
             }
           }
 
-          if (!document.hidden && !disposed) animationFrame = requestAnimationFrame(tick);
+          if (!document.hidden && !disposed && (!sequenceCompleted || heroVisible)) animationFrame = requestAnimationFrame(tick);
         }
 
-        if (!document.hidden && !disposed) animationFrame = requestAnimationFrame(tick);
+        if (!document.hidden && !disposed && (!sequenceCompleted || heroVisible)) animationFrame = requestAnimationFrame(tick);
 
         // Si el visitante cambia de pestaña durante la entrada y regresa después,
         // sincronizar al instante para que el contenido nunca quede bloqueado
         document.addEventListener('visibilitychange', function () {
+          document.querySelectorAll('.aura-layer-deep, .aura-layer-celeste').forEach(node => { node.style.animationPlayState = !document.hidden && heroVisible ? 'running' : 'paused'; });
           if (document.hidden) {
             cancelAnimationFrame(animationFrame);
             if (!sequenceCompleted) { metallicActivated = true; finishIntroImmediately(); }
-          } else if (!disposed) {
+          } else if (!disposed && (!sequenceCompleted || heroVisible)) {
             cancelAnimationFrame(animationFrame);
             animationFrame = requestAnimationFrame(tick);
           }
         });
         window.addEventListener('pagehide', function () {
-          disposed = true; cancelAnimationFrame(animationFrame); finishIntroImmediately();
+          disposed = true; heroObserver?.disconnect(); cancelAnimationFrame(animationFrame); finishIntroImmediately();
         }, { once: true });
       }
 
@@ -444,6 +469,31 @@
       }
 
       elFeedbackClose.addEventListener('click', hideFeedback);
+      function firstMissingStep(targetIndex) {
+        const steps = getFlowSteps(wizardState.service);
+        for (let i = 0; i < Math.min(targetIndex, steps.length); i++) {
+          if (steps[i].key === 'bot-features' && !(wizardState.botFeaturesByCategory[wizardState.botCategory] || []).length)
+            return { index: i, message: 'Selecciona al menos una función para continuar.' };
+          if (steps[i].key === 'project-desc' && !(wizardState.projectDescriptionByService[wizardState.service] || '').trim())
+            return { index: i, message: 'Escribe una descripción del proyecto para continuar al siguiente paso.' };
+        }
+        return null;
+      }
+      function goToStep(targetIndex) {
+        const missing = firstMissingStep(targetIndex);
+        wizardState.stepIndex = missing ? missing.index : targetIndex;
+        renderWizard();
+        if (missing) {
+          showFeedback(missing.message);
+          if (getFlowSteps(wizardState.service)[missing.index].key === 'project-desc') elInputProjectDesc.focus();
+          return false;
+        }
+        return true;
+      }
+      function readyForSummary() {
+        return goToStep(getFlowSteps(wizardState.service).length - 1);
+      }
+
 
       elInputProjectDesc.addEventListener('input', function (e) {
         if (wizardState.service === 'web' || wizardState.service === 'sistemas') {
@@ -673,8 +723,7 @@
 
         elSummaryDl.querySelectorAll('[data-jump-step]').forEach(function (b) {
           b.addEventListener('click', function () {
-            wizardState.stepIndex = parseInt(b.getAttribute('data-jump-step'), 10);
-            renderWizard();
+            goToStep(parseInt(b.getAttribute('data-jump-step'), 10));
           });
         });
 
@@ -727,8 +776,7 @@
             '<span class="text-xs font-medium truncate">' + st.title + '</span>';
 
           btn.addEventListener('click', function () {
-            wizardState.stepIndex = idx;
-            renderWizard();
+            goToStep(idx);
           });
 
           li.appendChild(btn);
@@ -800,65 +848,122 @@
       });
 
       elBtnNext.addEventListener('click', function () {
-        const steps = getFlowSteps(wizardState.service);
-        const currentKey = steps[wizardState.stepIndex].key;
-
-        if (currentKey === 'bot-features') {
-          const feats = wizardState.botFeaturesByCategory[wizardState.botCategory] || [];
-          if (feats.length === 0) {
-            showFeedback('Selecciona al menos una función para continuar.');
-            return;
-          }
-        }
-        if (currentKey === 'project-desc') {
-          const desc = (wizardState.projectDescriptionByService[wizardState.service] || '').trim();
-          if (!desc) {
-            showFeedback('Escribe una descripción del proyecto para continuar al siguiente paso.');
-            elInputProjectDesc.focus();
-            return;
-          }
-        }
-
-        if (wizardState.stepIndex < steps.length - 1) {
-          wizardState.stepIndex += 1;
-          renderWizard();
-        }
+        goToStep(Math.min(wizardState.stepIndex + 1, getFlowSteps(wizardState.service).length - 1));
       });
 
-      elBtnCopySummary.addEventListener('click', function () {
-        const text = buildSummaryText();
-        function showCopiedToast() {
-          elCopySummaryLabel.textContent = 'Resumen copiado';
-          elCopyToastBadge.classList.remove('hidden');
-          setTimeout(function () {
-            elCopySummaryLabel.textContent = 'Copiar resumen para Discord';
-            elCopyToastBadge.classList.add('hidden');
-          }, 3000);
-        }
+      elBtnDiscordFinal.addEventListener('click', function (event) {
+        if (!readyForSummary()) event.preventDefault();
+      });
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(showCopiedToast).catch(function () {
-            fallbackCopy(text);
-            showCopiedToast();
-          });
-        } else {
-          fallbackCopy(text);
-          showCopiedToast();
-        }
+      let copyPending = false;
+      elBtnCopySummary.addEventListener('click', async function () {
+        if (copyPending || !readyForSummary()) return;
+        copyPending = true;
+        elBtnCopySummary.disabled = true;
+        const text = buildSummaryText();
+        let copied = false;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try { await navigator.clipboard.writeText(text); copied = true; } catch (_) { copied = fallbackCopy(text); }
+          } else copied = fallbackCopy(text);
+          if (copied) {
+            elCopySummaryLabel.textContent = 'Resumen copiado';
+            elCopyToastBadge.classList.remove('hidden');
+            setTimeout(function () { elCopySummaryLabel.textContent = 'Copiar resumen para Discord'; elCopyToastBadge.classList.add('hidden'); }, 3000);
+          } else {
+            showFeedback('No se pudo copiar. Selecciona el texto del resumen o descárgalo como archivo .txt.');
+          }
+        } finally { copyPending = false; elBtnCopySummary.disabled = false; }
       });
 
       function fallbackCopy(text) {
         const ta = document.createElement('textarea');
         ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          document.execCommand('copy');
-        } catch (err) {}
-        document.body.removeChild(ta);
+        ta.setAttribute('aria-label', 'Resumen para copiar');
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        const previous = document.activeElement;
+        document.body.appendChild(ta); ta.select();
+        let copied = false;
+        try { copied = document.execCommand('copy') === true; } catch (_) {}
+        ta.remove(); previous?.focus({ preventScroll: true });
+        return copied;
       }
+
+      document.getElementById('btn-download-summary').addEventListener('click', function () {
+        if (!readyForSummary()) return;
+        let url;
+        try {
+          url = URL.createObjectURL(new Blob([buildSummaryText()], { type: 'text/plain;charset=utf-8' }));
+          const link = document.createElement('a'); link.href = url; link.download = 'solicitud-infinitedev.txt';
+          document.body.appendChild(link); link.click(); link.remove();
+          showFeedback('Resumen preparado para descargar. La solicitud todavía no se ha enviado.');
+        } catch (_) { showFeedback('Este navegador no permite descargar el resumen. Puedes copiarlo o seleccionar su texto.'); }
+        finally { if (url) setTimeout(function () { URL.revokeObjectURL(url); }, 1000); }
+      });
+
+      // Voluntary local draft: saving is an explicit action, never an automatic side effect.
+      const DRAFT_KEY = 'infinitedev.order-draft.v1';
+      const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+      const draftStatus = document.getElementById('draft-status');
+      const draftRestore = document.getElementById('draft-restore');
+      const draftDelete = document.getElementById('draft-delete');
+      function plainText(value, limit) { return typeof value === 'string' ? value.slice(0, limit) : ''; }
+      function safeDraft(value) {
+        if (!value || typeof value !== 'object' || !Object.prototype.hasOwnProperty.call(SERVICES_META, value.service)) return null;
+        const category = BOT_CATEGORIES.find(cat => cat.id === value.botCategory);
+        if (!category) return null;
+        const features = {};
+        BOT_CATEGORIES.forEach(function (cat) {
+          const saved = value.botFeaturesByCategory && value.botFeaturesByCategory[cat.id];
+          features[cat.id] = Array.isArray(saved) ? cat.features.filter(feature => saved.includes(feature)) : [];
+        });
+        return {
+          service: value.service, botCategory: category.id,
+          stepIndex: Number.isInteger(value.stepIndex) ? Math.max(0, Math.min(value.stepIndex, getFlowSteps(value.service).length - 1)) : 0,
+          botFeaturesByCategory: features,
+          projectDescriptionByService: { web: plainText(value.projectDescriptionByService?.web, 5000), sistemas: plainText(value.projectDescriptionByService?.sistemas, 5000) },
+          clientName: plainText(value.clientName, 120), communityName: plainText(value.communityName, 160), extraDetails: plainText(value.extraDetails, 5000)
+        };
+      }
+      function readDraft() {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return null;
+        try {
+          if (raw.length > 30000) throw new Error('oversize');
+          const record = JSON.parse(raw), now = Date.now();
+          if (record.version !== 1 || !Number.isFinite(record.savedAt) || !Number.isFinite(record.expiresAt) || record.savedAt > now || record.expiresAt <= now || record.expiresAt - record.savedAt > DRAFT_TTL_MS) throw new Error('expired');
+          const state = safeDraft(record.state); if (!state) throw new Error('invalid');
+          return { state: state, expiresAt: record.expiresAt };
+        } catch (_) { localStorage.removeItem(DRAFT_KEY); return null; }
+      }
+      function refreshDraftStatus(message) {
+        try {
+          const draft = readDraft(); draftRestore.disabled = draftDelete.disabled = !draft;
+          draftStatus.textContent = message || (draft ? 'Hay un borrador guardado hasta ' + new Date(draft.expiresAt).toLocaleDateString('es') + '. No se restaura automáticamente.' : 'No hay borrador guardado.');
+        } catch (_) { draftRestore.disabled = draftDelete.disabled = true; draftStatus.textContent = 'El almacenamiento de este navegador no está disponible. Puedes seguir preparando y descargando tu pedido.'; }
+      }
+      document.getElementById('draft-save').addEventListener('click', function () {
+        try {
+          const now = Date.now();
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, savedAt: now, expiresAt: now + DRAFT_TTL_MS, state: safeDraft(wizardState) }));
+          refreshDraftStatus('Borrador guardado solo en este navegador durante 7 días. Los cambios posteriores no se guardan automáticamente.');
+        } catch (_) { draftStatus.textContent = 'No se pudo guardar el borrador. No se ha enviado ningún dato.'; }
+      });
+      draftRestore.addEventListener('click', function () {
+        try {
+          const saved = readDraft();
+          if (!saved) { refreshDraftStatus('El borrador ha caducado o ya no está disponible.'); return; }
+          Object.assign(wizardState, saved.state);
+          goToStep(wizardState.stepIndex);
+          refreshDraftStatus('Borrador restaurado. Revisa los datos antes de compartirlos; no se ha enviado ninguna solicitud.');
+        } catch (_) { draftStatus.textContent = 'No se pudo restaurar el borrador.'; }
+      });
+      draftDelete.addEventListener('click', function () {
+        try { localStorage.removeItem(DRAFT_KEY); refreshDraftStatus('Borrador guardado eliminado. El pedido abierto sigue en memoria hasta cerrar o recargar.'); }
+        catch (_) { draftStatus.textContent = 'No se pudo eliminar. Puedes borrarlo desde los datos del sitio en tu navegador.'; }
+      });
+      refreshDraftStatus();
+      window.addEventListener('storage', function (event) { if (event.key === DRAFT_KEY || event.key === null) refreshDraftStatus(); });
 
       function openWizardWithService(serviceKey, advanceToStep2) {
         if (serviceKey && SERVICES_META[serviceKey]) {
@@ -879,6 +984,13 @@
             openWizardWithService(null, false);
           });
         }
+      });
+
+      document.querySelectorAll('[data-case-start]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          wizardState.communityName = 'Proyecto inspirado en ' + btn.getAttribute('data-case-start');
+          openWizardWithService(btn.getAttribute('data-case-service'), true);
+        });
       });
 
       document.querySelectorAll('[data-service-start]').forEach(function (btn) {
@@ -973,5 +1085,20 @@
       renderWizard();
       setLegalTab('privacidad');
       if (prefersReducedMotion || !document.fonts) startExperience();
-      else Promise.allSettled(INTRO_FONTS.map(f => document.fonts.load(f.style + ' ' + f.weight + ' 64px ' + f.family))).then(() => { if (!disposed) startExperience(); });
+      else {
+        const loadFont = function (f) {
+          try { return Promise.resolve(document.fonts.load(f.style + ' ' + f.weight + ' 64px ' + f.family)).catch(function () {}); }
+          catch (_) { return Promise.resolve(); }
+        };
+        // Only the initial and final faces get startup priority. The remaining faces load
+        // opportunistically; a slow network can never postpone navigation indefinitely.
+        const priorityFonts = Promise.allSettled([loadFont(INTRO_FONTS[0]), loadFont(INTRO_FONTS[20])]);
+        let fontDeadline;
+        Promise.race([priorityFonts, new Promise(resolve => { fontDeadline = setTimeout(resolve, 1200); })]).then(function () {
+          clearTimeout(fontDeadline);
+          if (disposed) return;
+          startExperience();
+          INTRO_FONTS.slice(1, 20).forEach(loadFont);
+        });
+      }
     })();

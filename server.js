@@ -14,6 +14,7 @@ const { mountAdmin } = require("./lib/admin");
 const { mountStaff } = require("./lib/staff");
 const botSettings = require("./bot/settings");
 const { generate } = require("./lib/pdf");
+const { recordFields, articles, limits:recordLimits } = require("./lib/record-rules");
 const { limiter, jobGate } = require("./lib/security");
 store.init();
 const app = express();
@@ -77,13 +78,17 @@ setInterval(() => {
   for (const [k, v] of sessions) if (v.expires < now) sessions.delete(k);
   for (const [k, v] of oauth) if (v.expires < now) oauth.delete(k);
 }, 60000).unref();
+function sessionBrowser(agent) {
+  const text=String(agent||"");
+  return /Edg\//.test(text)?"Microsoft Edge":/OPR\//.test(text)?"Opera":/Firefox\//.test(text)?"Firefox":/Chrome\//.test(text)?"Chrome":/Safari\//.test(text)?"Safari":"Navegador";
+}
 function issue(res, user, oauthContext = null) {
   // Rotación de la sesión del navegador: la cookie anterior deja de ser válida.
   try { const prior=jwt.verify(res.req.cookies.session||'',process.env.JWT_SECRET);sessions.delete(prior.sid); } catch {}
   for(const [id,s]of sessions)if(s.expires<=Date.now())sessions.delete(id);
   if(sessions.size>=5000)throw Object.assign(Error('El servidor está ocupado. Inténtalo más tarde.'),{status:503});
   const sid = crypto.randomUUID();
-  sessions.set(sid, { user, expires: Date.now() + SESSION_MS, oauth:oauthContext, permissionsChecked:Date.now() });
+  sessions.set(sid, { user, expires: Date.now() + SESSION_MS, oauth:oauthContext, permissionsChecked:Date.now(), meta:{createdAt:new Date().toISOString(),lastSeenAt:new Date().toISOString(),browser:sessionBrowser(res.req?.get("user-agent"))} });
   res.cookie(
     "session",
     jwt.sign({ sid }, process.env.JWT_SECRET, { expiresIn: "30d" }),
@@ -142,6 +147,7 @@ async function auth(req, res, next, { refresh = true } = {}) {
       try { await refreshPermissions(s,!['GET','HEAD'].includes(req.method)); }
       catch(error){if(error.status===401)sessions.delete(sid);throw error;}
       if (sessions.get(sid) !== s || s.expires <= Date.now()) throw Error('Sesión cerrada.');
+      s.meta={...(s.meta||{}),lastSeenAt:new Date().toISOString()};
       sessions.save(sid);
     }
     req.user = s.user;
@@ -218,6 +224,12 @@ require('./lib/citizen-notifications').mountCitizenNotifications(app,{auth,wrap}
 require('./lib/citizen-support').mountCitizenSupport(app,{auth,wrap,assertSession});
 require('./lib/citizen-modules').mountCitizenModules(app,{auth});
 require("./lib/privacy").mountPrivacy(app,{auth,wrap});
+require('./lib/citizen-assets').mountCitizenAssets(app,{auth,wrap,assertSession});
+require('./lib/citizen-account').mountCitizenAccount(app,{auth,wrap,assertSession,sessions});
+require('./lib/citizen-economy').mountCitizenEconomy(app,{auth,wrap,assertSession});
+require('./lib/police-workflows').mountPoliceWorkflows(app,{auth,police,wrap,assertSession});
+app.get('/api/police/articles',auth,police,(req,res)=>res.json({success:true,articles,limits:recordLimits}));
+
 app.get(["/legal","/privacidad","/terminos","/cookies","/derechos"],(req,res)=>res.sendFile(path.join(root,"public/legal.html")));
 app.get("/health", (req, res) => res.json({ status: "healthy", local: true }));
 app.get("/api/config", (req, res) =>
@@ -675,74 +687,25 @@ async function register(req, res, type) {
         success: false,
         message: "Identificador de solicitud requerido.",
       });
-  const key = type + ":" + req.user.id + ":" + requestId;
-  const saved = store
-    .read(type === "multa" ? "multas" : "arrestos")
-    .find(
-      (r) =>
-        r.requestId === requestId &&
-        r.oficialId === (req.user.discordId || req.user.id),
-    );
-  if (saved) return res.json({ success: true, record: saved });
-  if (idempotency.has(key)) {
-    const prior = idempotency.get(key);
-    if (prior.record) return res.json({ success: true, record: prior.record });
-    return res
-      .status(409)
-      .json({
-        success: false,
-        message: "La solicitud aún se está procesando.",
-      });
+  const documento=text(req.body.documento,40),fields=recordFields(type,req.body);
+  const citizens=store.read("cedulas"),c=Object.hasOwn(citizens,documento)?citizens[documento]:null;
+  if(!c)return res.status(400).json({success:false,message:"Selecciona un ciudadano registrado."});
+  const identityRevision=identityImageKey(c),evidenceHash=req.file?crypto.createHash("sha256").update(req.file.buffer).digest("hex"):null;
+  const fingerprint=crypto.createHash("sha256").update(JSON.stringify({documento,articulos:fields.articulos,monto:fields.monto,placa:fields.placa,tiempo:fields.tiempo,evidenceHash})).digest("hex");
+  const key=type+":"+(req.user.discordId||req.user.id)+":"+requestId;
+  const saved=store.read(type==="multa"?"multas":"arrestos").find(r=>r.requestId===requestId&&r.oficialId===(req.user.discordId||req.user.id));
+  if(saved){
+    if(saved.requestFingerprint&&saved.requestFingerprint!==fingerprint)return res.status(409).json({success:false,message:"Ese intento corresponde a otros datos. Crea una nueva solicitud."});
+    return res.json({success:true,record:saved});
   }
-  const documento = text(req.body.documento, 40),
-    articulos = text(req.body.articulos, 1500);
-  const citizens=store.read("cedulas");
-  const c = Object.hasOwn(citizens,documento) ? citizens[documento] : null;
-  if (!c || !articulos)
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Selecciona un ciudadano registrado y escribe los artículos.",
-      });
-  const raw = type === "multa" ? req.body.valor : req.body.tiempo;
-  const n = Number(raw);
-  if (
-    raw === undefined ||
-    raw === "" ||
-    !Number.isFinite(n) ||
-    n <= 0 ||
-    n > 100000000 ||
-    (type === "arresto" && !Number.isInteger(n))
-  )
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message:
-          type === "multa"
-            ? "Monto positivo válido requerido."
-            : "Sentencia entera positiva requerida.",
-      });
-  idempotency.set(key, { at: Date.now() });
-  const r = {
-    id: type + "_" + crypto.randomUUID(),
-    requestId,
-    documento,
-    ciudadano: (c.nombre + " " + c.apellidos).trim(),
-    userId: c.discordId || null,
-    oficialId: req.user.discordId || req.user.id,
-    oficialNombre: req.user.nombreCompleto,
-    articulos,
-    fecha: new Date().toLocaleString("es-CR", {
-      timeZone: "America/Costa_Rica",
-    }),
-    createdAt: new Date().toISOString(),
-    estado: type === "multa" ? "REGISTRADA" : "REGISTRADO",
-    ...(type === "multa"
-      ? { monto: Math.round(n * 100) / 100, placa: text(req.body.placa, 20) }
-      : { tiempo: n }),
-  };
+  if(idempotency.has(key))return res.status(409).json({success:false,message:"La solicitud aún se está procesando."});
+  idempotency.set(key,{at:Date.now()});
+  const r={id:type+"_"+crypto.randomUUID(),requestId,requestFingerprint:fingerprint,evidenceHash,documento,
+    ciudadano:[c.nombre,c.apellidos].filter(Boolean).join(" "),userId:c.discordId||null,
+    oficialId:req.user.discordId||req.user.id,oficialNombre:req.user.nombreCompleto,
+    fecha:new Date().toLocaleString("es-CR",{timeZone:"America/Costa_Rica"}),createdAt:new Date().toISOString(),
+    estado:type==="multa"?"REGISTRADA":"REGISTRADO",...fields};
+  let committed=false;
   try {
     if (req.file) {
       const b = req.file.buffer;
@@ -764,28 +727,28 @@ async function register(req, res, type) {
     const file = await generate(type, r);
     r.pdfFileName = file;
     r.pdfUrl = "/pdfs/" + file;
-    const name = type === "multa" ? "multas" : "arrestos";
-    const records = store.read(name);
-    records.push(r);
-    store.write(name, records);
-    try {
-      store.queue(type, r);
-      r.notificationPending = true;
-    } catch (e) {
-      r.notificationPending = false;
-      r.notificationError =
-        "Registro guardado; no se pudo crear la notificación. Revisa permisos y usa Reintentar.";
-      console.error(r.notificationError);
-    }
+    assertSession(req);
+    if(!req.user.hasPoliceAccess)throw Object.assign(Error("Acceso policial revocado."),{status:403});
+    const current=store.read("cedulas")[documento];
+    if(!current||identityImageKey(current)!==identityRevision)throw Object.assign(Error("El ciudadano cambió durante la generación. Vuelve a consultarlo."),{status:409});
+    const name=type==="multa"?"multas":"arrestos";
+    store.transaction(()=>{
+      store.update(name,rows=>rows.push(r));
+      store.audit(r.oficialId,"record.create",{type,id:r.id,documento:r.documento});
+    });
+    committed=true;
+    try{store.queue(type,r);r.notificationPending=true;}
+    catch(error){r.notificationPending=false;r.notificationError="Registro guardado; no se pudo crear la notificación. Usa la mesa de pendientes para revisarlo.";}
+    store.update(name,rows=>{const current=rows.find(v=>v.id===r.id);current.notificationPending=r.notificationPending;if(r.notificationError)current.notificationError=r.notificationError;});
     idempotency.set(key, { at: Date.now(), record: r });
     res.json({ success: true, record: r });
   } catch (e) {
     idempotency.delete(key);
-    if (r.imagenFileName)
+    if (!committed && r.imagenFileName)
       fs.rmSync(path.join(root, "public/uploads", r.imagenFileName), {
         force: true,
       });
-    fs.rmSync(path.join(root, "public/pdfs", r.id + ".pdf"), { force: true });
+    if(!committed)fs.rmSync(path.join(root, "public/pdfs", r.id + ".pdf"), { force: true });
     throw e;
   }
 }
@@ -813,7 +776,7 @@ app.get("/api/records", auth, police, (req, res) =>
 );
 app.get("/api/bot/status", auth, police, (req, res) => {
   let bot = null;
-  const f = path.join(root, "bot/data/status.json");
+  const f = path.join(dataDir, "status.json");
   if (fs.existsSync(f)) {
     try {
       bot = JSON.parse(fs.readFileSync(f, "utf8"));
@@ -834,11 +797,11 @@ app.get("/api/bot/status", auth, police, (req, res) => {
 app.post("/api/notifications/retry", auth, admin, (req, res) => {
   let count = 0;
   for (const name of fs
-    .readdirSync(path.join(root, "bot/data/errors"))
+    .readdirSync(path.join(dataDir, "errors"))
     .filter((n) => n.endsWith(".json"))) {
-    const f = path.join(root, "bot/data/errors", name);
+    const f = path.join(dataDir, "errors", name);
     const n = JSON.parse(fs.readFileSync(f, "utf8"));
-    store.atomic(path.join(root, "bot/data/notifications", name), {
+    store.atomic(path.join(dataDir, "notifications", name), {
       ...n,
       attempts: 0,
       nextAttempt: 0,
@@ -851,12 +814,21 @@ app.post("/api/notifications/retry", auth, admin, (req, res) => {
     for (const r of store.read(type === "multa" ? "multas" : "arrestos"))
       if (
         !["notifications", "processed", "errors"].some((d) =>
-          fs.existsSync(path.join(root, "bot/data", d, r.id + ".json")),
+          fs.existsSync(path.join(dataDir, d, r.id + ".json")),
         )
       ) {
         store.queue(type, r);
         count++;
       }
+  for (const type of ["multa", "arresto"])
+    store.update(type === "multa" ? "multas" : "arrestos", rows => {
+      for (const record of rows) {
+        if (fs.existsSync(path.join(dataDir, "notifications", record.id + ".json"))) {
+          record.notificationPending = true;
+          delete record.notificationError;
+        }
+      }
+    });
   res.json({ success: true, count });
 });
 function fileAccess(directory) {
@@ -884,7 +856,13 @@ function fileAccess(directory) {
     const citizen = citizens.find(c => c?.discordId && c.discordId === req.user.discordId);
     const identity = directory === "pdfs" && citizens.find(c => { try { return filename === identityFilename(c); } catch { return false; } });
     const field = directory === "pdfs" ? "pdfFileName" : "imagenFileName";
-    const records = [...store.read("multas"), ...store.read("arrestos")].filter(r => r[field] === filename);
+    const records = [...store.read("multas"), ...store.read("arrestos")].filter(r => r[field] === filename || directory==="pdfs" && r.originalPdfFileName===filename);
+    if(directory==="pdfs")for(const revision of store.read("policeRevisions")){
+      if(revision.pdfFileName!==filename && revision.previous?.pdfFileName!==filename)continue;
+      const collection=revision.type==="multa"?"multas":revision.type==="arresto"?"arrestos":null;
+      const current=collection&&store.read(collection).find(record=>record.id===revision.recordId);
+      if(current&&!records.some(record=>record.id===current.id))records.push(current);
+    }
     const mine = (identity && identity === citizen) || records.some(r =>
       recordBelongsTo(r,req.user.discordId,new Set(citizen ? [citizen.numeroCedula] : [])));
     // Un archivo huérfano, una transcripción sin ticket o un archivo de otra
@@ -918,6 +896,7 @@ for (const d of ["css", "js", "images", "fonts", "webfonts"])
 app.get(["/maes-rp", "/maes-rp/", "/maes-rp.html"], (req, res) =>
   res.sendFile(path.join(root, "public/maes-rp.html")),
 );
+app.get(["/demo/maes","/demo/maes/ciudadano","/demo/maes/policia"],(req,res)=>res.sendFile(path.join(root,"public/demo-maes.html")));
 app.get(["/", "/index.html"], (req, res) =>
   res.sendFile(path.join(root, "public/index.html")),
 );

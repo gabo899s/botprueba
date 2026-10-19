@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Demostración interactiva de Maes RP con datos ficticios, sin acceso a expedientes ni cuentas reales.">
+  <title>Maes RP · Demostración interactiva</title>
+  <link rel="stylesheet" href="/css/demo-maes.css">
+  <script defer src="/js/demo-maes.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Saltar al contenido</a>
+  <header class="demo-header">
+    <a class="brand" href="/demo/maes" aria-label="Inicio de la demostración de Maes RP">MAES<span>RP</span><small>DEMO</small></a>
+    <nav aria-label="Cambiar perspectiva">
+      <a data-view="ciudadano" href="/demo/maes/ciudadano">Ciudadano</a>
+      <a data-view="policia" href="/demo/maes/policia">Policía</a>
+      <a href="/">InfiniteDev</a>
+    </nav>
+    <button id="resetDemo" class="quiet" type="button">Restablecer demo</button>
+  </header>
+  <aside class="demo-warning"><strong>Demostración con datos ficticios.</strong> No inicia sesión ni conecta Discord, Roblox o el bot. Todas las acciones son simuladas en esta pestaña y se borran al recargar. No introduzcas información personal.</aside>
+  <main id="workspace" tabindex="-1"></main>
+  <p id="demoStatus" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
+  <footer>MAES RP · Muestra de servicio por InfiniteDev · No es un documento ni un servicio oficial.</footer>
+  <dialog id="demoDialog" aria-labelledby="dialogTitle">
+    <div class="dialog-heading"><h2 id="dialogTitle"></h2><button id="closeDialog" class="quiet" type="button" aria-label="Cerrar ventana">Cerrar</button></div>
+    <div id="dialogBody"></div>
+  </dialog>
+  <noscript>Activa JavaScript para explorar esta demostración. No se necesitan cuentas ni credenciales.</noscript>
+</body>
+</html>

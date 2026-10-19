@@ -5,7 +5,7 @@ function loadCitizen(w){for(const script of w.document.querySelectorAll('script[
 test('portfolio mantiene contenido adjunto y enlaza el producto a la demo de Maes RP',()=>{
  const d=page('index.html');const doc=d.window.document;
  assert.match(doc.body.textContent.replace(/\s+/g,' '),/Soluciones Infinitas/);assert.match(doc.body.textContent,/Trayectoria Profesional/);
- const menu=doc.querySelector('.products-menu');assert.match(menu.textContent,/Productos digitales/);assert.equal(menu.querySelector('a').getAttribute('href'),'/maes-rp');assert.equal(menu.querySelectorAll('a').length,1);
+ const menu=doc.querySelector('.products-menu');assert.match(menu.textContent,/Productos digitales/);assert.equal(menu.querySelector('a').getAttribute('href'),'/demo/maes');assert.equal(menu.querySelectorAll('a').length,2);assert.ok(menu.querySelector('a[href="/maes-rp"]'));assert.match(menu.textContent,/datos ficticios/);
  assert.equal(doc.querySelectorAll('[onclick],[onerror],[style],script:not([src])').length,0);
  for(const node of doc.querySelectorAll('link[rel="stylesheet"],script[src]'))assert.ok(fs.existsSync(path.join(root,'public',(node.getAttribute('href')||node.getAttribute('src')).split('?')[0])));
  d.window.close();

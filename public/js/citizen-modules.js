@@ -39,7 +39,7 @@
       control.querySelectorAll(".lock-icon").forEach((icon) => icon.remove());
       // Repeated account refreshes must not accumulate status badges.
       control.querySelectorAll(".module-status").forEach((badge) => badge.remove());
-      if (control.classList.contains("tile") && definitions[id]) {
+      if (control.classList.contains("tile") && definitions[id] && !["transactions","assets"].includes(id)) {
         const badge = document.createElement("small");
         badge.className = "module-status";
         badge.textContent = "Próximamente";
@@ -47,8 +47,11 @@
       }
     });
   }
+  function activeModule(id){document.querySelectorAll('.tile').forEach(tile=>{const active=tile.dataset.module===id;tile.classList.toggle('active',active);if(active)tile.setAttribute('aria-current','page');else tile.removeAttribute('aria-current');});}
   function show(id) {
     if (!allowed.has(id) || !Object.hasOwn(definitions, id)) return;
+    if(id==="transactions" && document.querySelector('[data-view="economy"]')){selected=id;app.selectPanel("economy");activeModule(id);return;}
+    if(id==="assets" && document.querySelector('#citizenAssets')){selected=id;app.selectPanel("personal");activeModule(id);document.querySelector('#citizenAssets').scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return;}
     const details = document.querySelector("#moduleDetails");
     if (!details) return;
     selected = id;

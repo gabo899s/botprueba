@@ -4,7 +4,7 @@
   const app = window.CitizenApp;
   if (!app) return;
   const drafts = new Map(), pending = new Set();
-  let owner = null, generation = 0, current = {}, kind = 'multas';
+  let owner = null, generation = 0, current = {}, kind = 'multas', focusTarget = null;
   const filters = { search: '', status: '', from: '', to: '' };
   const node = (tag, text, className) => { const n = app.el(tag, text); if (className) n.className = className; return n; };
   const empty = (parent, text) => parent.append(node('p', text, 'empty-state'));
@@ -35,7 +35,7 @@
     finally { pending.delete(key); if (active(id, epoch) && !pendingPayment(r)) button.disabled = false; }
   }
   function recordCard(r) {
-    const card = node('article', '', 'record citizen-record');
+    const card = node('article', '', 'record citizen-record'); card.dataset.entityId = String(r.id); card.dataset.entityType = kind; if (focusTarget?.id === String(r.id) && focusTarget.type === kind) card.classList.add('citizen-target');
     card.append(node('h3', (kind === 'multas' ? 'Multa' : 'Arresto') + ' · ' + (r.estado || 'Sin estado')));
     field(card, 'Referencia', r.id); field(card, 'Fecha', displayDate(r.createdAt || r.fecha));
     field(card, 'Agente', r.oficialNombre || r.oficialId); field(card, 'Artículos y motivo', r.articulos);
@@ -98,7 +98,7 @@
     const records = Array.isArray(current.sanctions) ? current.sanctions : [];
     if (!records.length) { empty(root, 'No tienes sanciones registradas.'); return; }
     for (const r of records) {
-      const card = node('article', '', 'record citizen-sanction'); card.append(node('h3', 'Sanción · ' + (r.estado || 'Sin estado')));
+      const card = node('article', '', 'record citizen-sanction'); card.dataset.entityId = String(r.id); card.dataset.entityType = 'sanction'; if (focusTarget?.type === 'sanction' && focusTarget.id === String(r.id)) card.classList.add('citizen-target'); card.append(node('h3', 'Sanción · ' + (r.estado || 'Sin estado')));
       field(card, 'Motivo', r.motivo); field(card, 'Fecha', displayDate(r.at || r.createdAt || r.fecha));
       if (r.appeal) {
         field(card, 'Apelación', r.appeal.status); field(card, 'Tu explicación', r.appeal.reason);
@@ -136,9 +136,20 @@
   }
   function update(detail) {
     const nextOwner = detail.demo ? null : userId(detail.me);
-    if (nextOwner !== owner) { owner = nextOwner; generation++; drafts.clear(); pending.clear(); Object.keys(filters).forEach(k => filters[k] = ''); }
+    if (nextOwner !== owner) { owner = nextOwner; generation++; focusTarget = null; drafts.clear(); pending.clear(); Object.keys(filters).forEach(k => filters[k] = ''); }
     current = detail; renderRecords(); renderSanctions();
   }
+  document.addEventListener('citizen:navigate', event => {
+    const target = event.detail?.target; if (!owner || !target) return;
+    const type = target.type === 'payment' ? 'multas' : target.type;
+    if (!['multas','arrestos','sanction'].includes(type)) return;
+    document.querySelectorAll('#records .citizen-target,#sanctions .citizen-target').forEach(n => n.classList.remove('citizen-target'));
+    focusTarget = {type, id: String(target.id)};
+    if (type !== 'sanction') { kind = type; Object.keys(filters).forEach(k => filters[k] = ''); renderRecords(); } else renderSanctions();
+    const card = [...document.querySelectorAll('[data-entity-id]')].find(n => n.dataset.entityId === focusTarget.id && n.dataset.entityType === type);
+    if (card) { card.tabIndex = -1; card.focus({preventScroll:true}); card.scrollIntoView?.({behavior:'smooth',block:'center'}); }
+    else app.notice('El registro ya no está disponible. Actualiza tu expediente.');
+  });
   document.addEventListener('citizen:updated', event => update(event.detail || {}));
   if (app.state?.me || app.state?.demo) update(app.state);
 })();

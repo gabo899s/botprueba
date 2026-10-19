@@ -31,11 +31,11 @@ async function api(url, options = {}) {
   return data;
 }
 function image(img, url) {
-  img.src = url || "/images/logo.png";
+  img.src = url || "/images/avatar.svg";
   img.addEventListener(
     "error",
     () => {
-      img.src = "/images/logo.png";
+      img.src = "/images/avatar.svg";
     },
     { once: true },
   );
@@ -95,6 +95,7 @@ function records(target, values) {
 }
 async function search(query) {
   const { data: c } = await api("/api/search?q=" + encodeURIComponent(query));
+  if(person?.numeroCedula!==c.numeroCedula)document.querySelectorAll("[data-request-id]").forEach(b=>delete b.dataset.requestId);
   person = c;
   $("#dashboard-empty").classList.add("hidden-view");
   $("#citizen-content").classList.remove("hidden-view");
@@ -153,7 +154,8 @@ $("#search-input").addEventListener("input", () => {
 });
 function modal(type, open) {
   if (open && !person) return toast("Selecciona un ciudadano.");
-  $("#modal-" + type).classList.toggle("hidden-view", !open);
+  const dialog=$("#modal-"+type);dialog.classList.toggle("hidden-view",!open);
+  if(open){dialog.dispatchEvent(new Event("compose:reset"));dialog._returnFocus=document.activeElement;dialog.querySelector("textarea,input,button")?.focus();}else dialog._returnFocus?.focus();
 }
 async function submit(type, button) {
   if (!person) return;
@@ -187,7 +189,7 @@ async function submit(type, button) {
     delete button.dataset.requestId;
     modal(type, false);
     await search(person.numeroCedula);
-    toast("Registro guardado. Notificación en cola.", d.record.pdfUrl);
+    toast(d.record.notificationPending===false ? d.record.notificationError || "Registro guardado. Revisa la notificación en la mesa policial." : "Registro guardado. Notificación en cola.", d.record.pdfUrl);
   } catch (e) {
     toast(e.message);
   } finally {
@@ -239,3 +241,5 @@ $("#arresto-foto").addEventListener("change", () => {
     toast(e.message);
   }
 })();
+
+for(const type of ["multa","arresto"]){const dialog=document.querySelector("#modal-"+type);if(!dialog)continue;dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","true");dialog.setAttribute("aria-label",type==="multa"?"Registrar multa":"Registrar arresto");dialog.querySelector(":scope > div")?.classList.add("maes-modal-frame");dialog.addEventListener("input",()=>{const button=dialog.querySelector('[data-action="submit-'+type+'"]');if(button)delete button.dataset.requestId;});dialog.addEventListener("change",()=>{const button=dialog.querySelector('[data-action="submit-'+type+'"]');if(button)delete button.dataset.requestId;});dialog.addEventListener("keydown",event=>{if(event.key!=="Tab")return;const nodes=Array.from(dialog.querySelectorAll('button,input,textarea,select,a[href]')).filter(n=>!n.disabled&&!n.hidden);const first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}});}

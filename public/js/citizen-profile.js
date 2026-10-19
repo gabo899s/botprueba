@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const labels = { nombre: 'Nombre del personaje', apellidos: 'Apellidos del personaje', fechaNacimiento: 'Nacimiento del personaje', nacionalidad: 'Nacionalidad', sexo: 'Sexo', estatura: 'Estatura en cm', provincia: 'Provincia', grupoSanguineo: 'Grupo sanguíneo' };
+  const labels = { nombre: 'Nombre del personaje', apellidos: 'Apellidos del personaje', fechaNacimiento: 'Nacimiento del personaje', nacionalidad: 'Nacionalidad', sexo: 'Sexo', estatura: 'Estatura en cm', provincia: 'Provincia', lugarNacimiento: 'Lugar de nacimiento', grupoSanguineo: 'Grupo sanguíneo' };
   const statuses = { pending: 'Pendiente de revisión', approved: 'Aprobada', rejected: 'Rechazada' };
   const node = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
   const date = value => new Date(value).toLocaleString('es');
@@ -16,7 +16,7 @@
     return list;
   }
   function card(item) {
-    const article = node('article', undefined, 'record correction-record');
+    const article = node('article', undefined, 'record correction-record'); article.dataset.entityType = 'profile.correction'; article.dataset.entityId = String(item.id);
     article.append(node('h4', `${statuses[item.status] || 'Solicitud'} · ${date(item.createdAt)}`), changesList(item), node('p', `Motivo: ${item.reason}`));
     if (item.reviewedAt) article.append(node('p', `Revisada: ${date(item.reviewedAt)}`));
     if (item.note) article.append(node('p', `Respuesta de administración: ${item.note}`));
@@ -83,7 +83,7 @@
       const group = node('div', undefined, 'form-row'), toggleLabel = node('label'), toggle = node('input'); toggle.type = 'checkbox';
       toggle.setAttribute('aria-label', `Corregir ${label.toLowerCase()}`); toggleLabel.append(toggle, document.createTextNode(' ' + label));
       const inputLabel = node('label', `Nuevo valor: ${label.toLowerCase()}`), input = node('input');
-      input.id = `correction-${key}`; inputLabel.htmlFor = input.id; input.name = key; input.disabled = true; input.value = citizen[key] || ''; input.maxLength = ({ nombre: 80, apellidos: 100, nacionalidad: 50, sexo: 20, estatura: 20, provincia: 50, grupoSanguineo: 3 })[key] || 10;
+      input.id = `correction-${key}`; inputLabel.htmlFor = input.id; input.name = key; input.disabled = true; input.value = citizen[key] || ''; input.maxLength = ({ nombre: 80, apellidos: 100, nacionalidad: 50, sexo: 20, estatura: 20, provincia: 50, lugarNacimiento: 100, grupoSanguineo: 3 })[key] || 10;
       if (key === 'fechaNacimiento') input.type = 'date';
       if (key === 'estatura') input.placeholder = '180 cm';
       if (key === 'grupoSanguineo') input.placeholder = 'O+';
@@ -105,6 +105,12 @@
     details.append(form); host.append(details);
   }
   document.addEventListener('citizen:updated', citizenUpdated);
+  document.addEventListener('citizen:navigate', event => {
+    if (event.detail?.target?.type !== 'profile.correction') return;
+    document.querySelectorAll('.correction-record.citizen-target').forEach(n => n.classList.remove('citizen-target'));
+    const item = [...document.querySelectorAll('.correction-record')].find(n => n.dataset.entityId === String(event.detail.target.id));
+    if (item) { item.classList.add('citizen-target'); item.tabIndex = -1; item.focus({preventScroll:true}); item.scrollIntoView?.({behavior:'smooth',block:'center'}); }
+  });
   document.querySelector('#robloxRefresh')?.addEventListener('click', event => {
     if (event.currentTarget.getAttribute('aria-disabled') === 'true') { event.preventDefault(); window.CitizenApp?.notice(document.querySelector('#robloxHelp')?.textContent || 'La vinculación de Roblox no está disponible.', true); }
   });

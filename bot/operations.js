@@ -1,8 +1,11 @@
 const crypto = require("node:crypto");
+const fs = require("node:fs"), path = require("node:path");
+const { root } = require("../lib/config");
 const store = require("../lib/store"),
   domain = require("./domain");
 const pdf = require("../lib/pdf");
 const { documentJob } = require("../lib/bot-resource-limits");
+const { recordFields } = require("../lib/record-rules");
 async function record(ctx, type, user, values) {
   domain.requireScope(ctx, "police");
   return documentJob(ctx.id, () => recordDocument(ctx, type, user, values));
@@ -10,20 +13,8 @@ async function record(ctx, type, user, values) {
 async function recordDocument(ctx, type, user, values) {
   const c = domain.citizen(user);
   if (!c) throw domain.error("El usuario no tiene cédula registrada.");
-  const articles = domain.text(values.articulos, 1500);
-  if (!articles) throw domain.error("Artículos requeridos.");
-  let amount = values.monto;
-  if (type === "multa" && !amount) {
-    amount = 0;
-    for (const match of articles.matchAll(/Art\.?\s*(\d+)/gi)) {
-      const a = domain.articles.find(
-        (a) => Number(a.numero) === Number(match[1]),
-      );
-      if (a) amount += Number(a.monto) || 0;
-    }
-    if (!amount)
-      throw domain.error("Escribe un monto válido o artículos del catálogo.");
-  }
+  const at = Date.now();
+  const fields = recordFields(type, values, at);
   const r = {
     id: type + "_" + crypto.randomUUID(),
     documento: c.numeroCedula,
@@ -31,26 +22,41 @@ async function recordDocument(ctx, type, user, values) {
     userId: user,
     oficialId: ctx.id,
     oficialNombre: ctx.name || ctx.id,
-    articulos: articles,
     fecha: new Date().toLocaleString("es-CR", {
       timeZone: "America/Costa_Rica",
     }),
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(at).toISOString(),
     estado: type === "multa" ? "REGISTRADA" : "REGISTRADO",
-    ...(type === "multa"
-      ? {
-          monto: domain.numeric(amount, 0.01, 100000000),
-          placa: domain.text(values.placa, 20),
-          vence: new Date(Date.now() + 7 * 86400000).toISOString(),
-        }
-      : { tiempo: domain.numeric(values.tiempo, 1, 1000000, true) }),
+    ...fields,
   };
   r.pdfFileName = await pdf.generate(type, r);
   r.pdfUrl = "/pdfs/" + r.pdfFileName;
-  store.update(type === "multa" ? "multas" : "arrestos", (list) =>
-    list.push(r),
-  );
-  store.queue(type, r);
+  try {
+    store.transaction(() => {
+      const current = domain.citizen(user);
+      if (!current || current.numeroCedula !== c.numeroCedula || current.nombre !== c.nombre || current.apellidos !== c.apellidos)
+        throw domain.error("La identidad cambió durante la generación. Vuelve a intentarlo.", 409);
+      store.update(type === "multa" ? "multas" : "arrestos", list => list.push(r));
+      store.audit(ctx.id, "record.create", { id: r.id, type, userId: user, source: "discord" });
+    });
+  } catch (error) {
+    // A document without its canonical record must never remain accessible.
+    try { fs.rmSync(path.join(root, "public/pdfs", path.basename(r.pdfFileName)), { force: true }); } catch {}
+    throw error;
+  }
+  try {
+    store.queue(type, r);
+    r.notificationPending = true;
+  } catch {
+    // The record is already committed: report delivery failure without inviting
+    // a second command that would create a duplicate fine/arrest.
+    r.notificationPending = false;
+    r.notificationError = "Registro guardado; la notificación requiere reintento.";
+  }
+  store.update(type === "multa" ? "multas" : "arrestos", list => Object.assign(list.find(item => item.id === r.id), {
+    notificationPending: r.notificationPending,
+    ...(r.notificationError ? { notificationError: r.notificationError } : {}),
+  }));
   return r;
 }
 async function ban(ctx, user, roblox, motivo, dias, prc) {
@@ -123,6 +129,7 @@ async function unban(ctx, roblox, prc) {
   return { success: true, roblox, userIds: [...userIds] };
 }
 function requestPayment(ctx, fineId) {
+  if (!ctx?.id) throw domain.error("Inicia sesión.", 401);
   return store.update("multas", (list) => {
     const fine = list.find((f) => f.id === fineId);
     if (!fine || fine.userId !== ctx.id)
@@ -130,8 +137,7 @@ function requestPayment(ctx, fineId) {
         "Multa no encontrada o no pertenece a tu usuario.",
         403,
       );
-    if (fine.estado === "PAGADA")
-      throw domain.error("La multa ya está pagada.", 409);
+    assertPaymentAvailable(fine);
     if (fine.paymentRequested)
       throw domain.error("Ya existe una solicitud de pago.", 409);
     fine.paymentRequested = {
@@ -139,8 +145,18 @@ function requestPayment(ctx, fineId) {
       by: ctx.id,
       status: "pendiente-validacion",
     };
+    store.audit(ctx.id, "payment.request", { id: fine.id, userId: fine.userId });
     return fine;
   });
+}
+function assertPaymentAvailable(fine) {
+  const state = String(fine.estado || "").toUpperCase();
+  if (state === "PAGADA" || fine.payment || fine.paymentAttempt?.status === "confirmado")
+    throw domain.error("La multa ya está pagada o tiene una confirmación registrada.", 409);
+  if (["ANULADA", "ANULADO", "CANCELADA", "CANCELADO", "RECTIFICADA", "RECTIFICADO"].includes(state))
+    throw domain.error("El registro no está vigente para recibir pagos.", 409);
+  if (["en-proceso", "no-confirmado"].includes(fine.paymentAttempt?.status))
+    throw domain.error("Hay un cobro en proceso o incierto. Revisa la transacción antes de confirmar un pago manual.", 409);
 }
 function confirmPayment(ctx, fineId, reference) {
   domain.requireScope(ctx, "police");
@@ -149,12 +165,18 @@ function confirmPayment(ctx, fineId, reference) {
   return store.update("multas", (list) => {
     const fine = list.find((f) => f.id === fineId);
     if (!fine) throw domain.error("Multa no encontrada.", 404);
+    assertPaymentAvailable(fine);
     fine.estado = "PAGADA";
     fine.payment = {
       reference: domain.text(reference, 200),
       approvedBy: ctx.id,
       at: new Date().toISOString(),
     };
+    if (fine.paymentRequested) {
+      fine.paymentRequested.status = "confirmado";
+      fine.paymentRequested.confirmedAt = fine.payment.at;
+    }
+    store.audit(ctx.id, "payment.confirm", { id: fine.id, userId: fine.userId, via: "manual" });
     return fine;
   });
 }
